@@ -1,57 +1,40 @@
 package controllers;
 
-import dao.UserDAO;
-import models.User;
+import dal.UserDAO;
 import java.io.IOException;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.http.*;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
+import models.User;
 
+@WebServlet(name = "LoginController", urlPatterns = { "/login" })
 public class LoginController extends HttpServlet {
-    
-    private UserDAO userDAO = new UserDAO();
-    
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        // Forward to login page
-        request.getRequestDispatcher("/views/login.jsp").forward(request, response);
+        request.getRequestDispatcher("views/login.jsp").forward(request, response);
     }
-    
+
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
-        String username = request.getParameter("username");
+        String email = request.getParameter("email");
         String password = request.getParameter("password");
-        
-        // Validate input
-        if (username == null || username.trim().isEmpty() || 
-            password == null || password.trim().isEmpty()) {
-            request.setAttribute("error", "Username and password are required");
-            request.getRequestDispatcher("/views/login.jsp").forward(request, response);
-            return;
-        }
-        
-        // Validate credentials
-        User user = userDAO.validateLogin(username, password);
-        
-        if (user != null) {
-            // Login successful
+
+        UserDAO udao = new UserDAO();
+        User u = udao.login(email, password);
+
+        if (u != null) {
             HttpSession session = request.getSession();
-            session.setAttribute("user", user);
-            session.setAttribute("role", user.getRole());
-            session.setAttribute("userId", user.getUserId());
-            session.setAttribute("fullName", user.getFullName());
-            
-            // Set session timeout (30 minutes)
-            session.setMaxInactiveInterval(30 * 60);
-            
-            response.sendRedirect(request.getContextPath() + "/home");
+            session.setAttribute("user", u);
+            response.sendRedirect("home");
         } else {
-            // Login failed
-            request.setAttribute("error", "Invalid username or password");
-            request.setAttribute("username", username);
-            request.getRequestDispatcher("/views/login.jsp").forward(request, response);
+            request.setAttribute("error", "Invalid email or password!");
+            request.getRequestDispatcher("views/login.jsp").forward(request, response);
         }
     }
 }

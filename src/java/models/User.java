@@ -3,64 +3,24 @@ package models;
 import java.sql.Timestamp;
 
 public class User {
-    private int userId;
-    private String username;
-    private String password;
-    private String role; // reader, librarian, admin
+    private int userID;
     private String fullName;
     private String email;
+    private String passwordHash;
     private String phone;
-    private boolean status;
-    private Timestamp createdDate;
+    private int roleID;
+    private boolean isActive;
+    private Timestamp createdAt;
 
-    // Constructors
     public User() {
     }
 
-    public User(int userId, String username, String password, String role, String fullName, 
-                String email, String phone, boolean status, Timestamp createdDate) {
-        this.userId = userId;
-        this.username = username;
-        this.password = password;
-        this.role = role;
-        this.fullName = fullName;
-        this.email = email;
-        this.phone = phone;
-        this.status = status;
-        this.createdDate = createdDate;
+    public int getUserID() {
+        return userID;
     }
 
-    // Getters and Setters
-    public int getUserId() {
-        return userId;
-    }
-
-    public void setUserId(int userId) {
-        this.userId = userId;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public String getRole() {
-        return role;
-    }
-
-    public void setRole(String role) {
-        this.role = role;
+    public void setUserID(int userID) {
+        this.userID = userID;
     }
 
     public String getFullName() {
@@ -79,6 +39,14 @@ public class User {
         this.email = email;
     }
 
+    public String getPasswordHash() {
+        return passwordHash;
+    }
+
+    public void setPasswordHash(String passwordHash) {
+        this.passwordHash = passwordHash;
+    }
+
     public String getPhone() {
         return phone;
     }
@@ -87,43 +55,27 @@ public class User {
         this.phone = phone;
     }
 
-    public boolean isStatus() {
-        return status;
+    public int getRoleID() {
+        return roleID;
     }
 
-    public void setStatus(boolean status) {
-        this.status = status;
+    public void setRoleID(int roleID) {
+        this.roleID = roleID;
     }
 
-    public Timestamp getCreatedDate() {
-        return createdDate;
+    public boolean isIsActive() {
+        return isActive;
     }
 
-    public void setCreatedDate(Timestamp createdDate) {
-        this.createdDate = createdDate;
+    public void setIsActive(boolean isActive) {
+        this.isActive = isActive;
     }
 
-    // Helper methods
-    public boolean isAdmin() {
-        return "admin".equalsIgnoreCase(this.role);
+    public Timestamp getCreatedAt() {
+        return createdAt;
     }
 
-    public boolean isLibrarian() {
-        return "librarian".equalsIgnoreCase(this.role);
-    }
-
-    public boolean isReader() {
-        return "reader".equalsIgnoreCase(this.role);
-    }
-
-    @Override
-    public String toString() {
-        return "User{" +
-                "userId=" + userId +
-                ", username='" + username + '\'' +
-                ", role='" + role + '\'' +
-                ", fullName='" + fullName + '\'' +
-                ", status=" + status +
-                '}';
+    public void setCreatedAt(Timestamp createdAt) {
+        this.createdAt = createdAt;
     }
 }

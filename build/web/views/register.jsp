@@ -1,153 +1,253 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register - Library System</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-    <style>
-        body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .register-card {
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-            overflow: hidden;
-        }
-        .register-header {
-            background: linear-gradient(135deg, #1e90ff 0%, #4169e1 100%);
-            color: white;
-            padding: 30px;
-            text-align: center;
-        }
-        .register-body {
-            padding: 40px;
-        }
-        .form-control:focus {
-            border-color: #4169e1;
-            box-shadow: 0 0 0 0.2rem rgba(65, 105, 225, 0.25);
-        }
-        .btn-register {
-            background: linear-gradient(135deg, #1e90ff 0%, #4169e1 100%);
-            border: none;
-            padding: 12px;
-            font-weight: 600;
-        }
-        .btn-register:hover {
-            background: linear-gradient(135deg, #4169e1 0%, #1e90ff 100%);
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-md-8 col-lg-6">
-                <div class="register-card">
-                    <div class="register-header">
-                        <h2><i class="bi bi-person-plus-fill"></i> Create Account</h2>
-                        <p class="mb-0">Join our library community</p>
+    <!DOCTYPE html>
+    <html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Register - Multi-Restaurant Menu</title>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <style>
+            :root {
+                --primary: #ff4757;
+                --secondary: #2f3542;
+                --background: #f1f2f6;
+                --white: #ffffff;
+            }
+
+            body {
+                font-family: 'Inter', sans-serif;
+                margin: 0;
+                background-color: var(--background);
+                min-height: 100vh;
+                display: flex;
+                flex-direction: column;
+            }
+
+            .site-header {
+                background-color: var(--white);
+                padding: 1rem 5%;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                position: sticky;
+                top: 0;
+                z-index: 100;
+            }
+
+            .site-header__bar {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            .logo {
+                font-size: 1.5rem;
+                font-weight: bold;
+                color: var(--primary);
+                text-decoration: none;
+            }
+
+            .nav-links a {
+                text-decoration: none;
+                color: var(--secondary);
+                margin-left: 1.5rem;
+                font-weight: 500;
+                transition: color 0.3s;
+            }
+
+            .nav-links a:hover {
+                color: var(--primary);
+            }
+
+            .nav-user {
+                color: #57606f;
+            }
+
+            .nav-action {
+                color: var(--primary);
+                font-weight: 600;
+            }
+
+            main.auth-layout {
+                flex: 1;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                padding: 2rem 1rem;
+            }
+
+            .register-card {
+                background-color: var(--white);
+                padding: 2.5rem;
+                border-radius: 16px;
+                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+                width: 100%;
+                max-width: 450px;
+            }
+
+            .register-card h1 {
+                margin-top: 0;
+                font-size: 1.8rem;
+                color: var(--secondary);
+                text-align: center;
+            }
+
+            .form-group {
+                margin-bottom: 1.2rem;
+            }
+
+            .form-group label {
+                display: block;
+                margin-bottom: 0.4rem;
+                font-weight: 500;
+                color: #57606f;
+            }
+
+            .form-group input {
+                width: 100%;
+                padding: 0.8rem;
+                border: 1px solid #ced4da;
+                border-radius: 8px;
+                box-sizing: border-box;
+                outline: none;
+                transition: border-color 0.3s;
+            }
+
+            .form-group input:focus {
+                border-color: var(--primary);
+            }
+
+            .form-hint {
+                font-size: 0.85rem;
+                color: #747d8c;
+                margin-top: 0.25rem;
+            }
+
+            .btn-submit {
+                width: 100%;
+                padding: 0.9rem;
+                background-color: var(--primary);
+                color: var(--white);
+                border: none;
+                border-radius: 8px;
+                font-size: 1rem;
+                font-weight: bold;
+                cursor: pointer;
+                transition: background 0.3s;
+                margin-top: 1rem;
+            }
+
+            .btn-submit:hover {
+                background-color: #ff6b81;
+            }
+
+            .login-link {
+                text-align: center;
+                margin-top: 1.5rem;
+                font-size: 0.9rem;
+                color: #57606f;
+            }
+
+            .login-link a {
+                color: var(--primary);
+                text-decoration: none;
+                font-weight: 600;
+            }
+
+            .site-footer {
+                background-color: var(--secondary);
+                color: var(--white);
+                padding: 1.5rem 5%;
+                text-align: center;
+            }
+        </style>
+    </head>
+
+    <body data-register-error="${error}">
+
+        <jsp:include page="includes/header.jsp" />
+
+        <main class="auth-layout">
+            <div class="register-card">
+                <h1>Create Account</h1>
+                <form action="register" method="post" id="registerForm">
+                    <input type="hidden" name="roleID" value="4">
+                    <div class="form-group">
+                        <label for="fullName">Full Name</label>
+                        <input type="text" id="fullName" name="fullName" required>
                     </div>
-                    <div class="register-body">
-                        <c:if test="${error != null}">
-                            <div class="alert alert-danger alert-dismissible fade show">
-                                <i class="bi bi-exclamation-triangle"></i> ${error}
-                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                            </div>
-                        </c:if>
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" name="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" name="password" required>
                         
-                        <form action="${pageContext.request.contextPath}/register" method="post">
-                            <div class="mb-3">
-                                <label for="username" class="form-label">
-                                    <i class="bi bi-person"></i> Username <span class="text-danger">*</span>
-                                </label>
-                                <input type="text" class="form-control" id="username" name="username" 
-                                       value="${username}" required placeholder="Choose a username">
-                            </div>
-                            
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="password" class="form-label">
-                                        <i class="bi bi-lock"></i> Password <span class="text-danger">*</span>
-                                    </label>
-                                    <input type="password" class="form-control" id="password" name="password" 
-                                           required placeholder="Enter password">
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="confirmPassword" class="form-label">
-                                        <i class="bi bi-lock-fill"></i> Confirm Password <span class="text-danger">*</span>
-                                    </label>
-                                    <input type="password" class="form-control" id="confirmPassword" 
-                                           name="confirmPassword" required placeholder="Confirm password">
-                                </div>
-                            </div>
-                            
-                            <div class="mb-3">
-                                <label for="fullName" class="form-label">
-                                    <i class="bi bi-person-badge"></i> Full Name <span class="text-danger">*</span>
-                                </label>
-                                <input type="text" class="form-control" id="fullName" name="fullName" 
-                                       value="${fullName}" required placeholder="Enter your full name">
-                            </div>
-                            
-                            <div class="mb-3">
-                                <label for="email" class="form-label">
-                                    <i class="bi bi-envelope"></i> Email
-                                </label>
-                                <input type="email" class="form-control" id="email" name="email" 
-                                       value="${email}" placeholder="your.email@example.com">
-                            </div>
-                            
-                            <div class="mb-3">
-                                <label for="phone" class="form-label">
-                                    <i class="bi bi-telephone"></i> Phone
-                                </label>
-                                <input type="tel" class="form-control" id="phone" name="phone" 
-                                       value="${phone}" placeholder="0901234567">
-                            </div>
-                            
-                            <div class="alert alert-info">
-                                <i class="bi bi-info-circle"></i> <small>By registering, you will be able to browse and borrow books from our library.</small>
-                            </div>
-                            
-                            <button type="submit" class="btn btn-primary btn-register w-100 mb-3">
-                                <i class="bi bi-check-circle"></i> Register
-                            </button>
-                            
-                            <div class="text-center">
-                                <p class="mb-0">Already have an account? 
-                                    <a href="${pageContext.request.contextPath}/login" class="text-decoration-none">
-                                        <strong>Login here</strong>
-                                    </a>
-                                </p>
-                            </div>
-                        </form>
                     </div>
+                    <div class="form-group">
+                        <label for="phone">Phone Number</label>
+                        <input type="tel" id="phone" name="phone" required>
+                       
+                    </div>
+                    <button type="submit" class="btn-submit">Register</button>
+                </form>
+
+                <div class="login-link">
+                    Already have an account? <a href="login">Login here</a>
                 </div>
             </div>
-        </div>
-    </div>
-    
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        // Client-side password validation
-        document.querySelector('form').addEventListener('submit', function(e) {
-            const password = document.getElementById('password').value;
-            const confirmPassword = document.getElementById('confirmPassword').value;
-            
-            if (password !== confirmPassword) {
-                e.preventDefault();
-                alert('Passwords do not match!');
-                document.getElementById('confirmPassword').focus();
+        </main>
+
+        <jsp:include page="includes/footer.jsp" />
+
+        <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const form = document.getElementById('registerForm');
+            const fullNameInput = document.getElementById('fullName');
+            const emailInput = document.getElementById('email');
+            const passwordInput = document.getElementById('password');
+            const phoneInput = document.getElementById('phone');
+            const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            const phonePattern = /^\d{8,}$/;
+
+            form.addEventListener('submit', function (event) {
+                const fullName = fullNameInput.value.trim();
+                const email = emailInput.value.trim();
+                const password = passwordInput.value.trim();
+                const phone = phoneInput.value.trim();
+
+                if (fullName.length < 3) {
+                    event.preventDefault();
+                    Swal.fire('Invalid name', 'Full name must be at least 3 characters.', 'warning');
+                    return;
+                }
+
+                if (!emailPattern.test(email)) {
+                    event.preventDefault();
+                    Swal.fire('Invalid email', 'Please enter a valid email address.', 'warning');
+                    return;
+                }
+
+                if (password.length < 6) {
+                    event.preventDefault();
+                    Swal.fire('Weak password', 'Password must be at least 6 characters.', 'warning');
+                    return;
+                }
+
+                if (!phonePattern.test(phone)) {
+                    event.preventDefault();
+                    Swal.fire('Invalid phone', 'Phone number must contain at least 8 digits.', 'warning');
+                }
+            });
+
+            const errorMessage = document.body.dataset.registerError;
+            if (errorMessage) {
+                Swal.fire('Registration issue', errorMessage, 'error');
             }
         });
-    </script>
-</body>
-</html>
+        </script>
+
+    </body>
+
+    </html>

@@ -3,54 +3,35 @@ package dal;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
+/**
+ * DBContext class for managing SQL Server connection
+ * Using local setup for MultiRestaurantOrderingDB
+ */
 public class DBContext {
-    // Update database name to LibraryDB
-    private static final String DB_URL = "jdbc:sqlserver://localhost:1433;databaseName=LibraryDB;encrypt=false";
-    private static final String USER = "sa";
-    private static final String PASS = "12345";
+    protected Connection connection;
 
-    public static Connection getConnection() {
-        Connection conn = null;
+    public DBContext() {
         try {
+            // Edit your connection details here
+            String user = "sa";
+            String pass = "Passw0rd@123";
+            String url = "jdbc:sqlserver://localhost:1433;databaseName=MultiRestaurantOrderingDB;encrypt=true;trustServerCertificate=true";
             Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
-            conn = DriverManager.getConnection(DB_URL, USER, PASS);
-        } catch (ClassNotFoundException | SQLException e) {
-            System.out.println("Database connection error: " + e.getMessage());
-            e.printStackTrace();
-        }
-        return conn;
-    }
-
-    public static void closeConnection(Connection conn) {
-        if (conn != null) {
-            try {
-                conn.close();
-            } catch (SQLException e) {
-                System.out.println("Error closing connection: " + e.getMessage());
-            }
+            connection = DriverManager.getConnection(url, user, pass);
+        } catch (ClassNotFoundException | SQLException ex) {
+            Logger.getLogger(DBContext.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
-    public static void closePreparedStatement(PreparedStatement ps) {
-        if (ps != null) {
-            try {
-                ps.close();
-            } catch (SQLException e) {
-                System.out.println("Error closing PreparedStatement: " + e.getMessage());
-            }
-        }
-    }
-
-    public static void closeResultSet(ResultSet rs) {
-        if (rs != null) {
-            try {
-                rs.close();
-            } catch (SQLException e) {
-                System.out.println("Error closing ResultSet: " + e.getMessage());
-            }
+    public static void main(String[] args) {
+        DBContext db = new DBContext();
+        if (db.connection != null) {
+            System.out.println("Connection successful!");
+        } else {
+            System.out.println("Connection failed!");
         }
     }
 }
