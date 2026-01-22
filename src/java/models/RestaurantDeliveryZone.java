@@ -1,32 +1,51 @@
-package models;
+package com.mrm.model;
 
-import java.sql.Timestamp;
+import java.sql.Date;
 
 public class RestaurantDeliveryZone {
-    private int zoneID;
-    private int restaurantID;
+    private Integer zoneId;
+    private Integer restaurantId;
+    private String restaurantName; // Restaurant name for display
     private String zoneName;
-    private double radiusKm;
-    private double baseDeliveryFee;
-    private Timestamp createdAt;
+    private String zoneDefinition;
+    private Boolean isActive;
+    private Date createdAt;
 
     public RestaurantDeliveryZone() {
     }
 
-    public int getZoneID() {
-        return zoneID;
+    public RestaurantDeliveryZone(Integer zoneId, Integer restaurantId, String zoneName, 
+                                   String zoneDefinition, Boolean isActive, Date createdAt) {
+        this.zoneId = zoneId;
+        this.restaurantId = restaurantId;
+        this.zoneName = zoneName;
+        this.zoneDefinition = zoneDefinition;
+        this.isActive = isActive;
+        this.createdAt = createdAt;
     }
 
-    public void setZoneID(int zoneID) {
-        this.zoneID = zoneID;
+    public Integer getZoneId() {
+        return zoneId;
     }
 
-    public int getRestaurantID() {
-        return restaurantID;
+    public void setZoneId(Integer zoneId) {
+        this.zoneId = zoneId;
     }
 
-    public void setRestaurantID(int restaurantID) {
-        this.restaurantID = restaurantID;
+    public Integer getRestaurantId() {
+        return restaurantId;
+    }
+
+    public void setRestaurantId(Integer restaurantId) {
+        this.restaurantId = restaurantId;
+    }
+
+    public String getRestaurantName() {
+        return restaurantName;
+    }
+
+    public void setRestaurantName(String restaurantName) {
+        this.restaurantName = restaurantName;
     }
 
     public String getZoneName() {
@@ -37,27 +56,39 @@ public class RestaurantDeliveryZone {
         this.zoneName = zoneName;
     }
 
-    public double getRadiusKm() {
-        return radiusKm;
+    public String getZoneDefinition() {
+        return zoneDefinition;
     }
 
-    public void setRadiusKm(double radiusKm) {
-        this.radiusKm = radiusKm;
+    public void setZoneDefinition(String zoneDefinition) {
+        this.zoneDefinition = zoneDefinition;
     }
 
-    public double getBaseDeliveryFee() {
-        return baseDeliveryFee;
+    public Boolean getIsActive() {
+        return isActive;
     }
 
-    public void setBaseDeliveryFee(double baseDeliveryFee) {
-        this.baseDeliveryFee = baseDeliveryFee;
+    public void setIsActive(Boolean isActive) {
+        this.isActive = isActive;
     }
 
-    public Timestamp getCreatedAt() {
+    public Date getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(Timestamp createdAt) {
+    public void setCreatedAt(Date createdAt) {
         this.createdAt = createdAt;
+    }
+
+    @Override
+    public String toString() {
+        return "RestaurantDeliveryZone{" +
+                "zoneId=" + zoneId +
+                ", restaurantId=" + restaurantId +
+                ", zoneName='" + zoneName + '\'' +
+                ", zoneDefinition='" + zoneDefinition + '\'' +
+                ", isActive=" + isActive +
+                ", createdAt=" + createdAt +
+                '}';
     }
 }
