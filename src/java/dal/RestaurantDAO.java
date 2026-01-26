@@ -70,8 +70,8 @@ public class RestaurantDAO extends DBContext {
 
     private Restaurant mapRestaurant(ResultSet rs) throws SQLException {
         Restaurant r = new Restaurant();
-        r.setRestaurantID(rs.getInt("RestaurantID"));
-        r.setOwnerID(rs.getInt("OwnerID"));
+        r.setRestaurantId(rs.getInt("RestaurantID"));
+        r.setOwnerId(rs.getInt("OwnerID"));
         r.setName(rs.getString("Name"));
         r.setAddress(rs.getString("Address"));
         r.setLicenseNumber(rs.getString("LicenseNumber"));
@@ -81,7 +81,7 @@ public class RestaurantDAO extends DBContext {
         r.setDeliveryFee(rs.getDouble("DeliveryFee"));
         r.setCommissionRate(rs.getDouble("CommissionRate"));
         r.setStatus(rs.getString("Status"));
-        r.setCreatedAt(rs.getTimestamp("CreatedAt"));
+        r.setCreatedAt(rs.getDate("CreatedAt"));
         return r;
     }
 
@@ -93,7 +93,7 @@ public class RestaurantDAO extends DBContext {
             List<Restaurant> restaurants = dao.getAllApprovedRestaurants();
             System.out.println("Found " + restaurants.size() + " approved restaurants.");
             for (Restaurant r : restaurants) {
-                System.out.println("- " + r.getName() + " (ID: " + r.getRestaurantID() + ")");
+                System.out.println("- " + r.getName() + " (ID: " + r.getRestaurantId() + ")");
             }
         } else {
             System.out.println("Connection failed!");
