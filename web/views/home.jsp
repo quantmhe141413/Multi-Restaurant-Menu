@@ -214,7 +214,7 @@
                 <div class="restaurant-info">
                     <div class="restaurant-name">${r.name}</div>
                     <div class="restaurant-address"><i class="fas fa-map-marker-alt"></i> ${r.address}</div>
-                    <a href="restaurant?id=${r.restaurantID}" class="btn-view">View Menu</a>
+                    <a href="restaurant?id=${r.restaurantId}" class="btn-view">View Menu</a>
                 </div>
             </div>
         </c:forEach>
