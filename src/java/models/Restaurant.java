@@ -14,19 +14,15 @@ public class Restaurant {
     private Double deliveryFee;
     private Double commissionRate;
     private String status;
-<<<<<<< HEAD
-    private Timestamp createdAt;
-    private String cuisine;
-=======
     private Date createdAt;
->>>>>>> 0aad6e27f51f6d74006f3bfab0b19f6752935075
+    private String cuisine;
 
     public Restaurant() {
     }
 
-    public Restaurant(Integer restaurantId, Integer ownerId, String name, String address, 
-                     String licenseNumber, String logoUrl, String themeColor, Boolean isOpen, 
-                     Double deliveryFee, Double commissionRate, String status, Date createdAt) {
+    public Restaurant(Integer restaurantId, Integer ownerId, String name, String address,
+            String licenseNumber, String logoUrl, String themeColor, Boolean isOpen,
+            Double deliveryFee, Double commissionRate, String status, Date createdAt) {
         this.restaurantId = restaurantId;
         this.ownerId = ownerId;
         this.name = name;
@@ -137,14 +133,14 @@ public class Restaurant {
         this.createdAt = createdAt;
     }
 
-<<<<<<< HEAD
     public String getCuisine() {
         return cuisine;
     }
 
     public void setCuisine(String cuisine) {
         this.cuisine = cuisine;
-=======
+    }
+
     @Override
     public String toString() {
         return "Restaurant{" +
@@ -153,7 +149,7 @@ public class Restaurant {
                 ", name='" + name + '\'' +
                 ", address='" + address + '\'' +
                 ", status='" + status + '\'' +
+                ", cuisine='" + cuisine + '\'' +
                 '}';
->>>>>>> 0aad6e27f51f6d74006f3bfab0b19f6752935075
     }
 }

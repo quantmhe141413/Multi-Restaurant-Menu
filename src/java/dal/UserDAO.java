@@ -66,6 +66,51 @@ public class UserDAO extends DBContext {
         return false;
     }
 
+    // Save reset token for password recovery
+    public boolean saveResetToken(String email, String token) {
+        String sql = "UPDATE Users SET ResetToken = ?, ResetTokenExpiry = DATEADD(HOUR, 1, GETDATE()) WHERE Email = ?";
+        try {
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setString(1, token);
+            st.setString(2, email);
+            int rowsAffected = st.executeUpdate();
+            return rowsAffected > 0;
+        } catch (SQLException ex) {
+            Logger.getLogger(UserDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return false;
+    }
+
+    // Check if reset token is valid and not expired
+    public boolean isResetTokenValid(String token) {
+        String sql = "SELECT * FROM Users WHERE ResetToken = ? AND ResetTokenExpiry > GETDATE()";
+        try {
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setString(1, token);
+            ResultSet rs = st.executeQuery();
+            return rs.next();
+        } catch (SQLException ex) {
+            Logger.getLogger(UserDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return false;
+    }
+
+    // Reset password using token
+    public boolean resetPassword(String token, String newPassword) {
+        String sql = "UPDATE Users SET PasswordHash = ?, ResetToken = NULL, ResetTokenExpiry = NULL " +
+                "WHERE ResetToken = ? AND ResetTokenExpiry > GETDATE()";
+        try {
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setString(1, newPassword);
+            st.setString(2, token);
+            int rowsAffected = st.executeUpdate();
+            return rowsAffected > 0;
+        } catch (SQLException ex) {
+            Logger.getLogger(UserDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return false;
+    }
+
     public static void main(String[] args) {
         UserDAO dao = new UserDAO();
         if (dao.connection != null) {

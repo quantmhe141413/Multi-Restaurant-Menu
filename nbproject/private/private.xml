@@ -3,8 +3,17 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/E:/Multi-Restaurant-Menu/src/java/dal/DBContext.java</file>
-            <file>file:/E:/Multi-Restaurant-Menu/src/java/dal/RestaurantDAO.java</file>
+            <file>file:/Users/dotritrong/Desktop/Multi-Restaurant-Menu-SWP391/web/index.jsp</file>
+            <file>file:/Users/dotritrong/Desktop/Multi-Restaurant-Menu-SWP391/web/index.html</file>
+            <file>file:/Users/dotritrong/Desktop/Multi-Restaurant-Menu-SWP391/src/java/dal/DBContext.java</file>
+            <file>file:/Users/dotritrong/Desktop/Multi-Restaurant-Menu-SWP391/src/java/dal/RestaurantDAO.java</file>
+            <file>file:/Users/dotritrong/Desktop/Multi-Restaurant-Menu-SWP391/src/java/dal/UserDAO.java</file>
+            <file>file:/Users/dotritrong/Desktop/Multi-Restaurant-Menu-SWP391/web/views/home.jsp</file>
+            <file>file:/Users/dotritrong/Desktop/Multi-Restaurant-Menu-SWP391/src/java/controllers/HomeController.java</file>
+            <file>file:/Users/dotritrong/Desktop/Multi-Restaurant-Menu-SWP391/web/WEB-INF/web.xml</file>
+            <file>file:/Users/dotritrong/Desktop/Multi-Restaurant-Menu-SWP391/src/java/models/Restaurant.java</file>
+            <file>file:/Users/dotritrong/Desktop/Multi-Restaurant-Menu-SWP391/src/java/controllers/ForgotPasswordController.java</file>
+            <file>file:/Users/dotritrong/Desktop/Multi-Restaurant-Menu-SWP391/src/java/controllers/ResetPasswordController.java</file>
         </group>
     </open-files>
 </project-private>
