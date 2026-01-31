@@ -1,39 +1,60 @@
 package models;
 
-import java.sql.Timestamp;
+import java.sql.Date;
 
 public class Restaurant {
-    private int restaurantID;
-    private int ownerID;
+    private Integer restaurantId;
+    private Integer ownerId;
     private String name;
     private String address;
     private String licenseNumber;
     private String logoUrl;
     private String themeColor;
-    private boolean isOpen;
-    private double deliveryFee;
-    private double commissionRate;
+    private Boolean isOpen;
+    private Double deliveryFee;
+    private Double commissionRate;
     private String status;
+<<<<<<< HEAD
     private Timestamp createdAt;
     private String cuisine;
+=======
+    private Date createdAt;
+>>>>>>> 0aad6e27f51f6d74006f3bfab0b19f6752935075
 
     public Restaurant() {
     }
 
-    public int getRestaurantID() {
-        return restaurantID;
+    public Restaurant(Integer restaurantId, Integer ownerId, String name, String address, 
+                     String licenseNumber, String logoUrl, String themeColor, Boolean isOpen, 
+                     Double deliveryFee, Double commissionRate, String status, Date createdAt) {
+        this.restaurantId = restaurantId;
+        this.ownerId = ownerId;
+        this.name = name;
+        this.address = address;
+        this.licenseNumber = licenseNumber;
+        this.logoUrl = logoUrl;
+        this.themeColor = themeColor;
+        this.isOpen = isOpen;
+        this.deliveryFee = deliveryFee;
+        this.commissionRate = commissionRate;
+        this.status = status;
+        this.createdAt = createdAt;
     }
 
-    public void setRestaurantID(int restaurantID) {
-        this.restaurantID = restaurantID;
+    public Integer getRestaurantId() {
+        return restaurantId;
     }
 
-    public int getOwnerID() {
-        return ownerID;
+    public void setRestaurantId(Integer restaurantId) {
+        this.restaurantId = restaurantId;
     }
 
-    public void setOwnerID(int ownerID) {
-        this.ownerID = ownerID;
+    public Integer getOwnerId() {
+        return ownerId;
+    }
+
+    public void setOwnerId(Integer ownerId) {
+        this.ownerId = ownerId;
     }
 
     public String getName() {
@@ -76,27 +97,27 @@ public class Restaurant {
         this.themeColor = themeColor;
     }
 
-    public boolean isIsOpen() {
+    public Boolean getIsOpen() {
         return isOpen;
     }
 
-    public void setIsOpen(boolean isOpen) {
+    public void setIsOpen(Boolean isOpen) {
         this.isOpen = isOpen;
     }
 
-    public double getDeliveryFee() {
+    public Double getDeliveryFee() {
         return deliveryFee;
     }
 
-    public void setDeliveryFee(double deliveryFee) {
+    public void setDeliveryFee(Double deliveryFee) {
         this.deliveryFee = deliveryFee;
     }
 
-    public double getCommissionRate() {
+    public Double getCommissionRate() {
         return commissionRate;
     }
 
-    public void setCommissionRate(double commissionRate) {
+    public void setCommissionRate(Double commissionRate) {
         this.commissionRate = commissionRate;
     }
 
@@ -108,19 +129,31 @@ public class Restaurant {
         this.status = status;
     }
 
-    public Timestamp getCreatedAt() {
+    public Date getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(Timestamp createdAt) {
+    public void setCreatedAt(Date createdAt) {
         this.createdAt = createdAt;
     }
 
+<<<<<<< HEAD
     public String getCuisine() {
         return cuisine;
     }
 
     public void setCuisine(String cuisine) {
         this.cuisine = cuisine;
+=======
+    @Override
+    public String toString() {
+        return "Restaurant{" +
+                "restaurantId=" + restaurantId +
+                ", ownerId=" + ownerId +
+                ", name='" + name + '\'' +
+                ", address='" + address + '\'' +
+                ", status='" + status + '\'' +
+                '}';
+>>>>>>> 0aad6e27f51f6d74006f3bfab0b19f6752935075
     }
 }
