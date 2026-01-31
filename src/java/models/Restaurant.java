@@ -15,6 +15,7 @@ public class Restaurant {
     private double commissionRate;
     private String status;
     private Timestamp createdAt;
+    private String cuisine;
 
     public Restaurant() {
     }
@@ -113,5 +114,13 @@ public class Restaurant {
 
     public void setCreatedAt(Timestamp createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public String getCuisine() {
+        return cuisine;
+    }
+
+    public void setCuisine(String cuisine) {
+        this.cuisine = cuisine;
     }
 }

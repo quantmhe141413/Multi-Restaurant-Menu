@@ -17,7 +17,7 @@ public class DBContext {
         try {
             // Edit your connection details here
             String user = "sa";
-            String pass = "Passw0rd@123";
+            String pass = "123";
             String url = "jdbc:sqlserver://localhost:1433;databaseName=MultiRestaurantOrderingDB;encrypt=true;trustServerCertificate=true";
             Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
             connection = DriverManager.getConnection(url, user, pass);
