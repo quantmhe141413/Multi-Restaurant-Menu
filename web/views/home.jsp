@@ -7,6 +7,7 @@
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>Home - Multi-Restaurant Menu</title>
+            <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
             <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
             <style>
                 :root {
@@ -18,49 +19,61 @@
                     --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
                 }
 
-                body {
-                    font-family: 'Inter', sans-serif;
+                * {
                     margin: 0;
-                    background-color: var(--light);
-                    color: var(--dark);
+                    padding: 0;
+                    box-sizing: border-box;
+                }
+
+                body {
+                    background-color: #f8f9fa;
+                    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
                 }
 
                 .site-header {
-                    background-color: var(--white);
+                    background-color: white;
                     padding: 1rem 5%;
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    box-shadow: var(--shadow);
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
                     position: sticky;
                     top: 0;
-                    z-index: 100;
+                    z-index: 1000;
                 }
 
                 .site-header__bar {
                     display: flex;
                     justify-content: space-between;
                     align-items: center;
-                    width: 100%;
+                    max-width: 1400px;
+                    margin: 0 auto;
                 }
 
                 .logo {
                     font-size: 1.5rem;
                     font-weight: bold;
-                    color: var(--primary);
+                    color: #ff4757;
                     text-decoration: none;
+                    transition: opacity 0.3s;
+                }
+
+                .logo:hover {
+                    opacity: 0.8;
+                }
+
+                .nav-links {
+                    display: flex;
+                    align-items: center;
+                    gap: 1.5rem;
                 }
 
                 .nav-links a {
                     text-decoration: none;
-                    color: var(--secondary);
-                    margin-left: 1.5rem;
+                    color: #2f3542;
                     font-weight: 500;
                     transition: color 0.3s;
                 }
 
                 .nav-links a:hover {
-                    color: var(--primary);
+                    color: #ff4757;
                 }
 
                 .nav-user {
@@ -68,8 +81,8 @@
                 }
 
                 .nav-action {
-                    color: var(--primary);
-                    font-weight: 600;
+                    color: #ff4757 !important;
+                    font-weight: 600 !important;
                 }
 
                 .hero {
@@ -181,10 +194,20 @@
                 }
 
                 .site-footer {
-                    background-color: var(--secondary);
-                    color: var(--white);
-                    padding: 1.5rem 5%;
+                    background-color: #2f3542;
+                    color: white;
+                    padding: 2rem 5%;
+                    margin-top: 4rem;
                     text-align: center;
+                }
+
+                .site-footer__inner {
+                    max-width: 1400px;
+                    margin: 0 auto;
+                }
+
+                .site-footer p {
+                    margin: 0;
                 }
             </style>
         </head>
@@ -217,7 +240,7 @@
                             <div class="restaurant-info">
                                 <div class="restaurant-name">${r.name}</div>
                                 <div class="restaurant-address"><i class="fas fa-map-marker-alt"></i> ${r.address}</div>
-                                <a href="menu?restaurantId=${r.restaurantID}" class="btn-view">View Menu</a>
+                                <a href="menu?restaurantId=${r.restaurantId}" class="btn-view">View Menu</a>
                             </div>
                         </div>
                     </c:forEach>

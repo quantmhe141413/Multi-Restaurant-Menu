@@ -247,6 +247,22 @@
 </head>
 <body>
     <jsp:include page="includes/header.jsp" />
+    
+    <!-- Toast Messages -->
+    <c:if test="${not empty sessionScope.success}">
+        <div class="alert alert-success alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3" style="z-index: 9999;" role="alert">
+            ${sessionScope.success}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <c:remove var="success" scope="session" />
+    </c:if>
+    <c:if test="${not empty sessionScope.error}">
+        <div class="alert alert-danger alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3" style="z-index: 9999;" role="alert">
+            ${sessionScope.error}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <c:remove var="error" scope="session" />
+    </c:if>
 
     <!-- Restaurant Header -->
     <div class="restaurant-header">
@@ -369,7 +385,7 @@
                                         <span class="menu-item-price">
                                             <fmt:formatNumber value="${item.price}" pattern="#,###"/> VND
                                         </span>
-                                        <button class="btn btn-success add-to-cart-btn">
+                                        <button class="btn btn-success add-to-cart-btn" data-item-id="${item.itemID}">
                                             <i class="fas fa-cart-plus"></i> Thêm
                                         </button>
                                     </div>
@@ -388,7 +404,42 @@
     <script>
         document.querySelectorAll('.add-to-cart-btn').forEach(btn => {
             btn.addEventListener('click', function() {
-                alert('Chức năng thêm vào giỏ hàng đang được phát triển!');
+                <c:choose>
+                    <c:when test="${not empty sessionScope.user}">
+                        const itemId = this.getAttribute('data-item-id');
+                        const restaurantId = ${restaurant.restaurantId};
+                        
+                        // Tạo form để submit
+                        const form = document.createElement('form');
+                        form.method = 'POST';
+                        form.action = 'cart';
+                        
+                        const actionInput = document.createElement('input');
+                        actionInput.type = 'hidden';
+                        actionInput.name = 'action';
+                        actionInput.value = 'add';
+                        form.appendChild(actionInput);
+                        
+                        const itemIdInput = document.createElement('input');
+                        itemIdInput.type = 'hidden';
+                        itemIdInput.name = 'itemId';
+                        itemIdInput.value = itemId;
+                        form.appendChild(itemIdInput);
+                        
+                        const restaurantIdInput = document.createElement('input');
+                        restaurantIdInput.type = 'hidden';
+                        restaurantIdInput.name = 'restaurantId';
+                        restaurantIdInput.value = restaurantId;
+                        form.appendChild(restaurantIdInput);
+                        
+                        document.body.appendChild(form);
+                        form.submit();
+                    </c:when>
+                    <c:otherwise>
+                        alert('Vui lòng đăng nhập để thêm món vào giỏ hàng!');
+                        window.location.href = 'login';
+                    </c:otherwise>
+                </c:choose>
             });
         });
 
