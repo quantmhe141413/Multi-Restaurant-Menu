@@ -4,21 +4,17 @@
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
             <file>file:/D:/SWP/Multi-Restaurant-Menu/web/META-INF/context.xml</file>
-            <file>file:/D:/SWP/Multi-Restaurant-Menu/src/java/controllers/CoverageZoneController.java</file>
-            <file>file:/D:/SWP/Multi-Restaurant-Menu/web/views/owner/coverage-zone-add.jsp</file>
-            <file>file:/D:/SWP/Multi-Restaurant-Menu/src/java/controllers/LoginController.java</file>
-            <file>file:/D:/SWP/Multi-Restaurant-Menu/src/java/controllers/DeliveryFeeController.java</file>
-            <file>file:/D:/SWP/Multi-Restaurant-Menu/src/java/dal/RestaurantDeliveryZoneDAO.java</file>
-            <file>file:/D:/SWP/Multi-Restaurant-Menu/web/views/owner/coverage-zone-list.jsp</file>
-            <file>file:/D:/SWP/Multi-Restaurant-Menu/src/java/dal/RestaurantDAO.java</file>
-            <file>file:/D:/SWP/Multi-Restaurant-Menu/web/index.html</file>
-            <file>file:/D:/SWP/Multi-Restaurant-Menu/src/java/models/Restaurant.java</file>
             <file>file:/D:/SWP/Multi-Restaurant-Menu/web/views/home.jsp</file>
-            <file>file:/D:/SWP/Multi-Restaurant-Menu/web/WEB-INF/web.xml</file>
+            <file>file:/D:/SWP/Multi-Restaurant-Menu/src/java/utils/EmailService.java</file>
             <file>file:/D:/SWP/Multi-Restaurant-Menu/src/java/controllers/HomeController.java</file>
+            <file>file:/D:/SWP/Multi-Restaurant-Menu/web/WEB-INF/web.xml</file>
             <file>file:/D:/SWP/Multi-Restaurant-Menu/web/views/includes/header.jsp</file>
             <file>file:/D:/SWP/Multi-Restaurant-Menu/src/java/dal/DBContext.java</file>
-            <file>file:/D:/SWP/Multi-Restaurant-Menu/src/java/dal/DeliveryFeeDAO.java</file>
+            <file>file:/D:/SWP/Multi-Restaurant-Menu/src/java/models/Restaurant.java</file>
+            <file>file:/D:/SWP/Multi-Restaurant-Menu/src/java/controllers/LoginController.java</file>
+            <file>file:/D:/SWP/Multi-Restaurant-Menu/src/java/dal/RestaurantDAO.java</file>
+            <file>file:/D:/SWP/Multi-Restaurant-Menu/src/java/controllers/ForgotPasswordController.java</file>
+            <file>file:/D:/SWP/Multi-Restaurant-Menu/web/index.html</file>
         </group>
     </open-files>
 </project-private>
