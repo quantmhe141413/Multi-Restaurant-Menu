@@ -16,17 +16,17 @@ public class DBContext {
 
     public DBContext() {
         try {
-            // Change the username password and url to connect your own database
+            // Edit your connection details here
             String username = "sa";
-            String password = "555"; // s
-            String url = "jdbc:sqlserver://localhost:1433;databaseName=MultiRestaurantOrderingDB2;encrypt=false;trustServerCertificate=true";
+            String password = "123";
+            String url = "jdbc:sqlserver://localhost:1433;databaseName=MultiRestaurantOrderingDB;encrypt=true;trustServerCertificate=true";
             Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
             connection = DriverManager.getConnection(url, username, password);
         } catch (ClassNotFoundException | SQLException ex) {
             Logger.getLogger(DBContext.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
+
     public void closeResources() {
         try {
             if (resultSet != null && !resultSet.isClosed()) {
@@ -46,7 +46,7 @@ public class DBContext {
     public Connection getConnection() {
         return new DBContext().connection;
     }
-    
+
     public static void main(String[] args) {
         System.out.println(new DBContext().connection);
     }
