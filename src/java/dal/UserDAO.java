@@ -33,6 +33,26 @@ public class UserDAO extends DBContext {
         return null;
     }
 
+    /**
+     * Get RestaurantID for a user (Owner/Staff)
+     * Returns null if user is SuperAdmin (RoleID = 1) or Customer (RoleID = 4)
+     */
+    public Integer getRestaurantIdByUserId(int userId) {
+        String sql = "SELECT TOP 1 RestaurantID FROM RestaurantUsers " +
+                     "WHERE UserID = ? AND IsActive = 1";
+        try {
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setInt(1, userId);
+            ResultSet rs = st.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("RestaurantID");
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(UserDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return null;
+    }
+
     public boolean register(User user) {
         String sql = "INSERT INTO [dbo].[Users] ([FullName], [Email], [PasswordHash], [Phone], [RoleID], [IsActive], [CreatedAt]) "
                 + "VALUES (?, ?, ?, ?, ?, 1, GETDATE())";
