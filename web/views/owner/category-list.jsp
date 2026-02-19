@@ -64,7 +64,8 @@
                                             <tr>
                                                 <th class="ps-4">ID</th>
                                                 <th>Category Name</th>
-                                                <th>Description</th>
+                                                <th>Order</th>
+                                                <th>Status</th>
                                                 <th class="text-end pe-4">Actions</th>
                                             </tr>
                                         </thead>
@@ -87,7 +88,17 @@
                                                             <td><span
                                                                     class="badge bg-soft-primary text-primary px-3 py-2">${cat.categoryName}</span>
                                                             </td>
-                                                            <td class="text-muted">${cat.description}</td>
+                                                            <td>${cat.displayOrder}</td>
+                                                            <td>
+                                                                <c:choose>
+                                                                    <c:when test="${cat.isActive}">
+                                                                        <span class="badge bg-success">Active</span>
+                                                                    </c:when>
+                                                                    <c:otherwise>
+                                                                        <span class="badge bg-secondary">Inactive</span>
+                                                                    </c:otherwise>
+                                                                </c:choose>
+                                                            </td>
                                                             <td class="text-end pe-4">
                                                                 <div class="btn-group">
                                                                     <a href="${pageContext.request.contextPath}/categories?action=edit&id=${cat.categoryID}"

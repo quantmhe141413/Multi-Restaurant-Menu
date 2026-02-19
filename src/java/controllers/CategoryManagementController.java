@@ -116,12 +116,18 @@ public class CategoryManagementController extends HttpServlet {
         }
 
         String name = request.getParameter("categoryName");
-        String description = request.getParameter("description");
+        String displayOrderStr = request.getParameter("displayOrder");
+        Integer displayOrder = null;
+        if (displayOrderStr != null && !displayOrderStr.isEmpty()) {
+            displayOrder = Integer.parseInt(displayOrderStr);
+        }
+        boolean isActive = request.getParameter("isActive") != null;
 
         MenuCategory category = new MenuCategory();
         category.setRestaurantID(restaurant.getRestaurantId());
         category.setCategoryName(name);
-        category.setDescription(description);
+        category.setDisplayOrder(displayOrder);
+        category.setIsActive(isActive);
 
         MenuDAO menuDAO = new MenuDAO();
         if (menuDAO.insertCategory(category)) {
@@ -144,14 +150,20 @@ public class CategoryManagementController extends HttpServlet {
 
         int categoryId = Integer.parseInt(request.getParameter("categoryId"));
         String name = request.getParameter("categoryName");
-        String description = request.getParameter("description");
+        String displayOrderStr = request.getParameter("displayOrder");
+        Integer displayOrder = null;
+        if (displayOrderStr != null && !displayOrderStr.isEmpty()) {
+            displayOrder = Integer.parseInt(displayOrderStr);
+        }
+        boolean isActive = request.getParameter("isActive") != null;
 
         MenuDAO menuDAO = new MenuDAO();
         MenuCategory category = menuDAO.getCategoryById(categoryId);
 
         if (category != null && category.getRestaurantID() == restaurant.getRestaurantId()) {
             category.setCategoryName(name);
-            category.setDescription(description);
+            category.setDisplayOrder(displayOrder);
+            category.setIsActive(isActive);
             if (menuDAO.updateCategory(category)) {
                 request.getSession().setAttribute("message", "Category updated successfully!");
                 request.getSession().setAttribute("messageType", "success");

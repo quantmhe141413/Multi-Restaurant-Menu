@@ -61,10 +61,24 @@
                                             </div>
 
                                             <div class="mb-4">
-                                                <label for="description" class="form-label">Description</label>
-                                                <textarea class="form-control" id="description" name="description"
-                                                    rows="4"
-                                                    placeholder="Briefly describe what this category includes...">${category.description}</textarea>
+                                                <label for="displayOrder" class="form-label">Display Order</label>
+                                                <input type="number" class="form-control" id="displayOrder"
+                                                    name="displayOrder" value="${category.displayOrder}" min="0"
+                                                    placeholder="e.g. 1">
+                                                <div class="form-text">Order in which the category appears in menu.
+                                                </div>
+                                            </div>
+
+                                            <div class="mb-4">
+                                                <label class="form-label d-block">Status</label>
+                                                <div class="form-check form-switch p-0 ps-5 mt-2">
+                                                    <input class="form-check-input ms-n5" type="checkbox" id="isActive"
+                                                        name="isActive" value="true" ${empty category ||
+                                                        category.isActive ? 'checked' : '' }
+                                                        style="width: 3rem; height: 1.5rem;">
+                                                    <label class="form-check-label ms-2" for="isActive">Category is
+                                                        Active</label>
+                                                </div>
                                             </div>
 
                                             <div class="d-flex justify-content-between mt-5">

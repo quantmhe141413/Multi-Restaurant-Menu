@@ -51,6 +51,12 @@
                                             <div class="row">
                                                 <div class="col-md-7">
                                                     <div class="mb-4">
+                                                        <label for="sku" class="form-label">SKU</label>
+                                                        <input type="text" class="form-control" id="sku" name="sku"
+                                                            value="${item.sku}" placeholder="e.g. PHO-001">
+                                                    </div>
+
+                                                    <div class="mb-4">
                                                         <label for="itemName" class="form-label">Item Name <span
                                                                 class="text-danger">*</span></label>
                                                         <input type="text" class="form-control" id="itemName"

@@ -30,7 +30,7 @@ public class MenuDAO extends DBContext {
 
     public List<MenuCategory> getCategoriesByRestaurant(int restaurantId) {
         List<MenuCategory> list = new ArrayList<>();
-        String sql = "SELECT * FROM MenuCategories WHERE RestaurantID = ? AND (IsActive IS NULL OR IsActive = 1) ORDER BY CategoryName";
+        String sql = "SELECT * FROM MenuCategories WHERE RestaurantID = ? ORDER BY DisplayOrder, CategoryName";
         try {
             PreparedStatement st = connection.prepareStatement(sql);
             st.setInt(1, restaurantId);
@@ -113,7 +113,8 @@ public class MenuDAO extends DBContext {
         c.setCategoryID(rs.getInt("CategoryID"));
         c.setRestaurantID(rs.getInt("RestaurantID"));
         c.setCategoryName(rs.getString("CategoryName"));
-        // Cột Description và CreatedAt không có trong database
+        c.setDisplayOrder((Integer) rs.getObject("DisplayOrder"));
+        c.setIsActive(rs.getBoolean("IsActive"));
         return c;
     }
 
@@ -122,11 +123,12 @@ public class MenuDAO extends DBContext {
         item.setItemID(rs.getInt("ItemID"));
         item.setRestaurantID(rs.getInt("RestaurantID"));
         item.setCategoryID(rs.getInt("CategoryID"));
+        item.setSku(rs.getString("SKU"));
         item.setItemName(rs.getString("ItemName"));
         item.setDescription(rs.getString("Description"));
         item.setPrice(rs.getDouble("Price"));
-        // Cột ImageUrl không có trong database
         item.setIsAvailable(rs.getBoolean("IsAvailable"));
+        item.setAverageRating((Double) rs.getObject("AverageRating"));
         item.setCreatedAt(rs.getTimestamp("CreatedAt"));
         return item;
     }
@@ -164,12 +166,17 @@ public class MenuDAO extends DBContext {
     }
 
     public boolean insertCategory(MenuCategory category) {
-        String sql = "INSERT INTO MenuCategories (RestaurantID, CategoryName, Description) VALUES (?, ?, ?)";
+        String sql = "INSERT INTO MenuCategories (RestaurantID, CategoryName, DisplayOrder, IsActive) VALUES (?, ?, ?, ?)";
         try {
             PreparedStatement st = connection.prepareStatement(sql);
             st.setInt(1, category.getRestaurantID());
             st.setString(2, category.getCategoryName());
-            st.setString(3, category.getDescription());
+            if (category.getDisplayOrder() != null) {
+                st.setInt(3, category.getDisplayOrder());
+            } else {
+                st.setNull(3, java.sql.Types.INTEGER);
+            }
+            st.setBoolean(4, category.isIsActive());
             return st.executeUpdate() > 0;
         } catch (SQLException ex) {
             Logger.getLogger(MenuDAO.class.getName()).log(Level.SEVERE, null, ex);
@@ -178,12 +185,17 @@ public class MenuDAO extends DBContext {
     }
 
     public boolean updateCategory(MenuCategory category) {
-        String sql = "UPDATE MenuCategories SET CategoryName = ?, Description = ? WHERE CategoryID = ?";
+        String sql = "UPDATE MenuCategories SET CategoryName = ?, DisplayOrder = ?, IsActive = ? WHERE CategoryID = ?";
         try {
             PreparedStatement st = connection.prepareStatement(sql);
             st.setString(1, category.getCategoryName());
-            st.setString(2, category.getDescription());
-            st.setInt(3, category.getCategoryID());
+            if (category.getDisplayOrder() != null) {
+                st.setInt(2, category.getDisplayOrder());
+            } else {
+                st.setNull(2, java.sql.Types.INTEGER);
+            }
+            st.setBoolean(3, category.isIsActive());
+            st.setInt(4, category.getCategoryID());
             return st.executeUpdate() > 0;
         } catch (SQLException ex) {
             Logger.getLogger(MenuDAO.class.getName()).log(Level.SEVERE, null, ex);
@@ -208,15 +220,16 @@ public class MenuDAO extends DBContext {
     // --- MenuItem Management Methods ---
 
     public boolean insertMenuItem(MenuItem item) {
-        String sql = "INSERT INTO MenuItems (RestaurantID, CategoryID, ItemName, Description, Price, IsAvailable) VALUES (?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO MenuItems (RestaurantID, CategoryID, SKU, ItemName, Description, Price, IsAvailable) VALUES (?, ?, ?, ?, ?, ?, ?)";
         try {
             PreparedStatement st = connection.prepareStatement(sql);
             st.setInt(1, item.getRestaurantID());
             st.setInt(2, item.getCategoryID());
-            st.setString(3, item.getItemName());
-            st.setString(4, item.getDescription());
-            st.setDouble(5, item.getPrice());
-            st.setBoolean(6, item.isIsAvailable());
+            st.setString(3, item.getSku());
+            st.setString(4, item.getItemName());
+            st.setString(5, item.getDescription());
+            st.setDouble(6, item.getPrice());
+            st.setBoolean(7, item.isIsAvailable());
             return st.executeUpdate() > 0;
         } catch (SQLException ex) {
             Logger.getLogger(MenuDAO.class.getName()).log(Level.SEVERE, null, ex);
@@ -225,15 +238,16 @@ public class MenuDAO extends DBContext {
     }
 
     public boolean updateMenuItem(MenuItem item) {
-        String sql = "UPDATE MenuItems SET CategoryID = ?, ItemName = ?, Description = ?, Price = ?, IsAvailable = ? WHERE ItemID = ?";
+        String sql = "UPDATE MenuItems SET CategoryID = ?, SKU = ?, ItemName = ?, Description = ?, Price = ?, IsAvailable = ? WHERE ItemID = ?";
         try {
             PreparedStatement st = connection.prepareStatement(sql);
             st.setInt(1, item.getCategoryID());
-            st.setString(2, item.getItemName());
-            st.setString(3, item.getDescription());
-            st.setDouble(4, item.getPrice());
-            st.setBoolean(5, item.isIsAvailable());
-            st.setInt(6, item.getItemID());
+            st.setString(2, item.getSku());
+            st.setString(3, item.getItemName());
+            st.setString(4, item.getDescription());
+            st.setDouble(5, item.getPrice());
+            st.setBoolean(6, item.isIsAvailable());
+            st.setInt(7, item.getItemID());
             return st.executeUpdate() > 0;
         } catch (SQLException ex) {
             Logger.getLogger(MenuDAO.class.getName()).log(Level.SEVERE, null, ex);

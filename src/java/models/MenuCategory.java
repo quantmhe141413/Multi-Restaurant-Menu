@@ -6,8 +6,8 @@ public class MenuCategory {
     private int categoryID;
     private int restaurantID;
     private String categoryName;
-    private String description;
-    private Timestamp createdAt;
+    private Integer displayOrder;
+    private boolean isActive;
 
     public MenuCategory() {
     }
@@ -36,19 +36,19 @@ public class MenuCategory {
         this.categoryName = categoryName;
     }
 
-    public String getDescription() {
-        return description;
+    public Integer getDisplayOrder() {
+        return displayOrder;
     }
 
-    public void setDescription(String description) {
-        this.description = description;
+    public void setDisplayOrder(Integer displayOrder) {
+        this.displayOrder = displayOrder;
     }
 
-    public Timestamp getCreatedAt() {
-        return createdAt;
+    public boolean isIsActive() {
+        return isActive;
     }
 
-    public void setCreatedAt(Timestamp createdAt) {
-        this.createdAt = createdAt;
+    public void setIsActive(boolean isActive) {
+        this.isActive = isActive;
     }
 }

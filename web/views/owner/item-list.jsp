@@ -63,6 +63,7 @@
                                             <thead class="table-light py-3">
                                                 <tr>
                                                     <th class="ps-4">ID</th>
+                                                    <th>SKU</th>
                                                     <th>Item Details</th>
                                                     <th>Category</th>
                                                     <th>Price</th>
@@ -85,6 +86,9 @@
                                                         <c:forEach var="item" items="${items}">
                                                             <tr>
                                                                 <td class="ps-4"><strong>#${item.itemID}</strong></td>
+                                                                <td><span
+                                                                        class="badge bg-light text-dark border">${item.sku}</span>
+                                                                </td>
                                                                 <td>
                                                                     <div class="fw-bold text-dark">${item.itemName}
                                                                     </div>

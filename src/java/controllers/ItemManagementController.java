@@ -126,6 +126,7 @@ public class ItemManagementController extends HttpServlet {
             return;
         }
 
+        String sku = request.getParameter("sku");
         String name = request.getParameter("itemName");
         String description = request.getParameter("description");
         double price = Double.parseDouble(request.getParameter("price"));
@@ -135,6 +136,7 @@ public class ItemManagementController extends HttpServlet {
         MenuItem item = new MenuItem();
         item.setRestaurantID(restaurant.getRestaurantId());
         item.setCategoryID(categoryId);
+        item.setSku(sku);
         item.setItemName(name);
         item.setDescription(description);
         item.setPrice(price);
@@ -160,6 +162,7 @@ public class ItemManagementController extends HttpServlet {
         }
 
         int itemId = Integer.parseInt(request.getParameter("itemId"));
+        String sku = request.getParameter("sku");
         String name = request.getParameter("itemName");
         String description = request.getParameter("description");
         double price = Double.parseDouble(request.getParameter("price"));
@@ -171,6 +174,7 @@ public class ItemManagementController extends HttpServlet {
 
         if (item != null && item.getRestaurantID() == restaurant.getRestaurantId()) {
             item.setCategoryID(categoryId);
+            item.setSku(sku);
             item.setItemName(name);
             item.setDescription(description);
             item.setPrice(price);
