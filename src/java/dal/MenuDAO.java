@@ -145,4 +145,111 @@ public class MenuDAO extends DBContext {
             System.out.println("Connection failed!");
         }
     }
+
+    // --- Category Management Methods ---
+
+    public MenuCategory getCategoryById(int categoryId) {
+        String sql = "SELECT * FROM MenuCategories WHERE CategoryID = ?";
+        try {
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setInt(1, categoryId);
+            ResultSet rs = st.executeQuery();
+            if (rs.next()) {
+                return mapCategory(rs);
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(MenuDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return null;
+    }
+
+    public boolean insertCategory(MenuCategory category) {
+        String sql = "INSERT INTO MenuCategories (RestaurantID, CategoryName, Description) VALUES (?, ?, ?)";
+        try {
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setInt(1, category.getRestaurantID());
+            st.setString(2, category.getCategoryName());
+            st.setString(3, category.getDescription());
+            return st.executeUpdate() > 0;
+        } catch (SQLException ex) {
+            Logger.getLogger(MenuDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return false;
+    }
+
+    public boolean updateCategory(MenuCategory category) {
+        String sql = "UPDATE MenuCategories SET CategoryName = ?, Description = ? WHERE CategoryID = ?";
+        try {
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setString(1, category.getCategoryName());
+            st.setString(2, category.getDescription());
+            st.setInt(3, category.getCategoryID());
+            return st.executeUpdate() > 0;
+        } catch (SQLException ex) {
+            Logger.getLogger(MenuDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return false;
+    }
+
+    public boolean deleteCategory(int categoryId) {
+        // Note: You might want to check for dependencies (MenuItems) before deleting
+        // or set up CASCADE DELETE in the database.
+        String sql = "DELETE FROM MenuCategories WHERE CategoryID = ?";
+        try {
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setInt(1, categoryId);
+            return st.executeUpdate() > 0;
+        } catch (SQLException ex) {
+            Logger.getLogger(MenuDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return false;
+    }
+
+    // --- MenuItem Management Methods ---
+
+    public boolean insertMenuItem(MenuItem item) {
+        String sql = "INSERT INTO MenuItems (RestaurantID, CategoryID, ItemName, Description, Price, IsAvailable) VALUES (?, ?, ?, ?, ?, ?)";
+        try {
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setInt(1, item.getRestaurantID());
+            st.setInt(2, item.getCategoryID());
+            st.setString(3, item.getItemName());
+            st.setString(4, item.getDescription());
+            st.setDouble(5, item.getPrice());
+            st.setBoolean(6, item.isIsAvailable());
+            return st.executeUpdate() > 0;
+        } catch (SQLException ex) {
+            Logger.getLogger(MenuDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return false;
+    }
+
+    public boolean updateMenuItem(MenuItem item) {
+        String sql = "UPDATE MenuItems SET CategoryID = ?, ItemName = ?, Description = ?, Price = ?, IsAvailable = ? WHERE ItemID = ?";
+        try {
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setInt(1, item.getCategoryID());
+            st.setString(2, item.getItemName());
+            st.setString(3, item.getDescription());
+            st.setDouble(4, item.getPrice());
+            st.setBoolean(5, item.isIsAvailable());
+            st.setInt(6, item.getItemID());
+            return st.executeUpdate() > 0;
+        } catch (SQLException ex) {
+            Logger.getLogger(MenuDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return false;
+    }
+
+    public boolean deleteMenuItem(int itemId) {
+        String sql = "DELETE FROM MenuItems WHERE ItemID = ?";
+        try {
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setInt(1, itemId);
+            return st.executeUpdate() > 0;
+        } catch (SQLException ex) {
+            Logger.getLogger(MenuDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return false;
+    }
 }
