@@ -56,6 +56,95 @@
                                 <% session.removeAttribute("message"); session.removeAttribute("messageType"); %>
                             </c:if>
 
+                            <!-- Advanced Search and Filter Bar -->
+                            <div class="card shadow-sm border-0 mb-4">
+                                <div class="card-body p-4">
+                                    <form action="${pageContext.request.contextPath}/items" method="get"
+                                        id="filterForm">
+                                        <input type="hidden" name="action" value="list">
+
+                                        <!-- First Row: Search and Category -->
+                                        <div class="row g-3 mb-3">
+                                            <div class="col-md-8">
+                                                <div class="input-group">
+                                                    <span class="input-group-text bg-white border-end-0">
+                                                        <i class="fas fa-search text-muted"></i>
+                                                    </span>
+                                                    <input type="text" name="search"
+                                                        class="form-control border-start-0 ps-0"
+                                                        placeholder="Search by name or SKU..." value="${currentSearch}">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <select name="categoryId" class="form-select">
+                                                    <option value="">All Categories</option>
+                                                    <c:forEach var="cat" items="${categories}">
+                                                        <option value="${cat.categoryID}"
+                                                            ${cat.categoryID==currentCategoryId ? 'selected' : '' }>
+                                                            ${cat.categoryName}
+                                                        </option>
+                                                    </c:forEach>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <!-- Second Row: Status, Price, and Sorting -->
+                                        <div class="row g-3 align-items-center">
+                                            <div class="col-md-2">
+                                                <select name="status" class="form-select">
+                                                    <option value="">All Status</option>
+                                                    <option value="available" ${currentStatus=='available' ? 'selected'
+                                                        : '' }>Available</option>
+                                                    <option value="unavailable" ${currentStatus=='unavailable'
+                                                        ? 'selected' : '' }>Unavailable</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="input-group">
+                                                    <span class="input-group-text bg-light">VND</span>
+                                                    <fmt:formatNumber var="formattedMin" value="${currentMinPrice}"
+                                                        maxFractionDigits="0" groupingUsed="false" />
+                                                    <fmt:formatNumber var="formattedMax" value="${currentMaxPrice}"
+                                                        maxFractionDigits="0" groupingUsed="false" />
+                                                    <input type="number" name="minPrice" class="form-control"
+                                                        placeholder="Min" value="${formattedMin}">
+                                                    <input type="number" name="maxPrice" class="form-control"
+                                                        placeholder="Max" value="${formattedMax}">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="input-group">
+                                                    <span class="input-group-text bg-light"><i
+                                                            class="fas fa-sort"></i></span>
+                                                    <select name="sortBy" class="form-select">
+                                                        <option value="ItemName" ${currentSortBy=='ItemName'
+                                                            ? 'selected' : '' }>Sort by Name</option>
+                                                        <option value="price" ${currentSortBy=='price' ? 'selected' : ''
+                                                            }>Sort by Price</option>
+                                                        <option value="date" ${currentSortBy=='date' ? 'selected' : ''
+                                                            }>Sort by Date</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-2">
+                                                <select name="sortOrder" class="form-select">
+                                                    <option value="ASC" ${currentSortOrder=='ASC' ? 'selected' : '' }>
+                                                        Ascending</option>
+                                                    <option value="DESC" ${currentSortOrder=='DESC' ? 'selected' : '' }>
+                                                        Descending</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-2 d-grid">
+                                                <button type="submit" class="btn btn-primary shadow-sm">
+                                                    <i class="fas fa-filter me-2"></i>Apply
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+
+                            <!-- Table -->
                             <div class="card shadow-sm border-0">
                                 <div class="card-body p-0">
                                     <div class="table-responsive">

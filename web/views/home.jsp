@@ -179,13 +179,6 @@
                 .btn-view:hover {
                     opacity: 0.9;
                 }
-
-                .site-footer {
-                    background-color: var(--secondary);
-                    color: var(--white);
-                    padding: 1.5rem 5%;
-                    text-align: center;
-                }
             </style>
         </head>
 
@@ -217,7 +210,7 @@
                             <div class="restaurant-info">
                                 <div class="restaurant-name">${r.name}</div>
                                 <div class="restaurant-address"><i class="fas fa-map-marker-alt"></i> ${r.address}</div>
-                                <a href="menu?restaurantId=${r.restaurantID}" class="btn-view">View Menu</a>
+                                <a href="menu?restaurantId=${r.restaurantId}" class="btn-view">View Menu</a>
                             </div>
                         </div>
                     </c:forEach>

@@ -1,7 +1,5 @@
 package models;
 
-import java.sql.Timestamp;
-
 public class MenuCategory {
     private int categoryID;
     private int restaurantID;

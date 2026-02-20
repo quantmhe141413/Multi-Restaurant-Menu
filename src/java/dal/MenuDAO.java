@@ -28,12 +28,43 @@ public class MenuDAO extends DBContext {
         return null;
     }
 
-    public List<MenuCategory> getCategoriesByRestaurant(int restaurantId) {
+    public List<MenuCategory> getCategoriesByRestaurant(int restaurantId, String search, Boolean isActive,
+            String sortBy, String sortOrder) {
         List<MenuCategory> list = new ArrayList<>();
-        String sql = "SELECT * FROM MenuCategories WHERE RestaurantID = ? ORDER BY DisplayOrder, CategoryName";
+        StringBuilder sql = new StringBuilder("SELECT * FROM MenuCategories WHERE RestaurantID = ?");
+
+        if (search != null && !search.trim().isEmpty()) {
+            sql.append(" AND CategoryName LIKE ?");
+        }
+        if (isActive != null) {
+            sql.append(" AND IsActive = ?");
+        }
+
+        // Sorting
+        String validSortBy = "DisplayOrder";
+        if ("name".equals(sortBy))
+            validSortBy = "CategoryName";
+        else if ("status".equals(sortBy))
+            validSortBy = "IsActive";
+
+        String validSortOrder = "ASC";
+        if ("DESC".equalsIgnoreCase(sortOrder))
+            validSortOrder = "DESC";
+
+        sql.append(" ORDER BY ").append(validSortBy).append(" ").append(validSortOrder);
+
         try {
-            PreparedStatement st = connection.prepareStatement(sql);
-            st.setInt(1, restaurantId);
+            PreparedStatement st = connection.prepareStatement(sql.toString());
+            int paramIndex = 1;
+            st.setInt(paramIndex++, restaurantId);
+
+            if (search != null && !search.trim().isEmpty()) {
+                st.setString(paramIndex++, "%" + search.trim() + "%");
+            }
+            if (isActive != null) {
+                st.setBoolean(paramIndex++, isActive);
+            }
+
             ResultSet rs = st.executeQuery();
             while (rs.next()) {
                 list.add(mapCategory(rs));
@@ -44,12 +75,73 @@ public class MenuDAO extends DBContext {
         return list;
     }
 
-    public List<MenuItem> getMenuItemsByRestaurant(int restaurantId) {
+    public List<MenuCategory> getCategoriesByRestaurant(int restaurantId, String search) {
+        return getCategoriesByRestaurant(restaurantId, search, null, "DisplayOrder", "ASC");
+    }
+
+    public List<MenuCategory> getCategoriesByRestaurant(int restaurantId) {
+        return getCategoriesByRestaurant(restaurantId, null, null, "DisplayOrder", "ASC");
+    }
+
+    public List<MenuItem> getMenuItemsByRestaurant(int restaurantId, String search, Integer categoryId,
+            Boolean isAvailable, Double minPrice, Double maxPrice, String sortBy, String sortOrder) {
         List<MenuItem> list = new ArrayList<>();
-        String sql = "SELECT * FROM MenuItems WHERE RestaurantID = ? AND IsAvailable = 1 ORDER BY CategoryID, ItemName";
+        StringBuilder sql = new StringBuilder("SELECT * FROM MenuItems WHERE RestaurantID = ?");
+
+        if (search != null && !search.trim().isEmpty()) {
+            sql.append(" AND (ItemName LIKE ? OR SKU LIKE ?)");
+        }
+        if (categoryId != null && categoryId > 0) {
+            sql.append(" AND CategoryID = ?");
+        }
+        if (isAvailable != null) {
+            sql.append(" AND IsAvailable = ?");
+        }
+        if (minPrice != null) {
+            sql.append(" AND Price >= ?");
+        }
+        if (maxPrice != null) {
+            sql.append(" AND Price <= ?");
+        }
+
+        // Sorting
+        String validSortBy = "ItemName";
+        if ("price".equals(sortBy))
+            validSortBy = "Price";
+        else if ("date".equals(sortBy))
+            validSortBy = "CreatedAt";
+        else if ("sku".equals(sortBy))
+            validSortBy = "SKU";
+
+        String validSortOrder = "ASC";
+        if ("DESC".equalsIgnoreCase(sortOrder))
+            validSortOrder = "DESC";
+
+        sql.append(" ORDER BY ").append(validSortBy).append(" ").append(validSortOrder);
+
         try {
-            PreparedStatement st = connection.prepareStatement(sql);
-            st.setInt(1, restaurantId);
+            PreparedStatement st = connection.prepareStatement(sql.toString());
+            int paramIndex = 1;
+            st.setInt(paramIndex++, restaurantId);
+
+            if (search != null && !search.trim().isEmpty()) {
+                String searchPattern = "%" + search.trim() + "%";
+                st.setString(paramIndex++, searchPattern);
+                st.setString(paramIndex++, searchPattern);
+            }
+            if (categoryId != null && categoryId > 0) {
+                st.setInt(paramIndex++, categoryId);
+            }
+            if (isAvailable != null) {
+                st.setBoolean(paramIndex++, isAvailable);
+            }
+            if (minPrice != null) {
+                st.setDouble(paramIndex++, minPrice);
+            }
+            if (maxPrice != null) {
+                st.setDouble(paramIndex++, maxPrice);
+            }
+
             ResultSet rs = st.executeQuery();
             while (rs.next()) {
                 list.add(mapMenuItem(rs));
@@ -58,6 +150,14 @@ public class MenuDAO extends DBContext {
             Logger.getLogger(MenuDAO.class.getName()).log(Level.SEVERE, null, ex);
         }
         return list;
+    }
+
+    public List<MenuItem> getMenuItemsByRestaurant(int restaurantId, String search, Integer categoryId) {
+        return getMenuItemsByRestaurant(restaurantId, search, categoryId, null, null, null, "ItemName", "ASC");
+    }
+
+    public List<MenuItem> getMenuItemsByRestaurant(int restaurantId) {
+        return getMenuItemsByRestaurant(restaurantId, null, null, null, null, null, "ItemName", "ASC");
     }
 
     public List<MenuItem> getMenuItemsByCategory(int categoryId) {

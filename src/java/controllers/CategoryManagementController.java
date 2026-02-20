@@ -71,9 +71,32 @@ public class CategoryManagementController extends HttpServlet {
             return;
         }
 
+        String search = request.getParameter("search");
+        String statusStr = request.getParameter("status");
+        Boolean isActive = null;
+        if ("active".equals(statusStr))
+            isActive = true;
+        else if ("inactive".equals(statusStr))
+            isActive = false;
+
+        String sortBy = request.getParameter("sortBy");
+        if (sortBy == null || sortBy.isEmpty())
+            sortBy = "DisplayOrder";
+
+        String sortOrder = request.getParameter("sortOrder");
+        if (sortOrder == null || sortOrder.isEmpty())
+            sortOrder = "ASC";
+
         MenuDAO menuDAO = new MenuDAO();
-        List<MenuCategory> categories = menuDAO.getCategoriesByRestaurant(restaurant.getRestaurantId());
+        List<MenuCategory> categories = menuDAO.getCategoriesByRestaurant(restaurant.getRestaurantId(), search,
+                isActive, sortBy, sortOrder);
+
         request.setAttribute("categories", categories);
+        request.setAttribute("currentSearch", search);
+        request.setAttribute("currentStatus", statusStr);
+        request.setAttribute("currentSortBy", sortBy);
+        request.setAttribute("currentSortOrder", sortOrder);
+
         request.getRequestDispatcher("/views/owner/category-list.jsp").forward(request, response);
     }
 
