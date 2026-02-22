@@ -376,6 +376,36 @@ public class RestaurantDeliveryZoneDAO extends DBContext {
     }
 
     /**
+     * Get active zones for a specific restaurant (for Owner/Staff role)
+     * @param restaurantId Restaurant ID
+     * @return List of active zones for the restaurant
+     */
+    public List<RestaurantDeliveryZone> getActiveZonesByRestaurantId(Integer restaurantId) {
+        List<RestaurantDeliveryZone> zones = new ArrayList<>();
+        String sql = "SELECT rdz.*, r.Name AS RestaurantName " +
+                     "FROM RestaurantDeliveryZones rdz " +
+                     "LEFT JOIN Restaurants r ON rdz.RestaurantID = r.RestaurantID " +
+                     "WHERE rdz.RestaurantID = ? AND rdz.IsActive = 1 " +
+                     "ORDER BY rdz.ZoneName";
+
+        try {
+            connection = getConnection();
+            statement = connection.prepareStatement(sql);
+            statement.setInt(1, restaurantId);
+            resultSet = statement.executeQuery();
+
+            while (resultSet.next()) {
+                zones.add(getFromResultSet(resultSet));
+            }
+        } catch (SQLException ex) {
+            System.out.println("Error getting active zones by restaurant: " + ex.getMessage());
+        } finally {
+            closeResources();
+        }
+        return zones;
+    }
+
+    /**
      * Get all approved restaurants for selection dropdown
      * @return List of all approved restaurants
      */
