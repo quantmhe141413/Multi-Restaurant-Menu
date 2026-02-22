@@ -3,6 +3,7 @@ package dal;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -13,6 +14,25 @@ public class RestaurantDAO extends DBContext {
 
     public List<Restaurant> getAllApprovedRestaurants() {
         return getApprovedRestaurants(null, null);
+    }
+
+    public List<Restaurant> getAllRestaurantsForDropdown() {
+        List<Restaurant> list = new ArrayList<>();
+        String sql = "SELECT RestaurantID, Name, Status FROM Restaurants ORDER BY Name";
+        try {
+            PreparedStatement st = connection.prepareStatement(sql);
+            ResultSet rs = st.executeQuery();
+            while (rs.next()) {
+                Restaurant r = new Restaurant();
+                r.setRestaurantId(rs.getInt("RestaurantID"));
+                r.setName(rs.getString("Name"));
+                r.setStatus(rs.getString("Status"));
+                list.add(r);
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(RestaurantDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return list;
     }
 
     public List<Restaurant> searchRestaurants(String query) {
@@ -51,6 +71,10 @@ public class RestaurantDAO extends DBContext {
             Logger.getLogger(RestaurantDAO.class.getName()).log(Level.SEVERE, null, ex);
         }
         return list;
+    }
+
+    public List<Restaurant> findRestaurantsForCommissionConfig(String status, String search, int page, int pageSize) {
+        return findRestaurantsWithFilters(status, search, page, pageSize);
     }
 
     public List<String> getActiveZoneNames() {
@@ -163,6 +187,22 @@ public class RestaurantDAO extends DBContext {
         return false;
     }
 
+<<<<<<< HEAD
+=======
+    public boolean updateCommissionRate(int restaurantId, BigDecimal newRate) {
+        String sql = "UPDATE Restaurants SET CommissionRate = ? WHERE RestaurantID = ?";
+        try {
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setBigDecimal(1, newRate);
+            st.setInt(2, restaurantId);
+            return st.executeUpdate() > 0;
+        } catch (SQLException ex) {
+            Logger.getLogger(RestaurantDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return false;
+    }
+
+>>>>>>> TrangNP
     public Restaurant findByIdWithOwner(int restaurantId) {
         String sql = "SELECT r.*, u.FullName AS OwnerName, u.Email AS OwnerEmail "
                 + "FROM Restaurants r LEFT JOIN Users u ON r.OwnerID = u.UserID "
