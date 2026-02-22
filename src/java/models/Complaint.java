@@ -4,9 +4,8 @@ import java.sql.Timestamp;
 
 public class Complaint {
     private int complaintID;
-    private int orderID;
-    private int userID;
-    private String subject;
+    private Integer orderID;
+    private int customerID;
     private String description;
     private String status;
     private Timestamp createdAt;
@@ -22,28 +21,20 @@ public class Complaint {
         this.complaintID = complaintID;
     }
 
-    public int getOrderID() {
+    public Integer getOrderID() {
         return orderID;
     }
 
-    public void setOrderID(int orderID) {
+    public void setOrderID(Integer orderID) {
         this.orderID = orderID;
     }
 
-    public int getUserID() {
-        return userID;
+    public int getCustomerID() {
+        return customerID;
     }
 
-    public void setUserID(int userID) {
-        this.userID = userID;
-    }
-
-    public String getSubject() {
-        return subject;
-    }
-
-    public void setSubject(String subject) {
-        this.subject = subject;
+    public void setCustomerID(int customerID) {
+        this.customerID = customerID;
     }
 
     public String getDescription() {
