@@ -7,6 +7,7 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 
 @WebServlet(name = "ResetPasswordController", urlPatterns = { "/reset-password" })
 public class ResetPasswordController extends HttpServlet {
@@ -14,6 +15,11 @@ public class ResetPasswordController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        HttpSession session = request.getSession(false);
+        if (session != null && session.getAttribute("user") != null) {
+            response.sendRedirect("home");
+            return;
+        }
         String token = request.getParameter("token");
 
         // Validate token

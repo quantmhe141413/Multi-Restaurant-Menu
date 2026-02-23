@@ -195,7 +195,6 @@
                 .btn-view:hover {
                     opacity: 0.9;
                 }
-
                 .site-footer {
                     background-color: #2f3542;
                     color: white;
@@ -212,6 +211,7 @@
                 .site-footer p {
                     margin: 0;
                 }
+
             </style>
         </head>
 
