@@ -14,8 +14,8 @@ import models.OrderItem;
 public class OrderDAO extends DBContext {
 
     public int createOrder(Order order) {
-        String sql = "INSERT INTO Orders (RestaurantID, CustomerID, OrderType, TableID, OrderStatus, DiscountID, TotalAmount, DiscountAmount, FinalAmount, IsClosed, CreatedAt) "
-                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO Orders (RestaurantID, CustomerID, OrderType, TableID, OrderStatus, DiscountID, TotalAmount, DiscountAmount, FinalAmount, PaymentMethod, PaymentStatus, IsClosed, CreatedAt) "
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         
         try {
             PreparedStatement st = connection.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS);
@@ -36,8 +36,10 @@ public class OrderDAO extends DBContext {
             st.setDouble(7, order.getTotalAmount());
             st.setDouble(8, order.getDiscountAmount());
             st.setDouble(9, order.getFinalAmount());
-            st.setBoolean(10, false); // IsClosed = false khi mới tạo
-            st.setTimestamp(11, new Timestamp(System.currentTimeMillis()));
+            st.setString(10, order.getPaymentMethod());
+            st.setString(11, order.getPaymentStatus() != null ? order.getPaymentStatus() : "Pending");
+            st.setBoolean(12, false); // IsClosed = false khi mới tạo
+            st.setTimestamp(13, new Timestamp(System.currentTimeMillis()));
             
             int affectedRows = st.executeUpdate();
             
@@ -152,6 +154,9 @@ public class OrderDAO extends DBContext {
         order.setTotalAmount(rs.getDouble("TotalAmount"));
         order.setDiscountAmount(rs.getDouble("DiscountAmount"));
         order.setFinalAmount(rs.getDouble("FinalAmount"));
+        order.setPaymentMethod(rs.getString("PaymentMethod"));
+        order.setPaymentStatus(rs.getString("PaymentStatus"));
+        order.setPaidAt(rs.getTimestamp("PaidAt"));
         order.setCreatedAt(rs.getTimestamp("CreatedAt"));
         return order;
     }
@@ -169,5 +174,90 @@ public class OrderDAO extends DBContext {
         }
         item.setCreatedAt(rs.getTimestamp("CreatedAt"));
         return item;
+    }
+
+    // Payment Methods
+    public boolean createPayment(int orderID, int customerID, String paymentType, String txnRef, long amount) throws SQLException {
+        String sql = "INSERT INTO Payments (OrderID, CustomerID, PaymentType, TransactionRef, Amount, PaymentStatus, CreatedAt) "
+                + "VALUES (?, ?, ?, ?, ?, 'Pending', GETDATE())";
+        
+        try {
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setInt(1, orderID);
+            st.setInt(2, customerID);
+            st.setString(3, paymentType);
+            st.setString(4, txnRef);
+            st.setLong(5, amount);
+            
+            return st.executeUpdate() > 0;
+        } catch (SQLException ex) {
+            Logger.getLogger(OrderDAO.class.getName()).log(Level.SEVERE, null, ex);
+            throw ex;
+        }
+    }
+
+    public boolean updatePayment(String txnRef, String bankCode, String cardType, String payDate,
+                                 String responseCode, String transactionNo, String transactionStatus,
+                                 String secureHash, String paymentStatus) throws SQLException {
+        String sql = "UPDATE Payments SET BankCode = ?, CardType = ?, PayDate = ?, ResponseCode = ?, "
+                + "TransactionNo = ?, TransactionStatus = ?, SecureHash = ?, PaymentStatus = ?, UpdatedAt = GETDATE() "
+                + "WHERE TransactionRef = ?";
+        
+        try {
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setString(1, bankCode);
+            st.setString(2, cardType);
+            st.setString(3, payDate);
+            st.setString(4, responseCode);
+            st.setString(5, transactionNo);
+            st.setString(6, transactionStatus);
+            st.setString(7, secureHash);
+            st.setString(8, paymentStatus);
+            st.setString(9, txnRef);
+            
+            return st.executeUpdate() > 0;
+        } catch (SQLException ex) {
+            Logger.getLogger(OrderDAO.class.getName()).log(Level.SEVERE, null, ex);
+            throw ex;
+        }
+    }
+
+    public boolean updateOrderPaymentStatus(int orderID, String paymentStatus, Timestamp paidAt) throws SQLException {
+        String sql = "UPDATE Orders SET PaymentStatus = ?, PaidAt = ? WHERE OrderID = ?";
+        
+        try {
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setString(1, paymentStatus);
+            if (paidAt != null) {
+                st.setTimestamp(2, paidAt);
+            } else {
+                st.setNull(2, java.sql.Types.TIMESTAMP);
+            }
+            st.setInt(3, orderID);
+            
+            return st.executeUpdate() > 0;
+        } catch (SQLException ex) {
+            Logger.getLogger(OrderDAO.class.getName()).log(Level.SEVERE, null, ex);
+            throw ex;
+        }
+    }
+
+    public int getOrderIdByTxnRef(String txnRef) throws SQLException {
+        String sql = "SELECT OrderID FROM Payments WHERE TransactionRef = ?";
+        
+        try {
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setString(1, txnRef);
+            ResultSet rs = st.executeQuery();
+            
+            if (rs.next()) {
+                return rs.getInt("OrderID");
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(OrderDAO.class.getName()).log(Level.SEVERE, null, ex);
+            throw ex;
+        }
+        
+        return -1;
     }
 }
