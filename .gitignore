@@ -8,6 +8,7 @@
 
 # JAR files (except lib dependencies)
 *.jar
+!/lib/*.jar
 
 # Log files
 *.log
