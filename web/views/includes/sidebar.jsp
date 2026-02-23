@@ -21,19 +21,6 @@
                         Delivery Fees
                     </a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link ${pageContext.request.requestURI.contains('category') ? 'active' : ''}"
-                        href="${pageContext.request.contextPath}/categories?action=list">
-                        <i class="fas fa-list"></i>
-                        Menu Categories
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link ${pageContext.request.requestURI.contains('items') ? 'active' : ''}"
-                        href="${pageContext.request.contextPath}/items?action=list">
-                        <i class="fas fa-utensils"></i>
-                        Menu Items
-                    </a>
-                </li>
             </ul>
+
         </nav>

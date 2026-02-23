@@ -15,6 +15,11 @@
                                     <i class="fas fa-history"></i> Order History
                                 </a>
                             </c:if>
+                            <c:if test="${sessionScope.user.roleID == 2}">
+                                <a href="categories?action=list" class="nav-action">
+                                    <i class="fas fa-tasks"></i> Management
+                                </a>
+                            </c:if>
                             <a href="cart" class="${isCartPage ? 'nav-action' : ''}">
                                 <i class="fas fa-shopping-cart"></i> Cart
                                 <c:if test="${not empty sessionScope.cart and sessionScope.cart.size() > 0}">
