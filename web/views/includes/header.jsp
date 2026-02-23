@@ -1,6 +1,7 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <c:set var="isCartPage" value="${fn:endsWith(pageContext.request.requestURI, '/cart')}" />
+<c:set var="isOrderHistoryPage" value="${fn:endsWith(pageContext.request.requestURI, '/order-history')}" />
 <header class="site-header">
     <div class="site-header__bar">
         <a href="home" class="logo">FoodieExpress</a>
@@ -9,6 +10,11 @@
             <a href="home">Restaurants</a>
             <c:choose>
                 <c:when test="${not empty sessionScope.user}">
+                    <c:if test="${sessionScope.user.roleID == 4}">
+                        <a href="order-history" class="${isOrderHistoryPage ? 'nav-action' : ''}">
+                            <i class="fas fa-history"></i> Order History
+                        </a>
+                    </c:if>
                     <a href="cart" class="${isCartPage ? 'nav-action' : ''}">
                         <i class="fas fa-shopping-cart"></i> Cart
                         <c:if test="${not empty sessionScope.cart and sessionScope.cart.size() > 0}">
