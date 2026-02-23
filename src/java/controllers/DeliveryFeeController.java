@@ -39,9 +39,6 @@ public class DeliveryFeeController extends HttpServlet {
             case "toggle":
                 handleToggleStatus(request, response);
                 break;
-            case "delete":
-                handleDelete(request, response);
-                break;
             default:
                 handleList(request, response);
                 break;
@@ -73,6 +70,15 @@ public class DeliveryFeeController extends HttpServlet {
 
     private void handleList(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        HttpSession session = request.getSession();
+        models.User user = (models.User) session.getAttribute("user");
+        
+        // Check if user is logged in
+        if (user == null) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
+        }
+        
         // Get filter parameters
         String feeTypeFilter = request.getParameter("feeType");
         String zoneIdStr = request.getParameter("zoneId");
@@ -100,16 +106,37 @@ public class DeliveryFeeController extends HttpServlet {
         }
         
         DeliveryFeeDAO feeDAO = new DeliveryFeeDAO();
-        // Get ALL fees (pass null to get all)
-        List<DeliveryFee> fees = feeDAO.findFeesWithFilters(
-                null, feeTypeFilter, zoneIdFilter, page, pageSize);
-        
-        int totalFees = feeDAO.getTotalFilteredFees(null, feeTypeFilter, zoneIdFilter);
-        int totalPages = (int) Math.ceil((double) totalFees / pageSize);
-        
-        // Get all active zones for filter dropdown
         RestaurantDeliveryZoneDAO zoneDAO = new RestaurantDeliveryZoneDAO();
-        List<RestaurantDeliveryZone> zones = zoneDAO.getAllActiveZones();
+        
+        // Determine restaurant ID based on role
+        Integer restaurantId = null;
+        List<DeliveryFee> fees;
+        List<RestaurantDeliveryZone> zones;
+        
+        if (user.getRoleID() == 1) {
+            // SuperAdmin - can view all delivery fees
+            fees = feeDAO.findFeesWithFilters(null, feeTypeFilter, zoneIdFilter, page, pageSize);
+            zones = zoneDAO.getAllActiveZones();
+        } else if (user.getRoleID() == 2 || user.getRoleID() == 3) {
+            // Owner or Staff - can only view their restaurant's delivery fees
+            restaurantId = (Integer) session.getAttribute("restaurantId");
+            if (restaurantId == null) {
+                session.setAttribute("toastMessage", "You must be assigned to a restaurant to view delivery fees");
+                session.setAttribute("toastType", "error");
+                response.sendRedirect(request.getContextPath() + "/home");
+                return;
+            }
+            fees = feeDAO.findFeesWithFilters(restaurantId, feeTypeFilter, zoneIdFilter, page, pageSize);
+            zones = zoneDAO.getActiveZonesByRestaurantId(restaurantId);
+        } else {
+            session.setAttribute("toastMessage", "You don't have permission to view delivery fees");
+            session.setAttribute("toastType", "error");
+            response.sendRedirect(request.getContextPath() + "/home");
+            return;
+        }
+        
+        int totalFees = feeDAO.getTotalFilteredFees(restaurantId, feeTypeFilter, zoneIdFilter);
+        int totalPages = (int) Math.ceil((double) totalFees / pageSize);
         
         // Set attributes for JSP
         request.setAttribute("fees", fees);
@@ -117,22 +144,69 @@ public class DeliveryFeeController extends HttpServlet {
         request.setAttribute("currentPage", page);
         request.setAttribute("totalPages", totalPages);
         request.setAttribute("totalFees", totalFees);
+        request.setAttribute("userRole", user.getRoleID());
         
         request.getRequestDispatcher("/views/owner/delivery-fee-list.jsp").forward(request, response);
     }
 
     private void showAddForm(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        // Get ALL active zones for dropdown (not filtered by restaurant)
+        HttpSession session = request.getSession();
+        models.User user = (models.User) session.getAttribute("user");
+        
+        // Check if user is logged in
+        if (user == null) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
+        }
+        
         RestaurantDeliveryZoneDAO zoneDAO = new RestaurantDeliveryZoneDAO();
-        List<RestaurantDeliveryZone> zones = zoneDAO.getAllActiveZones();
+        List<RestaurantDeliveryZone> zones;
+        
+        // Determine zones based on role
+        if (user.getRoleID() == 1) {
+            // SuperAdmin - can add fees for any zone
+            zones = zoneDAO.getAllActiveZones();
+        } else if (user.getRoleID() == 2 || user.getRoleID() == 3) {
+            // Owner or Staff - can only add fees for their restaurant's zones
+            Integer restaurantId = (Integer) session.getAttribute("restaurantId");
+            if (restaurantId == null) {
+                session.setAttribute("toastMessage", "You must be assigned to a restaurant to add delivery fees");
+                session.setAttribute("toastType", "error");
+                response.sendRedirect(request.getContextPath() + "/delivery-fee?action=list");
+                return;
+            }
+            zones = zoneDAO.getActiveZonesByRestaurantId(restaurantId);
+            
+            if (zones.isEmpty()) {
+                session.setAttribute("toastMessage", "Please create coverage zones first before adding delivery fees");
+                session.setAttribute("toastType", "warning");
+                response.sendRedirect(request.getContextPath() + "/delivery-fee?action=list");
+                return;
+            }
+        } else {
+            session.setAttribute("toastMessage", "You don't have permission to add delivery fees");
+            session.setAttribute("toastType", "error");
+            response.sendRedirect(request.getContextPath() + "/home");
+            return;
+        }
         
         request.setAttribute("zones", zones);
+        request.setAttribute("userRole", user.getRoleID());
         request.getRequestDispatcher("/views/owner/delivery-fee-add.jsp").forward(request, response);
     }
 
     private void showEditForm(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        HttpSession session = request.getSession();
+        models.User user = (models.User) session.getAttribute("user");
+        
+        // Check if user is logged in
+        if (user == null) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
+        }
+        
         String feeIdStr = request.getParameter("id");
         
         if (feeIdStr == null || feeIdStr.isEmpty()) {
@@ -146,19 +220,49 @@ public class DeliveryFeeController extends HttpServlet {
             DeliveryFee fee = feeDAO.findById(feeId);
             
             if (fee == null) {
-                HttpSession session = request.getSession();
                 session.setAttribute("toastMessage", "Delivery fee not found");
                 session.setAttribute("toastType", "error");
                 response.sendRedirect(request.getContextPath() + "/delivery-fee?action=list");
                 return;
             }
             
-            // Get all active zones for dropdown
             RestaurantDeliveryZoneDAO zoneDAO = new RestaurantDeliveryZoneDAO();
-            List<RestaurantDeliveryZone> zones = zoneDAO.getAllActiveZones();
+            List<RestaurantDeliveryZone> zones;
+            
+            // Check permission based on role
+            if (user.getRoleID() == 1) {
+                // SuperAdmin - can edit any fee
+                zones = zoneDAO.getAllActiveZones();
+            } else if (user.getRoleID() == 2 || user.getRoleID() == 3) {
+                // Owner or Staff - verify the fee belongs to their restaurant
+                Integer restaurantId = (Integer) session.getAttribute("restaurantId");
+                if (restaurantId == null) {
+                    session.setAttribute("toastMessage", "You must be assigned to a restaurant");
+                    session.setAttribute("toastType", "error");
+                    response.sendRedirect(request.getContextPath() + "/delivery-fee?action=list");
+                    return;
+                }
+                
+                // Verify the fee's zone belongs to their restaurant
+                RestaurantDeliveryZone zone = zoneDAO.findById(fee.getZoneId());
+                if (zone == null || !zone.getRestaurantId().equals(restaurantId)) {
+                    session.setAttribute("toastMessage", "You don't have permission to edit this delivery fee");
+                    session.setAttribute("toastType", "error");
+                    response.sendRedirect(request.getContextPath() + "/delivery-fee?action=list");
+                    return;
+                }
+                
+                zones = zoneDAO.getActiveZonesByRestaurantId(restaurantId);
+            } else {
+                session.setAttribute("toastMessage", "You don't have permission to edit delivery fees");
+                session.setAttribute("toastType", "error");
+                response.sendRedirect(request.getContextPath() + "/home");
+                return;
+            }
             
             request.setAttribute("fee", fee);
             request.setAttribute("zones", zones);
+            request.setAttribute("userRole", user.getRoleID());
             request.getRequestDispatcher("/views/owner/delivery-fee-edit.jsp").forward(request, response);
         } catch (NumberFormatException e) {
             response.sendRedirect(request.getContextPath() + "/delivery-fee?action=list");
@@ -371,36 +475,6 @@ public class DeliveryFeeController extends HttpServlet {
                 session.setAttribute("toastType", "success");
             } else {
                 session.setAttribute("toastMessage", "Failed to update fee status");
-                session.setAttribute("toastType", "error");
-            }
-        } catch (NumberFormatException e) {
-            session.setAttribute("toastMessage", "Invalid fee ID");
-            session.setAttribute("toastType", "error");
-        }
-        
-        response.sendRedirect(request.getContextPath() + "/delivery-fee?action=list");
-    }
-
-    private void handleDelete(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        HttpSession session = request.getSession();
-        String feeIdStr = request.getParameter("id");
-        
-        if (feeIdStr == null || feeIdStr.isEmpty()) {
-            response.sendRedirect(request.getContextPath() + "/delivery-fee?action=list");
-            return;
-        }
-        
-        try {
-            Integer feeId = Integer.parseInt(feeIdStr);
-            DeliveryFeeDAO feeDAO = new DeliveryFeeDAO();
-            boolean result = feeDAO.delete(feeId);
-            
-            if (result) {
-                session.setAttribute("toastMessage", "Delivery fee deleted successfully");
-                session.setAttribute("toastType", "success");
-            } else {
-                session.setAttribute("toastMessage", "Cannot delete fee: applied to ongoing orders");
                 session.setAttribute("toastType", "error");
             }
         } catch (NumberFormatException e) {
