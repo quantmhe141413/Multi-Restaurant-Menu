@@ -375,7 +375,15 @@
                     <c:forEach var="item" items="${categoryItems}">
                         <div class="col-md-6 col-lg-4 menu-item-wrapper" data-price="${item.price}" data-name="${item.itemName}">
                             <div class="card menu-item-card">
-                                <img src="https://via.placeholder.com/400x200?text=${item.itemName}" alt="${item.itemName}" class="menu-item-image">
+                                <c:choose>
+                                    <c:when test="${not empty item.imageUrl}">
+                                        <img src="${item.imageUrl}" alt="${item.itemName}" class="menu-item-image" 
+                                             onerror="this.src='${pageContext.request.contextPath}/images/food_default.png'">
+                                    </c:when>
+                                    <c:otherwise>
+                                        <img src="${pageContext.request.contextPath}/images/food_default.png" alt="${item.itemName}" class="menu-item-image">
+                                    </c:otherwise>
+                                </c:choose>
                                 <div class="menu-item-body">
                                     <h5 class="menu-item-name">${item.itemName}</h5>
                                     <c:if test="${not empty item.description}">
