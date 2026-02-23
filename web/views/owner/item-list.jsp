@@ -15,7 +15,7 @@
 
                 <div class="container-fluid">
                     <div class="row">
-                        <jsp:include page="/views/includes/sidebar.jsp" />
+                        <jsp:include page="/views/includes/restaurant-sidebar.jsp" />
 
                         <main class="col-md-9 col-lg-10 main-content">
                             <div class="page-header d-flex justify-content-between align-items-center">
