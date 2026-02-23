@@ -36,9 +36,6 @@ public class CoverageZoneController extends HttpServlet {
             case "toggle":
                 handleToggleStatus(request, response);
                 break;
-            case "delete":
-                handleDelete(request, response);
-                break;
             default:
                 handleList(request, response);
                 break;
@@ -70,19 +67,48 @@ public class CoverageZoneController extends HttpServlet {
 
     private void handleList(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        HttpSession session = request.getSession();
+        models.User user = (models.User) session.getAttribute("user");
+        
+        // Check if user is logged in
+        if (user == null) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
+        }
+        
         // Get filter parameters
         String statusFilter = request.getParameter("status");
         String searchFilter = request.getParameter("search");
         String restaurantFilter = request.getParameter("restaurant");
         
-        // Parse restaurant filter (if any)
+        // Determine restaurant ID based on role
         Integer restaurantId = null;
-        if (restaurantFilter != null && !restaurantFilter.trim().isEmpty()) {
-            try {
-                restaurantId = Integer.parseInt(restaurantFilter);
-            } catch (NumberFormatException e) {
-                // Invalid restaurant filter, ignore it
+        
+        if (user.getRoleID() == 1) {
+            // SuperAdmin - can view all restaurants or filter by specific restaurant
+            if (restaurantFilter != null && !restaurantFilter.trim().isEmpty()) {
+                try {
+                    restaurantId = Integer.parseInt(restaurantFilter);
+                } catch (NumberFormatException e) {
+                    // Invalid restaurant filter, ignore it
+                }
             }
+            // If restaurantId is still null, it will show all restaurants
+        } else if (user.getRoleID() == 2 || user.getRoleID() == 3) {
+            // Owner or Staff - can only view their own restaurant
+            restaurantId = (Integer) session.getAttribute("restaurantId");
+            if (restaurantId == null) {
+                session.setAttribute("toastMessage", "You must be assigned to a restaurant to view coverage zones");
+                session.setAttribute("toastType", "error");
+                response.sendRedirect(request.getContextPath() + "/home");
+                return;
+            }
+        } else {
+            // Other roles don't have access
+            session.setAttribute("toastMessage", "You don't have permission to view coverage zones");
+            session.setAttribute("toastType", "error");
+            response.sendRedirect(request.getContextPath() + "/home");
+            return;
         }
         
         // Get pagination parameters
@@ -100,38 +126,63 @@ public class CoverageZoneController extends HttpServlet {
         
         RestaurantDeliveryZoneDAO zoneDAO = new RestaurantDeliveryZoneDAO();
         
-        // Get all zones (pass null to get all restaurants)
+        // Get zones based on role and filters
         List<RestaurantDeliveryZone> zones = zoneDAO.findZonesWithFilters(
                 restaurantId, statusFilter, searchFilter, page, pageSize);
         
         int totalZones = zoneDAO.getTotalFilteredZones(restaurantId, statusFilter, searchFilter);
         int totalPages = (int) Math.ceil((double) totalZones / pageSize);
         
-        // Get all restaurants for filter dropdown
-        request.setAttribute("restaurants", zoneDAO.getAllApprovedRestaurants());
+        // Get restaurants for filter dropdown (only for SuperAdmin)
+        if (user.getRoleID() == 1) {
+            request.setAttribute("restaurants", zoneDAO.getAllApprovedRestaurants());
+        }
         
         // Set attributes for JSP
         request.setAttribute("zones", zones);
         request.setAttribute("currentPage", page);
         request.setAttribute("totalPages", totalPages);
         request.setAttribute("totalZones", totalZones);
+        request.setAttribute("userRole", user.getRoleID());
         
         request.getRequestDispatcher("/views/owner/coverage-zone-list.jsp").forward(request, response);
     }
 
     private void showAddForm(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        // Load list of restaurants for selection
-        RestaurantDeliveryZoneDAO zoneDAO = new RestaurantDeliveryZoneDAO();
-        request.setAttribute("restaurants", zoneDAO.getAllApprovedRestaurants());
-        
-        // Get current restaurant from session (if any) for pre-selection
         HttpSession session = request.getSession();
-        Integer currentRestaurantId = (Integer) session.getAttribute("restaurantId");
-        if (currentRestaurantId != null) {
-            request.setAttribute("currentRestaurantId", currentRestaurantId);
+        models.User user = (models.User) session.getAttribute("user");
+        
+        // Check if user is logged in
+        if (user == null) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
         }
         
+        RestaurantDeliveryZoneDAO zoneDAO = new RestaurantDeliveryZoneDAO();
+        
+        // Determine restaurant ID based on role
+        if (user.getRoleID() == 1) {
+            // SuperAdmin - can add for any restaurant
+            request.setAttribute("restaurants", zoneDAO.getAllApprovedRestaurants());
+        } else if (user.getRoleID() == 2 || user.getRoleID() == 3) {
+            // Owner or Staff - can only add for their own restaurant
+            Integer restaurantId = (Integer) session.getAttribute("restaurantId");
+            if (restaurantId == null) {
+                session.setAttribute("toastMessage", "You must be assigned to a restaurant to add coverage zones");
+                session.setAttribute("toastType", "error");
+                response.sendRedirect(request.getContextPath() + "/coverage-zone?action=list");
+                return;
+            }
+            request.setAttribute("currentRestaurantId", restaurantId);
+        } else {
+            session.setAttribute("toastMessage", "You don't have permission to add coverage zones");
+            session.setAttribute("toastType", "error");
+            response.sendRedirect(request.getContextPath() + "/home");
+            return;
+        }
+        
+        request.setAttribute("userRole", user.getRoleID());
         request.getRequestDispatcher("/views/owner/coverage-zone-add.jsp").forward(request, response);
     }
 
@@ -167,27 +218,50 @@ public class CoverageZoneController extends HttpServlet {
     private void handleAdd(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         HttpSession session = request.getSession();
+        models.User user = (models.User) session.getAttribute("user");
         
-        // Get restaurant ID from form (user selection)
-        String restaurantIdStr = request.getParameter("restaurantId");
+        // Check if user is logged in
+        if (user == null) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
+        }
+        
+        // Get restaurant ID based on role
         Integer restaurantId = null;
         
-        if (restaurantIdStr != null && !restaurantIdStr.trim().isEmpty()) {
-            try {
-                restaurantId = Integer.parseInt(restaurantIdStr);
-            } catch (NumberFormatException e) {
-                session.setAttribute("toastMessage", "Invalid restaurant selection");
+        if (user.getRoleID() == 1) {
+            // SuperAdmin - get from form
+            String restaurantIdStr = request.getParameter("restaurantId");
+            if (restaurantIdStr != null && !restaurantIdStr.trim().isEmpty()) {
+                try {
+                    restaurantId = Integer.parseInt(restaurantIdStr);
+                } catch (NumberFormatException e) {
+                    session.setAttribute("toastMessage", "Invalid restaurant selection");
+                    session.setAttribute("toastType", "error");
+                    response.sendRedirect(request.getContextPath() + "/coverage-zone?action=add");
+                    return;
+                }
+            }
+            
+            if (restaurantId == null) {
+                session.setAttribute("toastMessage", "Please select a restaurant");
                 session.setAttribute("toastType", "error");
                 response.sendRedirect(request.getContextPath() + "/coverage-zone?action=add");
                 return;
             }
-        }
-        
-        // Validation - Restaurant must be selected
-        if (restaurantId == null) {
-            session.setAttribute("toastMessage", "Please select a restaurant");
+        } else if (user.getRoleID() == 2 || user.getRoleID() == 3) {
+            // Owner or Staff - use their restaurant ID from session
+            restaurantId = (Integer) session.getAttribute("restaurantId");
+            if (restaurantId == null) {
+                session.setAttribute("toastMessage", "You must be assigned to a restaurant to add coverage zones");
+                session.setAttribute("toastType", "error");
+                response.sendRedirect(request.getContextPath() + "/coverage-zone?action=add");
+                return;
+            }
+        } else {
+            session.setAttribute("toastMessage", "You don't have permission to add coverage zones");
             session.setAttribute("toastType", "error");
-            response.sendRedirect(request.getContextPath() + "/coverage-zone?action=add");
+            response.sendRedirect(request.getContextPath() + "/home");
             return;
         }
         
@@ -321,36 +395,6 @@ public class CoverageZoneController extends HttpServlet {
                 session.setAttribute("toastType", "success");
             } else {
                 session.setAttribute("toastMessage", "Failed to update zone status");
-                session.setAttribute("toastType", "error");
-            }
-        } catch (NumberFormatException e) {
-            session.setAttribute("toastMessage", "Invalid zone ID");
-            session.setAttribute("toastType", "error");
-        }
-        
-        response.sendRedirect(request.getContextPath() + "/coverage-zone?action=list");
-    }
-
-    private void handleDelete(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        HttpSession session = request.getSession();
-        String zoneIdStr = request.getParameter("id");
-        
-        if (zoneIdStr == null || zoneIdStr.isEmpty()) {
-            response.sendRedirect(request.getContextPath() + "/coverage-zone?action=list");
-            return;
-        }
-        
-        try {
-            Integer zoneId = Integer.parseInt(zoneIdStr);
-            RestaurantDeliveryZoneDAO zoneDAO = new RestaurantDeliveryZoneDAO();
-            boolean result = zoneDAO.delete(zoneId);
-            
-            if (result) {
-                session.setAttribute("toastMessage", "Coverage zone deleted successfully");
-                session.setAttribute("toastType", "success");
-            } else {
-                session.setAttribute("toastMessage", "Cannot delete zone: associated with active delivery fees");
                 session.setAttribute("toastType", "error");
             }
         } catch (NumberFormatException e) {
