@@ -190,10 +190,6 @@
                                                            class="btn btn-sm btn-info" title="Toggle Status">
                                                             <i class="fas fa-toggle-on"></i>
                                                         </a>
-                                                        <a href="#" onclick="confirmDelete(${fee.feeId})" 
-                                                           class="btn btn-sm btn-danger" title="Delete">
-                                                            <i class="fas fa-trash"></i>
-                                                        </a>
                                                     </div>
                                                 </td>
                                             </tr>
@@ -290,14 +286,5 @@
         </main>
     </div>
 </div>
-
-<script>
-    function confirmDelete(feeId) {
-        if (confirm('Are you sure you want to delete this delivery fee? This action cannot be undone if the fee is not applied to ongoing orders.')) {
-            var contextPath = '${pageContext.request.contextPath}';
-            window.location.href = contextPath + '/delivery-fee?action=delete&id=' + feeId;
-        }
-    }
-</script>
 
 <jsp:include page="/WEB-INF/includes/footer.jsp" />
