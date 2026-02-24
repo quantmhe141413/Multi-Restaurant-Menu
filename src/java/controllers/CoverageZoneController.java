@@ -265,6 +265,7 @@ public class CoverageZoneController extends HttpServlet {
             return;
         }
         
+        //Retrieving data from a form
         String zoneName = request.getParameter("zoneName");
         String zoneDefinition = request.getParameter("zoneDefinition");
         String isActiveStr = request.getParameter("isActive");
@@ -288,6 +289,7 @@ public class CoverageZoneController extends HttpServlet {
             return;
         }
         
+        //Processing the isActi value
         Boolean isActive = isActiveStr != null && isActiveStr.equals("1");
         
         RestaurantDeliveryZone zone = new RestaurantDeliveryZone();
