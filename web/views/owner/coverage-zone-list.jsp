@@ -144,10 +144,6 @@
                                                    class="btn btn-sm btn-info" title="Toggle Status">
                                                     <i class="fas fa-toggle-on"></i>
                                                 </a>
-                                                <a href="#" onclick="confirmDelete(${zone.zoneId})" 
-                                                   class="btn btn-sm btn-danger" title="Delete">
-                                                    <i class="fas fa-trash"></i>
-                                                </a>
                                             </td>
                                         </tr>
                                     </c:forEach>
@@ -243,14 +239,5 @@
         </main>
     </div>
 </div>
-
-<script>
-    function confirmDelete(zoneId) {
-        if (confirm('Are you sure you want to delete this coverage zone? This action cannot be undone if the zone is not associated with active delivery fees.')) {
-            var contextPath = '${pageContext.request.contextPath}';
-            window.location.href = contextPath + '/coverage-zone?action=delete&id=' + zoneId;
-        }
-    }
-</script>
 
 <jsp:include page="/WEB-INF/includes/footer.jsp" />
