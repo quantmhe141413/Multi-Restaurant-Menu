@@ -277,12 +277,12 @@
                             <i class="fas fa-home"></i> Dashboard
                         </a>
                     </li>
-                    <li class="nav-item">
+<!--                    <li class="nav-item">
                         <a class="nav-link" href="#">
                             <i class="fas fa-bell"></i> Notifications
                             <span class="badge bg-danger">3</span>
                         </a>
-                    </li>
+                    </li>-->
                     <li class="nav-item dropdown">
                         <a class="user-profile dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
                             <div class="user-avatar">
