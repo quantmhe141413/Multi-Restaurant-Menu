@@ -17,6 +17,11 @@
                             </span>
                         </c:if>
                     </a>
+                    <c:if test="${sessionScope.user.roleID != 4}">
+                        <a href="coverage-zone" class="nav-action">
+                            <i class="fas fa-cogs"></i> Management
+                        </a>
+                    </c:if>
                     <span class="nav-user">Welcome, ${sessionScope.user.fullName}</span>
                     <a href="logout" class="nav-action">Logout</a>
                 </c:when>
