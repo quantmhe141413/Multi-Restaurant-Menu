@@ -11,6 +11,7 @@ public class MenuItem {
     private String description;
     private double price;
     private boolean isAvailable;
+    private String imageUrl;
     private Double averageRating;
     private Timestamp createdAt;
 
@@ -71,6 +72,14 @@ public class MenuItem {
 
     public void setPrice(double price) {
         this.price = price;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
 
     public boolean isIsAvailable() {
