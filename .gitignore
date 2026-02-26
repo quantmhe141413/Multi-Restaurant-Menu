@@ -1,25 +1,15 @@
-# NetBeans build directories
 /dist/
-/build/
 /nbproject/private/
+# Build output
+/build/
+dist/
 
-# Compiled class files
+# NetBeans private files
+nbproject/private/
+
+# NetBeans generated files
+nbproject/build-impl.xml
+nbproject/genfiles.properties
+
+# Java
 *.class
-
-# JAR files (except lib dependencies)
-*.jar
-
-# Log files
-*.log
-
-# OS specific files
-.DS_Store
-Thumbs.db
-
-# IDE specific
-.idea/
-*.iml
-.vscode/
-
-# Database files
-*.sql~
