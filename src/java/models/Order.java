@@ -14,6 +14,9 @@ public class Order {
     private double totalAmount;
     private double discountAmount;
     private double finalAmount;
+    private String paymentMethod;
+    private String paymentStatus;
+    private Timestamp paidAt;
     private Timestamp createdAt;
 
     public Order() {
@@ -113,5 +116,29 @@ public class Order {
 
     public void setCreatedAt(Timestamp createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public String getPaymentMethod() {
+        return paymentMethod;
+    }
+
+    public void setPaymentMethod(String paymentMethod) {
+        this.paymentMethod = paymentMethod;
+    }
+
+    public String getPaymentStatus() {
+        return paymentStatus;
+    }
+
+    public void setPaymentStatus(String paymentStatus) {
+        this.paymentStatus = paymentStatus;
+    }
+
+    public Timestamp getPaidAt() {
+        return paidAt;
+    }
+
+    public void setPaidAt(Timestamp paidAt) {
+        this.paidAt = paidAt;
     }
 }

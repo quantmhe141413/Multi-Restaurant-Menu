@@ -98,6 +98,36 @@ public class RestaurantDAO extends DBContext {
         return cuisines;
     }
 
+    public Restaurant getRestaurantById(int restaurantId) {
+        String sql = "SELECT * FROM Restaurants WHERE RestaurantID = ?";
+        try {
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setInt(1, restaurantId);
+            ResultSet rs = st.executeQuery();
+            if (rs.next()) {
+                return mapRestaurant(rs);
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(RestaurantDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return null;
+    }
+
+    public Restaurant getRestaurantByOwnerId(int ownerId) {
+        String sql = "SELECT * FROM Restaurants WHERE OwnerID = ?";
+        try {
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setInt(1, ownerId);
+            ResultSet rs = st.executeQuery();
+            if (rs.next()) {
+                return mapRestaurant(rs);
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(RestaurantDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return null;
+    }
+
     private Restaurant mapRestaurant(ResultSet rs) throws SQLException {
         Restaurant r = new Restaurant();
         r.setRestaurantId(rs.getInt("RestaurantID"));

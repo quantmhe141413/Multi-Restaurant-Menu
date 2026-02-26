@@ -21,6 +21,9 @@
         body {
             background-color: #f8f9fa;
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
         .site-header {
             background-color: white;
@@ -86,6 +89,7 @@
             max-width: 1200px;
             margin: 2rem auto;
             padding: 0 1rem;
+            flex: 1;
         }
         .cart-header {
             background: linear-gradient(135deg, var(--theme-color) 0%, #2c3e50 100%);
@@ -188,9 +192,18 @@
                             <div class="cart-item">
                                 <div class="row align-items-center">
                                     <div class="col-md-2">
-                                        <img src="https://via.placeholder.com/150?text=${item.itemName}" 
-                                             alt="${item.itemName}" 
-                                             class="img-fluid rounded">
+                                        <c:choose>
+                                            <c:when test="${not empty item.imageUrl}">
+                                                <img src="${item.imageUrl}" alt="${item.itemName}" 
+                                                     class="img-fluid rounded"
+                                                     onerror="this.src='${pageContext.request.contextPath}/images/food_default.png'">
+                                            </c:when>
+                                            <c:otherwise>
+                                                <img src="${pageContext.request.contextPath}/images/food_default.png" 
+                                                     alt="${item.itemName}" 
+                                                     class="img-fluid rounded">
+                                            </c:otherwise>
+                                        </c:choose>
                                     </div>
                                     <div class="col-md-4">
                                         <h5 class="mb-1">${item.itemName}</h5>
@@ -263,6 +276,8 @@
                             
                             <hr>
                             
+                            <!-- Payment Method Selection - Removed from cart, moved to checkout -->
+                            
                             <div class="d-flex justify-content-between mb-4">
                                 <span class="fw-bold">Tổng cộng:</span>
                                 <span class="fw-bold text-success fs-5">
@@ -270,12 +285,9 @@
                                 </span>
                             </div>
                             
-                            <form method="POST" action="order">
-                                <input type="hidden" name="restaurantId" value="${restaurantId}">
-                                <button type="submit" class="btn btn-checkout">
-                                    <i class="fas fa-credit-card"></i> Đặt hàng
-                                </button>
-                            </form>
+                            <a href="checkout" class="btn btn-checkout text-decoration-none">
+                                <i class="fas fa-credit-card"></i> Tiến hành thanh toán
+                            </a>
                             
                             <a href="home" class="btn btn-outline-secondary w-100 mt-3">
                                 <i class="fas fa-arrow-left"></i> Tiếp tục mua sắm

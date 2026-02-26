@@ -39,8 +39,7 @@ public class OrderController extends HttpServlet {
         }
 
         // Kiểm tra role - chỉ customer mới được đặt hàng
-        // Giả sử roleID = 3 là customer (cần kiểm tra lại trong database)
-        if (user.getRoleID() != 3) {
+        if (user.getRoleID() != 4) {
             session.setAttribute("error", "Chỉ khách hàng mới có thể đặt hàng!");
             response.sendRedirect("home");
             return;
@@ -54,12 +53,18 @@ public class OrderController extends HttpServlet {
             return;
         }
 
-        // Lấy restaurantId từ request
+        // Lấy restaurantId và paymentMethod từ request
         String restaurantIdStr = request.getParameter("restaurantId");
+        String paymentMethod = request.getParameter("paymentMethod");
+        
         if (restaurantIdStr == null || restaurantIdStr.trim().isEmpty()) {
             session.setAttribute("error", "Thông tin nhà hàng không hợp lệ!");
             response.sendRedirect("cart");
             return;
+        }
+        
+        if (paymentMethod == null || paymentMethod.trim().isEmpty()) {
+            paymentMethod = "COD"; // Default to COD
         }
 
         try {
@@ -89,11 +94,13 @@ public class OrderController extends HttpServlet {
             Order order = new Order();
             order.setRestaurantID(restaurantId);
             order.setCustomerID(user.getUserID());
-            order.setOrderType("Online"); // Mặc định là Online
-            order.setOrderStatus("Pending"); // Trạng thái ban đầu
+            order.setOrderType("Online");
+            order.setOrderStatus("Preparing");
             order.setTotalAmount(totalAmount);
-            order.setDiscountAmount(0); // Chưa có discount
-            order.setFinalAmount(totalAmount); // Chưa có discount
+            order.setDiscountAmount(0);
+            order.setFinalAmount(totalAmount);
+            order.setPaymentMethod(paymentMethod);
+            order.setPaymentStatus("Pending");
 
             OrderDAO orderDAO = new OrderDAO();
             int orderID = orderDAO.createOrder(order);
@@ -116,11 +123,17 @@ public class OrderController extends HttpServlet {
                 }
 
                 if (allItemsCreated) {
-                    // Xóa giỏ hàng sau khi đặt hàng thành công
-                    cart.clear();
-                    session.setAttribute("cart", cart);
-                    session.setAttribute("success", "Đặt hàng thành công! Mã đơn hàng: #" + orderID);
-                    response.sendRedirect("home");
+                // Check payment method
+                if ("VNPay".equalsIgnoreCase(paymentMethod)) {
+                    // Redirect to payment gateway
+                    response.sendRedirect("payment?orderId=" + orderID);
+                } else {
+                        // COD payment - clear cart and show success
+                        cart.clear();
+                        session.setAttribute("cart", cart);
+                        session.setAttribute("success", "Đặt hàng thành công! Mã đơn hàng: #" + orderID + ". Bạn sẽ thanh toán khi nhận hàng.");
+                        response.sendRedirect("order-history");
+                    }
                 } else {
                     session.setAttribute("error", "Có lỗi xảy ra khi tạo đơn hàng!");
                     response.sendRedirect("cart");
