@@ -2,12 +2,23 @@
 /dist/
 /build/
 /nbproject/private/
+# Build output
+/build/
+dist/
 
-# Compiled class files
+# NetBeans private files
+nbproject/private/
+
+# NetBeans generated files
+nbproject/build-impl.xml
+nbproject/genfiles.properties
+
+# Java
 *.class
 
 # JAR files (except lib dependencies)
 *.jar
+!/lib/*.jar
 
 # Log files
 *.log

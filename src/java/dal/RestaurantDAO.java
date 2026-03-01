@@ -12,14 +12,14 @@ import models.Restaurant;
 public class RestaurantDAO extends DBContext {
 
     public List<Restaurant> getAllApprovedRestaurants() {
-        return getApprovedRestaurants(null, null);
+        return getApprovedRestaurants(null, null, null);
     }
 
     public List<Restaurant> searchRestaurants(String query) {
-        return getApprovedRestaurants(query, null);
+        return getApprovedRestaurants(query, null, null);
     }
 
-    public List<Restaurant> getApprovedRestaurants(String search, String zone) {
+    public List<Restaurant> getApprovedRestaurants(String search, String zone, String cuisine) {
         List<Restaurant> list = new ArrayList<>();
         StringBuilder sql = new StringBuilder();
         sql.append("SELECT DISTINCT r.* FROM Restaurants r ");
@@ -36,6 +36,13 @@ public class RestaurantDAO extends DBContext {
             sql.append(" AND dz.ZoneName = ?");
             params.add(zone.trim());
         }
+
+        // Note: Cuisine column does not exist in the database schema
+        // Removed cuisine filter as the Restaurants table does not have a Cuisine column
+        // if (cuisine != null && !cuisine.trim().isEmpty()) {
+        //     sql.append(" AND r.Cuisine = ?");
+        //     params.add(cuisine.trim());
+        // }
 
         sql.append(" ORDER BY r.Name");
         try {
@@ -68,10 +75,63 @@ public class RestaurantDAO extends DBContext {
         return zones;
     }
 
+    public List<String> getAvailableCuisines() {
+        // Note: The Cuisine column does not exist in the Restaurants table schema
+        // Returning empty list until the column is added to the database
+        List<String> cuisines = new ArrayList<>();
+        
+        // Original query commented out as Cuisine column doesn't exist:
+        // String sql = "SELECT DISTINCT Cuisine FROM Restaurants WHERE Status = 'Approved' AND Cuisine IS NOT NULL ORDER BY Cuisine";
+        // try {
+        //     PreparedStatement st = connection.prepareStatement(sql);
+        //     ResultSet rs = st.executeQuery();
+        //     while (rs.next()) {
+        //         String cuisine = rs.getString("Cuisine");
+        //         if (cuisine != null && !cuisine.trim().isEmpty()) {
+        //             cuisines.add(cuisine);
+        //         }
+        //     }
+        // } catch (SQLException ex) {
+        //     Logger.getLogger(RestaurantDAO.class.getName()).log(Level.SEVERE, null, ex);
+        // }
+        
+        return cuisines;
+    }
+
+    public Restaurant getRestaurantById(int restaurantId) {
+        String sql = "SELECT * FROM Restaurants WHERE RestaurantID = ?";
+        try {
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setInt(1, restaurantId);
+            ResultSet rs = st.executeQuery();
+            if (rs.next()) {
+                return mapRestaurant(rs);
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(RestaurantDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return null;
+    }
+
+    public Restaurant getRestaurantByOwnerId(int ownerId) {
+        String sql = "SELECT * FROM Restaurants WHERE OwnerID = ?";
+        try {
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setInt(1, ownerId);
+            ResultSet rs = st.executeQuery();
+            if (rs.next()) {
+                return mapRestaurant(rs);
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(RestaurantDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return null;
+    }
+
     private Restaurant mapRestaurant(ResultSet rs) throws SQLException {
         Restaurant r = new Restaurant();
-        r.setRestaurantID(rs.getInt("RestaurantID"));
-        r.setOwnerID(rs.getInt("OwnerID"));
+        r.setRestaurantId(rs.getInt("RestaurantID"));
+        r.setOwnerId(rs.getInt("OwnerID"));
         r.setName(rs.getString("Name"));
         r.setAddress(rs.getString("Address"));
         r.setLicenseNumber(rs.getString("LicenseNumber"));
@@ -81,7 +141,8 @@ public class RestaurantDAO extends DBContext {
         r.setDeliveryFee(rs.getDouble("DeliveryFee"));
         r.setCommissionRate(rs.getDouble("CommissionRate"));
         r.setStatus(rs.getString("Status"));
-        r.setCreatedAt(rs.getTimestamp("CreatedAt"));
+        r.setCreatedAt(rs.getDate("CreatedAt"));
+
         return r;
     }
 
@@ -93,7 +154,7 @@ public class RestaurantDAO extends DBContext {
             List<Restaurant> restaurants = dao.getAllApprovedRestaurants();
             System.out.println("Found " + restaurants.size() + " approved restaurants.");
             for (Restaurant r : restaurants) {
-                System.out.println("- " + r.getName() + " (ID: " + r.getRestaurantID() + ")");
+                System.out.println("- " + r.getName() + " (ID: " + r.getRestaurantId() + ")");
             }
         } else {
             System.out.println("Connection failed!");

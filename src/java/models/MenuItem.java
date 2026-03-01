@@ -6,11 +6,13 @@ public class MenuItem {
     private int itemID;
     private int restaurantID;
     private int categoryID;
+    private String sku;
     private String itemName;
     private String description;
     private double price;
-    private String imageUrl;
     private boolean isAvailable;
+    private String imageUrl;
+    private Double averageRating;
     private Timestamp createdAt;
 
     public MenuItem() {
@@ -38,6 +40,14 @@ public class MenuItem {
 
     public void setCategoryID(int categoryID) {
         this.categoryID = categoryID;
+    }
+
+    public String getSku() {
+        return sku;
+    }
+
+    public void setSku(String sku) {
+        this.sku = sku;
     }
 
     public String getItemName() {
@@ -78,6 +88,14 @@ public class MenuItem {
 
     public void setIsAvailable(boolean isAvailable) {
         this.isAvailable = isAvailable;
+    }
+
+    public Double getAverageRating() {
+        return averageRating;
+    }
+
+    public void setAverageRating(Double averageRating) {
+        this.averageRating = averageRating;
     }
 
     public Timestamp getCreatedAt() {

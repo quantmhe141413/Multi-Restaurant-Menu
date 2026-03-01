@@ -5,30 +5,88 @@ import java.sql.Time;
 import java.sql.Timestamp;
 
 public class EmployeeShift {
-    private int shiftID;
-    private int employeeID;
+    private Integer shiftId;
+    private Integer restaurantId;
+    private Integer staffId;
+    private Integer templateId;
+    private String staffName; // For display purposes
+    private Date shiftDate;
+    
+    // Template details (from JOIN with ShiftTemplates)
+    private String shiftName;
     private Time startTime;
     private Time endTime;
-    private Date shiftDate;
+    private String position;
+    
     private Timestamp createdAt;
-
+    
     public EmployeeShift() {
     }
 
-    public int getShiftID() {
-        return shiftID;
+    public EmployeeShift(Integer shiftId, Integer restaurantId, Integer staffId, 
+                        Integer templateId, Date shiftDate, Timestamp createdAt) {
+        this.shiftId = shiftId;
+        this.restaurantId = restaurantId;
+        this.staffId = staffId;
+        this.templateId = templateId;
+        this.shiftDate = shiftDate;
+        this.createdAt = createdAt;
     }
 
-    public void setShiftID(int shiftID) {
-        this.shiftID = shiftID;
+    public Integer getShiftId() {
+        return shiftId;
     }
 
-    public int getEmployeeID() {
-        return employeeID;
+    public void setShiftId(Integer shiftId) {
+        this.shiftId = shiftId;
     }
 
-    public void setEmployeeID(int employeeID) {
-        this.employeeID = employeeID;
+    public Integer getRestaurantId() {
+        return restaurantId;
+    }
+
+    public void setRestaurantId(Integer restaurantId) {
+        this.restaurantId = restaurantId;
+    }
+
+    public Integer getStaffId() {
+        return staffId;
+    }
+
+    public void setStaffId(Integer staffId) {
+        this.staffId = staffId;
+    }
+
+    public String getStaffName() {
+        return staffName;
+    }
+
+    public void setStaffName(String staffName) {
+        this.staffName = staffName;
+    }
+
+    public Integer getTemplateId() {
+        return templateId;
+    }
+
+    public void setTemplateId(Integer templateId) {
+        this.templateId = templateId;
+    }
+
+    public String getShiftName() {
+        return shiftName;
+    }
+
+    public void setShiftName(String shiftName) {
+        this.shiftName = shiftName;
+    }
+
+    public Date getShiftDate() {
+        return shiftDate;
+    }
+
+    public void setShiftDate(Date shiftDate) {
+        this.shiftDate = shiftDate;
     }
 
     public Time getStartTime() {
@@ -47,12 +105,12 @@ public class EmployeeShift {
         this.endTime = endTime;
     }
 
-    public Date getShiftDate() {
-        return shiftDate;
+    public String getPosition() {
+        return position;
     }
 
-    public void setShiftDate(Date shiftDate) {
-        this.shiftDate = shiftDate;
+    public void setPosition(String position) {
+        this.position = position;
     }
 
     public Timestamp getCreatedAt() {
@@ -61,5 +119,22 @@ public class EmployeeShift {
 
     public void setCreatedAt(Timestamp createdAt) {
         this.createdAt = createdAt;
+    }
+
+    @Override
+    public String toString() {
+        return "EmployeeShift{" +
+                "shiftId=" + shiftId +
+                ", restaurantId=" + restaurantId +
+                ", staffId=" + staffId +
+                ", templateId=" + templateId +
+                ", staffName='" + staffName + '\'' +
+                ", shiftDate=" + shiftDate +
+                ", shiftName='" + shiftName + '\'' +
+                ", startTime=" + startTime +
+                ", endTime=" + endTime +
+                ", position='" + position + '\'' +
+                ", createdAt=" + createdAt +
+                '}';
     }
 }

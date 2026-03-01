@@ -147,6 +147,24 @@
                     font-weight: 600;
                 }
 
+                .forgot-password-link {
+                    text-align: right;
+                    margin-top: 0.5rem;
+                    margin-bottom: 1rem;
+                }
+
+                .forgot-password-link a {
+                    color: var(--primary);
+                    text-decoration: none;
+                    font-size: 0.85rem;
+                    transition: color 0.3s;
+                }
+
+                .forgot-password-link a:hover {
+                    color: #ff6b81;
+                    text-decoration: underline;
+                }
+
                 .site-footer {
                     background-color: var(--secondary);
                     color: var(--white);
@@ -171,6 +189,9 @@
                         <div class="form-group">
                             <label for="password">Password</label>
                             <input type="password" id="password" name="password" required>
+                        </div>
+                        <div class="forgot-password-link">
+                            <a href="forgot-password"><i class="fas fa-key"></i> Forgot Password?</a>
                         </div>
                         <button type="submit" class="btn-submit">Login</button>
                     </form>

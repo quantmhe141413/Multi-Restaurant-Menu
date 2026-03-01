@@ -33,6 +33,26 @@ public class UserDAO extends DBContext {
         return null;
     }
 
+    /**
+     * Get RestaurantID for a user (Owner/Staff)
+     * Returns null if user is SuperAdmin (RoleID = 1) or Customer (RoleID = 4)
+     */
+    public Integer getRestaurantIdByUserId(int userId) {
+        String sql = "SELECT TOP 1 RestaurantID FROM RestaurantUsers " +
+                     "WHERE UserID = ? AND IsActive = 1";
+        try {
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setInt(1, userId);
+            ResultSet rs = st.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("RestaurantID");
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(UserDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return null;
+    }
+
     public boolean register(User user) {
         String sql = "INSERT INTO [dbo].[Users] ([FullName], [Email], [PasswordHash], [Phone], [RoleID], [IsActive], [CreatedAt]) "
                 + "VALUES (?, ?, ?, ?, ?, 1, GETDATE())";
@@ -60,6 +80,51 @@ public class UserDAO extends DBContext {
             if (rs.next()) {
                 return true;
             }
+        } catch (SQLException ex) {
+            Logger.getLogger(UserDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return false;
+    }
+
+    // Save reset token for password recovery
+    public boolean saveResetToken(String email, String token) {
+        String sql = "UPDATE Users SET ResetToken = ?, ResetTokenExpiry = DATEADD(HOUR, 1, GETDATE()) WHERE Email = ?";
+        try {
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setString(1, token);
+            st.setString(2, email);
+            int rowsAffected = st.executeUpdate();
+            return rowsAffected > 0;
+        } catch (SQLException ex) {
+            Logger.getLogger(UserDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return false;
+    }
+
+    // Check if reset token is valid and not expired
+    public boolean isResetTokenValid(String token) {
+        String sql = "SELECT * FROM Users WHERE ResetToken = ? AND ResetTokenExpiry > GETDATE()";
+        try {
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setString(1, token);
+            ResultSet rs = st.executeQuery();
+            return rs.next();
+        } catch (SQLException ex) {
+            Logger.getLogger(UserDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return false;
+    }
+
+    // Reset password using token
+    public boolean resetPassword(String token, String newPassword) {
+        String sql = "UPDATE Users SET PasswordHash = ?, ResetToken = NULL, ResetTokenExpiry = NULL " +
+                "WHERE ResetToken = ? AND ResetTokenExpiry > GETDATE()";
+        try {
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setString(1, newPassword);
+            st.setString(2, token);
+            int rowsAffected = st.executeUpdate();
+            return rowsAffected > 0;
         } catch (SQLException ex) {
             Logger.getLogger(UserDAO.class.getName()).log(Level.SEVERE, null, ex);
         }

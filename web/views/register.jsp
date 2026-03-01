@@ -183,12 +183,14 @@
                     <div class="form-group">
                         <label for="password">Password</label>
                         <input type="password" id="password" name="password" required>
-                        
+                    </div>
+                    <div class="form-group">
+                        <label for="confirmPassword">Confirm Password</label>
+                        <input type="password" id="confirmPassword" name="confirmPassword" required>
                     </div>
                     <div class="form-group">
                         <label for="phone">Phone Number</label>
                         <input type="tel" id="phone" name="phone" required>
-                       
                     </div>
                     <button type="submit" class="btn-submit">Register</button>
                 </form>
@@ -207,6 +209,7 @@
             const fullNameInput = document.getElementById('fullName');
             const emailInput = document.getElementById('email');
             const passwordInput = document.getElementById('password');
+            const confirmPasswordInput = document.getElementById('confirmPassword');
             const phoneInput = document.getElementById('phone');
             const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             const phonePattern = /^\d{8,}$/;
@@ -215,6 +218,7 @@
                 const fullName = fullNameInput.value.trim();
                 const email = emailInput.value.trim();
                 const password = passwordInput.value.trim();
+                const confirmPassword = confirmPasswordInput.value.trim();
                 const phone = phoneInput.value.trim();
 
                 if (fullName.length < 3) {
@@ -232,6 +236,12 @@
                 if (password.length < 6) {
                     event.preventDefault();
                     Swal.fire('Weak password', 'Password must be at least 6 characters.', 'warning');
+                    return;
+                }
+
+                if (password !== confirmPassword) {
+                    event.preventDefault();
+                    Swal.fire('Password mismatch', 'Password and Confirm Password do not match.', 'error');
                     return;
                 }
 

@@ -18,11 +18,14 @@ public class HomeController extends HttpServlet {
             throws ServletException, IOException {
         String search = request.getParameter("search");
         String zone = request.getParameter("zone");
+        String cuisine = request.getParameter("cuisine");
         RestaurantDAO rdao = new RestaurantDAO();
-        List<Restaurant> restaurants = rdao.getApprovedRestaurants(search, zone);
+        List<Restaurant> restaurants = rdao.getApprovedRestaurants(search, zone, cuisine);
         request.setAttribute("restaurants", restaurants);
         request.setAttribute("zones", rdao.getActiveZoneNames());
+        request.setAttribute("cuisines", rdao.getAvailableCuisines());
         request.setAttribute("selectedZone", zone);
+        request.setAttribute("selectedCuisine", cuisine);
         request.setAttribute("currentSearch", search);
         request.getRequestDispatcher("views/home.jsp").forward(request, response);
     }
