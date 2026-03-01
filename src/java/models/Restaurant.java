@@ -16,6 +16,8 @@ public class Restaurant {
     private String status;
     private Date createdAt;
     private String cuisine;
+    private Double averageRating;
+    private int reviewCount;
 
     public Restaurant() {
     }
@@ -139,6 +141,22 @@ public class Restaurant {
 
     public void setCuisine(String cuisine) {
         this.cuisine = cuisine;
+    }
+
+    public Double getAverageRating() {
+        return averageRating;
+    }
+
+    public void setAverageRating(Double averageRating) {
+        this.averageRating = averageRating;
+    }
+
+    public int getReviewCount() {
+        return reviewCount;
+    }
+
+    public void setReviewCount(int reviewCount) {
+        this.reviewCount = reviewCount;
     }
 
     @Override

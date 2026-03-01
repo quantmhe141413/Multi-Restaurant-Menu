@@ -93,6 +93,7 @@ CREATE TABLE [dbo].[MenuItems](
 	[Description] [nvarchar](255) NULL,
 	[Price] [decimal](10, 2) NOT NULL,
 	[IsAvailable] [bit] NOT NULL,
+    [ImageUrl] [nvarchar](255),
 	[AverageRating]  AS (CONVERT([decimal](4,2),NULL)) PERSISTED,
 	[CreatedAt] [datetime2](0) NOT NULL,
 PRIMARY KEY CLUSTERED 
@@ -565,6 +566,9 @@ PRIMARY KEY CLUSTERED
 	[ReviewID] ASC
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
+GO
+ALTER TABLE Reviews ADD OrderID INT NULL;
+ALTER TABLE Reviews ADD CONSTRAINT FK_Reviews_Orders FOREIGN KEY (OrderID) REFERENCES Orders(OrderID);
 GO
 /****** Object:  Table [dbo].[Roles]    Script Date: 1/22/2026 12:24:44 AM ******/
 SET ANSI_NULLS ON
