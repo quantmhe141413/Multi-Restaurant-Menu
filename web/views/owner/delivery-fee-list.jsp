@@ -13,7 +13,7 @@
 
         <div class="container-fluid">
             <div class="row">
-                <jsp:include page="/views/includes/sidebar.jsp" />
+                <jsp:include page="/views/includes/restaurant-sidebar.jsp" />
 
                 <!-- Main Content -->
                 <main class="col-md-9 col-lg-10 main-content">

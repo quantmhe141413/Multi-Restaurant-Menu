@@ -3,11 +3,18 @@
 <c:set var="pageTitle" value="Add Shift Assignment" scope="request" />
 <jsp:useBean id="today" class="java.util.Date"/>
 <fmt:formatDate value="${today}" pattern="yyyy-MM-dd" var="todayStr"/>
-<jsp:include page="/WEB-INF/includes/header.jsp" />
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>${pageTitle} - FoodieExpress</title>
+    <jsp:include page="/views/includes/std_head.jsp" />
+</head>
+<body>
+    <jsp:include page="/views/includes/header.jsp" />
 
 <div class="container-fluid">
     <div class="row">
-        <jsp:include page="/WEB-INF/includes/sidebar.jsp" />
+        <jsp:include page="/views/includes/restaurant-sidebar.jsp" />
         
         <!-- Main Content -->
         <main class="col-md-9 col-lg-10 main-content">
