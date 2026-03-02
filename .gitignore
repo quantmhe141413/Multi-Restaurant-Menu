@@ -1,2 +1,15 @@
 /dist/
 /nbproject/private/
+# Build output
+/build/
+dist/
+
+# NetBeans private files
+nbproject/private/
+
+# NetBeans generated files
+nbproject/build-impl.xml
+nbproject/genfiles.properties
+
+# Java
+*.class
