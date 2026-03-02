@@ -10,7 +10,10 @@
         <c:if test="${sessionScope.user != null and sessionScope.user.roleID == 1}">
             <li class="nav-item">
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> TrangNP
                 <a class="nav-link ${pageContext.request.requestURI.contains('/admin/dashboard') ? 'active' : ''}"
                    href="${pageContext.request.contextPath}/admin/dashboard">
                     <i class="fas fa-chart-line"></i>
@@ -25,6 +28,9 @@
                 </a>
             </li>
             <li class="nav-item">
+<<<<<<< HEAD
+>>>>>>> TrangNP
+=======
 >>>>>>> TrangNP
                 <a class="nav-link ${pageContext.request.requestURI.contains('restaurant-applications') ? 'active' : ''}"
                    href="${pageContext.request.contextPath}/admin/restaurant-applications?action=list">
@@ -33,7 +39,10 @@
                 </a>
             </li>
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> TrangNP
             <li class="nav-item">
                 <a class="nav-link ${pageContext.request.requestURI.contains('/admin/complaints') ? 'active' : ''}"
                    href="${pageContext.request.contextPath}/admin/complaints?action=list">
@@ -55,6 +64,9 @@
                     Commission History
                 </a>
             </li>
+<<<<<<< HEAD
+>>>>>>> TrangNP
+=======
 >>>>>>> TrangNP
         </c:if>
         <li class="nav-item">

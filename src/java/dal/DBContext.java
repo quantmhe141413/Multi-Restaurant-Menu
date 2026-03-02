@@ -19,6 +19,7 @@ public class DBContext {
             // Change the username password and url to connect your own database
             String username = "sa";
             String password = "12345"; // s
+<<<<<<< HEAD
             String url = "jdbc:sqlserver://localhost:1433;databaseName=MultiRestaurantOrderingDB;encrypt=false;trustServerCertificate=true";
             Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
             connection = DriverManager.getConnection(url, username, password);
@@ -41,6 +42,42 @@ public class DBContext {
         } catch (SQLException ex) {
             Logger.getLogger(DBContext.class.getName()).log(Level.SEVERE, null, ex);
         }
+=======
+String url = "jdbc:sqlserver://localhost:1433;"
+           + "databaseName=MultiRestaurantOrderingDB;"
+           + "encrypt=true;"
+           + "trustServerCertificate=true;";
+
+        Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
+            connection = DriverManager.getConnection(url, username, password);
+        }  catch (Exception ex) {
+    ex.printStackTrace();
+        }
+    }
+    
+    public void closeResources() {
+        try {
+            if (resultSet != null && !resultSet.isClosed()) {
+                resultSet.close();
+            }
+            if (statement != null && !statement.isClosed()) {
+                statement.close();
+            }
+            if (connection != null && !connection.isClosed()) {
+                connection.close();
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(DBContext.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    public Connection getConnection() {
+        return new DBContext().connection;
+    }
+    
+    public static void main(String[] args) {
+        System.out.println(new DBContext().connection);
+>>>>>>> TrangNP
     }
 
     public Connection getConnection() {

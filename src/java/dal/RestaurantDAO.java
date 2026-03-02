@@ -188,7 +188,10 @@ public class RestaurantDAO extends DBContext {
     }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> TrangNP
     public boolean updateCommissionRate(int restaurantId, BigDecimal newRate) {
         String sql = "UPDATE Restaurants SET CommissionRate = ? WHERE RestaurantID = ?";
         try {
@@ -202,6 +205,9 @@ public class RestaurantDAO extends DBContext {
         return false;
     }
 
+<<<<<<< HEAD
+>>>>>>> TrangNP
+=======
 >>>>>>> TrangNP
     public Restaurant findByIdWithOwner(int restaurantId) {
         String sql = "SELECT r.*, u.FullName AS OwnerName, u.Email AS OwnerEmail "
