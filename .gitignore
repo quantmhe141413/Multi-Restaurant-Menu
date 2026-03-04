@@ -1,24 +1,19 @@
-# NetBeans build directories
-/dist/
-/build/
-/nbproject/private/
-# Build output
-/build/
-dist/
+# Maven build output
+/target/
 
-# NetBeans private files
+# NetBeans private/machine-specific files (not committed)
 nbproject/private/
 
-# NetBeans generated files
+# NetBeans Ant-generated files (no longer used - Maven project)
 nbproject/build-impl.xml
 nbproject/genfiles.properties
+build.xml
 
-# Java
+# Java compiled classes
 *.class
 
-# JAR files (except lib dependencies)
-*.jar
-!/lib/*.jar
+# Compiled WAR (built by Maven)
+*.war
 
 # Log files
 *.log
@@ -32,5 +27,5 @@ Thumbs.db
 *.iml
 .vscode/
 
-# Database files
+# Database backup files
 *.sql~
