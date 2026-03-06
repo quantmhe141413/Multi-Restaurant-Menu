@@ -15,6 +15,8 @@ import models.MenuItem;
 import models.Order;
 import models.OrderItem;
 import models.User;
+import dal.DiscountDAO;
+import models.Discount;
 
 @WebServlet(name = "OrderController", urlPatterns = { "/order" })
 public class OrderController extends HttpServlet {
@@ -90,6 +92,78 @@ public class OrderController extends HttpServlet {
                 totalAmount += item.getPrice() * entry.getValue();
             }
 
+            // Read discount info from request (optional)
+            String discountIdStr = request.getParameter("discountId");
+            String discountAmountStr = request.getParameter("discountAmount");
+            String finalAmountStr = request.getParameter("finalAmount");
+
+            Integer discountId = null;
+            double discountAmount = 0;
+            double finalAmount = totalAmount;
+
+            if (discountIdStr != null && !discountIdStr.trim().isEmpty()) {
+                try {
+                    discountId = Integer.parseInt(discountIdStr);
+                } catch (NumberFormatException ex) {
+                    // ignore invalid discount id, treat as no discount
+                    discountId = null;
+                }
+            }
+
+            if (discountAmountStr != null && !discountAmountStr.trim().isEmpty()) {
+                try {
+                    discountAmount = Double.parseDouble(discountAmountStr);
+                } catch (NumberFormatException ex) {
+                    discountAmount = 0;
+                }
+            }
+
+            if (finalAmountStr != null && !finalAmountStr.trim().isEmpty()) {
+                try {
+                    finalAmount = Double.parseDouble(finalAmountStr);
+                } catch (NumberFormatException ex) {
+                    finalAmount = totalAmount - discountAmount;
+                }
+            } else {
+                finalAmount = totalAmount - discountAmount;
+            }
+
+            if (finalAmount < 0) {
+                finalAmount = 0;
+            }
+
+            // check constraints and apply discount if any
+            if (discountId != null) {
+                DiscountDAO dDao = new DiscountDAO();
+                Discount discount = dDao.findDiscountById(discountId);
+                if (discount == null || !discount.isIsActive() || discount.getQuantity() <= 0) {
+                    session.setAttribute("error", "Mã giảm giá không hợp lệ hoặc đã hết lượt sử dụng!");
+                    response.sendRedirect("cart");
+                    return;
+                }
+                if (discount.getMinOrderAmount() != null && totalAmount < discount.getMinOrderAmount()) {
+                    session.setAttribute("error", "Đơn hàng chưa đạt giá trị tối thiểu để dùng mã giảm giá này!");
+                    response.sendRedirect("cart");
+                    return;
+                }
+                if (discount.getUsageLimitPerUser() > 0) {
+                    int usageCount = dDao.countUserUsage(discountId, user.getUserID());
+                    if (usageCount >= discount.getUsageLimitPerUser()) {
+                        session.setAttribute("error", "Bạn đã hết lượt dùng mã giảm giá này!");
+                        response.sendRedirect("cart");
+                        return;
+                    }
+                }
+                
+                // attempt to reduce quantity
+                boolean reduced = dDao.decreaseQuantity(discountId);
+                if (!reduced) {
+                    session.setAttribute("error", "Mã giảm giá vừa hết lượt sử dụng!");
+                    response.sendRedirect("cart");
+                    return;
+                }
+            }
+
             // Tạo đơn hàng
             Order order = new Order();
             order.setRestaurantID(restaurantId);
@@ -97,8 +171,9 @@ public class OrderController extends HttpServlet {
             order.setOrderType("Online");
             order.setOrderStatus("Preparing");
             order.setTotalAmount(totalAmount);
-            order.setDiscountAmount(0);
-            order.setFinalAmount(totalAmount);
+            order.setDiscountID(discountId);
+            order.setDiscountAmount(discountAmount);
+            order.setFinalAmount(finalAmount);
             order.setPaymentMethod(paymentMethod);
             order.setPaymentStatus("Pending");
 

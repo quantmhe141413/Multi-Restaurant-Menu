@@ -29,15 +29,6 @@
                                     </span>
                                 </c:if>
                             </a>
-                            <a href="cart" class="${isCartPage ? 'nav-action' : ''}">
-                                <i class="fas fa-shopping-cart"></i> Cart
-                                <c:if test="${not empty sessionScope.cart and sessionScope.cart.size() > 0}">
-                                    <span
-                                        style="background: #ff4757; color: white; border-radius: 50%; padding: 2px 6px; font-size: 0.8rem; margin-left: 5px;">
-                                        ${sessionScope.cart.size()}
-                                    </span>
-                                </c:if>
-                            </a>
                             <a href="logout" class="nav-action">Logout</a>
                         </c:when>
                         <c:otherwise>
