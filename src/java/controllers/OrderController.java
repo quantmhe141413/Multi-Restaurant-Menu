@@ -15,6 +15,11 @@ import models.MenuItem;
 import models.Order;
 import models.OrderItem;
 import models.User;
+import models.RestaurantDeliveryZone;
+import models.DeliveryFee;
+import dal.RestaurantDeliveryZoneDAO;
+import dal.DeliveryFeeDAO;
+import dal.OrderDAO;
 import dal.DiscountDAO;
 import models.Discount;
 
@@ -97,9 +102,44 @@ public class OrderController extends HttpServlet {
             String discountAmountStr = request.getParameter("discountAmount");
             String finalAmountStr = request.getParameter("finalAmount");
 
+            String zoneIdStr = request.getParameter("zoneId");
+
             Integer discountId = null;
             double discountAmount = 0;
+            double deliveryFeeVal = 0;
             double finalAmount = totalAmount;
+
+            // Recalculate Delivery Fee Backend
+            if (zoneIdStr != null && !zoneIdStr.trim().isEmpty()) {
+                try {
+                    int zoneId = Integer.parseInt(zoneIdStr);
+                    DeliveryFeeDAO feeDao = new DeliveryFeeDAO();
+                    List<DeliveryFee> fees = feeDao.findFeesWithFilters(null, null, zoneId, 1, 100);
+                    double bestFee = -1;
+                    for (DeliveryFee fee : fees) {
+                        if (fee.getIsActive()) {
+                            boolean validMin = (fee.getMinOrderAmount() == null || totalAmount >= fee.getMinOrderAmount().doubleValue());
+                            boolean validMax = (fee.getMaxOrderAmount() == null || totalAmount <= fee.getMaxOrderAmount().doubleValue());
+                            if (validMin && validMax) {
+                                double calFee = 0;
+                                if ("Flat".equals(fee.getFeeType())) {
+                                    calFee = fee.getFeeValue().doubleValue();
+                                } else if ("PercentageOfOrder".equals(fee.getFeeType())) {
+                                    calFee = totalAmount * (fee.getFeeValue().doubleValue() / 100.0);
+                                } else if ("FreeAboveAmount".equals(fee.getFeeType()) || "FreeDelivery".equals(fee.getFeeType())) {
+                                    calFee = 0;
+                                }
+                                if (bestFee == -1 || calFee < bestFee) {
+                                    bestFee = calFee;
+                                }
+                            }
+                        }
+                    }
+                    if (bestFee != -1) {
+                        deliveryFeeVal = bestFee;
+                    }
+                } catch (Exception e) {}
+            }
 
             if (discountIdStr != null && !discountIdStr.trim().isEmpty()) {
                 try {
@@ -118,15 +158,7 @@ public class OrderController extends HttpServlet {
                 }
             }
 
-            if (finalAmountStr != null && !finalAmountStr.trim().isEmpty()) {
-                try {
-                    finalAmount = Double.parseDouble(finalAmountStr);
-                } catch (NumberFormatException ex) {
-                    finalAmount = totalAmount - discountAmount;
-                }
-            } else {
-                finalAmount = totalAmount - discountAmount;
-            }
+            finalAmount = totalAmount - discountAmount + deliveryFeeVal;
 
             if (finalAmount < 0) {
                 finalAmount = 0;
@@ -173,6 +205,7 @@ public class OrderController extends HttpServlet {
             order.setTotalAmount(totalAmount);
             order.setDiscountID(discountId);
             order.setDiscountAmount(discountAmount);
+            order.setDeliveryFee(deliveryFeeVal);
             order.setFinalAmount(finalAmount);
             order.setPaymentMethod(paymentMethod);
             order.setPaymentStatus("Pending");

@@ -330,18 +330,18 @@ SET IDENTITY_INSERT [dbo].[Orders] ON
 GO
 
 -- Insert Orders (with new payment fields)
-INSERT INTO [dbo].[Orders] ([OrderID], [RestaurantID], [CustomerID], [OrderType], [TableID], [OrderStatus], [DiscountID], [TotalAmount], [DiscountAmount], [FinalAmount], [PaymentMethod], [PaymentStatus], [PaidAt], [IsClosed], [CreatedAt])
+INSERT INTO [dbo].[Orders] ([OrderID], [RestaurantID], [CustomerID], [OrderType], [TableID], [OrderStatus], [DiscountID], [TotalAmount], [DiscountAmount], [DeliveryFee], [FinalAmount], [PaymentMethod], [PaymentStatus], [PaidAt], [IsClosed], [CreatedAt])
 VALUES
-    (1, 2, 6, N'Online', NULL, N'Completed', 1, CAST(150000.00 AS Decimal(10, 2)), CAST(15000.00 AS Decimal(10, 2)), CAST(135000.00 AS Decimal(10, 2)), N'VNPay', N'Paid', DATEADD(day, -5, GETDATE()), 1, DATEADD(day, -5, GETDATE())),
-    (2, 3, 7, N'Online', NULL, N'Completed', NULL, CAST(130000.00 AS Decimal(10, 2)), CAST(0.00 AS Decimal(10, 2)), CAST(130000.00 AS Decimal(10, 2)), N'VNPay', N'Paid', DATEADD(day, -4, GETDATE()), 1, DATEADD(day, -4, GETDATE())),
-    (3, 4, 8, N'DineIn', 8, N'Completed', NULL, CAST(150000.00 AS Decimal(10, 2)), CAST(0.00 AS Decimal(10, 2)), CAST(150000.00 AS Decimal(10, 2)), N'Cash', N'Paid', DATEADD(day, -3, GETDATE()), 1, DATEADD(day, -3, GETDATE())),
-    (4, 5, 9, N'Online', NULL, N'Delivering', 5, CAST(500000.00 AS Decimal(10, 2)), CAST(150000.00 AS Decimal(10, 2)), CAST(350000.00 AS Decimal(10, 2)), N'VNPay', N'Paid', DATEADD(day, -2, GETDATE()), 0, DATEADD(day, -2, GETDATE())),
-    (5, 6, 10, N'Pickup', NULL, N'Preparing', NULL, CAST(178000.00 AS Decimal(10, 2)), CAST(0.00 AS Decimal(10, 2)), CAST(178000.00 AS Decimal(10, 2)), N'COD', N'Pending', NULL, 0, DATEADD(day, -1, GETDATE())),
-    (6, 7, 11, N'Online', NULL, N'Completed', 8, CAST(90000.00 AS Decimal(10, 2)), CAST(22500.00 AS Decimal(10, 2)), CAST(67500.00 AS Decimal(10, 2)), N'VNPay', N'Paid', DATEADD(hour, -3, GETDATE()), 1, DATEADD(hour, -3, GETDATE())),
-    (7, 8, 12, N'Pickup', NULL, N'Completed', 9, CAST(70000.00 AS Decimal(10, 2)), CAST(5000.00 AS Decimal(10, 2)), CAST(65000.00 AS Decimal(10, 2)), N'Cash', N'Paid', DATEADD(hour, -2, GETDATE()), 1, DATEADD(hour, -2, GETDATE())),
-    (8, 2, 13, N'DineIn', 1, N'Preparing', NULL, CAST(160000.00 AS Decimal(10, 2)), CAST(0.00 AS Decimal(10, 2)), CAST(160000.00 AS Decimal(10, 2)), N'Cash', N'Pending', NULL, 0, DATEADD(hour, -1, GETDATE())),
-    (9, 3, 14, N'Online', NULL, N'Delivering', NULL, CAST(145000.00 AS Decimal(10, 2)), CAST(0.00 AS Decimal(10, 2)), CAST(145000.00 AS Decimal(10, 2)), N'VNPay', N'Paid', GETDATE(), 0, GETDATE()),
-    (10, 4, 15, N'Online', NULL, N'Preparing', 4, CAST(200000.00 AS Decimal(10, 2)), CAST(50000.00 AS Decimal(10, 2)), CAST(150000.00 AS Decimal(10, 2)), N'COD', N'Pending', NULL, 0, GETDATE())
+    (1, 2, 6, N'Online', NULL, N'Completed', 1, CAST(150000.00 AS Decimal(10, 2)), CAST(15000.00 AS Decimal(10, 2)), CAST(0.00 AS Decimal(10, 2)), CAST(135000.00 AS Decimal(10, 2)), N'VNPay', N'Paid', DATEADD(day, -5, GETDATE()), 1, DATEADD(day, -5, GETDATE())),
+    (2, 3, 7, N'Online', NULL, N'Completed', NULL, CAST(130000.00 AS Decimal(10, 2)), CAST(0.00 AS Decimal(10, 2)), CAST(0.00 AS Decimal(10, 2)), CAST(130000.00 AS Decimal(10, 2)), N'VNPay', N'Paid', DATEADD(day, -4, GETDATE()), 1, DATEADD(day, -4, GETDATE())),
+    (3, 4, 8, N'DineIn', 8, N'Completed', NULL, CAST(150000.00 AS Decimal(10, 2)), CAST(0.00 AS Decimal(10, 2)), CAST(0.00 AS Decimal(10, 2)), CAST(150000.00 AS Decimal(10, 2)), N'Cash', N'Paid', DATEADD(day, -3, GETDATE()), 1, DATEADD(day, -3, GETDATE())),
+    (4, 5, 9, N'Online', NULL, N'Delivering', 5, CAST(500000.00 AS Decimal(10, 2)), CAST(150000.00 AS Decimal(10, 2)), CAST(0.00 AS Decimal(10, 2)), CAST(350000.00 AS Decimal(10, 2)), N'VNPay', N'Paid', DATEADD(day, -2, GETDATE()), 0, DATEADD(day, -2, GETDATE())),
+    (5, 6, 10, N'Pickup', NULL, N'Preparing', NULL, CAST(178000.00 AS Decimal(10, 2)), CAST(0.00 AS Decimal(10, 2)), CAST(0.00 AS Decimal(10, 2)), CAST(178000.00 AS Decimal(10, 2)), N'COD', N'Pending', NULL, 0, DATEADD(day, -1, GETDATE())),
+    (6, 7, 11, N'Online', NULL, N'Completed', 8, CAST(90000.00 AS Decimal(10, 2)), CAST(22500.00 AS Decimal(10, 2)), CAST(0.00 AS Decimal(10, 2)), CAST(67500.00 AS Decimal(10, 2)), N'VNPay', N'Paid', DATEADD(hour, -3, GETDATE()), 1, DATEADD(hour, -3, GETDATE())),
+    (7, 8, 12, N'Pickup', NULL, N'Completed', 9, CAST(70000.00 AS Decimal(10, 2)), CAST(5000.00 AS Decimal(10, 2)), CAST(0.00 AS Decimal(10, 2)), CAST(65000.00 AS Decimal(10, 2)), N'Cash', N'Paid', DATEADD(hour, -2, GETDATE()), 1, DATEADD(hour, -2, GETDATE())),
+    (8, 2, 13, N'DineIn', 1, N'Preparing', NULL, CAST(160000.00 AS Decimal(10, 2)), CAST(0.00 AS Decimal(10, 2)), CAST(0.00 AS Decimal(10, 2)), CAST(160000.00 AS Decimal(10, 2)), N'Cash', N'Pending', NULL, 0, DATEADD(hour, -1, GETDATE())),
+    (9, 3, 14, N'Online', NULL, N'Delivering', NULL, CAST(145000.00 AS Decimal(10, 2)), CAST(0.00 AS Decimal(10, 2)), CAST(0.00 AS Decimal(10, 2)), CAST(145000.00 AS Decimal(10, 2)), N'VNPay', N'Paid', GETDATE(), 0, GETDATE()),
+    (10, 4, 15, N'Online', NULL, N'Preparing', 4, CAST(200000.00 AS Decimal(10, 2)), CAST(50000.00 AS Decimal(10, 2)), CAST(0.00 AS Decimal(10, 2)), CAST(150000.00 AS Decimal(10, 2)), N'COD', N'Pending', NULL, 0, GETDATE())
 GO
 
 SET IDENTITY_INSERT [dbo].[Orders] OFF

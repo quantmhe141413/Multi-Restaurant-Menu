@@ -345,74 +345,15 @@
                                         <input type="text" class="form-control" id="district" name="district" required>
                                     </div>
                                     <div class="form-group">
-                                        <label for="city">Tỉnh/Thành phố <span class="text-danger">*</span></label>
-                                        <select class="form-control" id="city" name="city" required>
-                                            <option value="">-- Chọn tỉnh / thành phố --</option>
-                                            <option value="Hà Nội">Hà Nội</option>
-                                            <option value="TP Hồ Chí Minh" selected>TP Hồ Chí Minh</option>
-                                            <option value="Đà Nẵng">Đà Nẵng</option>
-                                            <option value="Hải Phòng">Hải Phòng</option>
-                                            <option value="Cần Thơ">Cần Thơ</option>
-                                            <option value="An Giang">An Giang</option>
-                                            <option value="Bà Rịa - Vũng Tàu">Bà Rịa - Vũng Tàu</option>
-                                            <option value="Bắc Giang">Bắc Giang</option>
-                                            <option value="Bắc Kạn">Bắc Kạn</option>
-                                            <option value="Bạc Liêu">Bạc Liêu</option>
-                                            <option value="Bắc Ninh">Bắc Ninh</option>
-                                            <option value="Bến Tre">Bến Tre</option>
-                                            <option value="Bình Định">Bình Định</option>
-                                            <option value="Bình Dương">Bình Dương</option>
-                                            <option value="Bình Phước">Bình Phước</option>
-                                            <option value="Bình Thuận">Bình Thuận</option>
-                                            <option value="Cà Mau">Cà Mau</option>
-                                            <option value="Cao Bằng">Cao Bằng</option>
-                                            <option value="Đắk Lắk">Đắk Lắk</option>
-                                            <option value="Đắk Nông">Đắk Nông</option>
-                                            <option value="Điện Biên">Điện Biên</option>
-                                            <option value="Đồng Nai">Đồng Nai</option>
-                                            <option value="Đồng Tháp">Đồng Tháp</option>
-                                            <option value="Gia Lai">Gia Lai</option>
-                                            <option value="Hà Giang">Hà Giang</option>
-                                            <option value="Hà Nam">Hà Nam</option>
-                                            <option value="Hà Tĩnh">Hà Tĩnh</option>
-                                            <option value="Hải Dương">Hải Dương</option>
-                                            <option value="Hậu Giang">Hậu Giang</option>
-                                            <option value="Hòa Bình">Hòa Bình</option>
-                                            <option value="Hưng Yên">Hưng Yên</option>
-                                            <option value="Khánh Hòa">Khánh Hòa</option>
-                                            <option value="Kiên Giang">Kiên Giang</option>
-                                            <option value="Kon Tum">Kon Tum</option>
-                                            <option value="Lai Châu">Lai Châu</option>
-                                            <option value="Lâm Đồng">Lâm Đồng</option>
-                                            <option value="Lạng Sơn">Lạng Sơn</option>
-                                            <option value="Lào Cai">Lào Cai</option>
-                                            <option value="Long An">Long An</option>
-                                            <option value="Nam Định">Nam Định</option>
-                                            <option value="Nghệ An">Nghệ An</option>
-                                            <option value="Ninh Bình">Ninh Bình</option>
-                                            <option value="Ninh Thuận">Ninh Thuận</option>
-                                            <option value="Phú Thọ">Phú Thọ</option>
-                                            <option value="Phú Yên">Phú Yên</option>
-                                            <option value="Quảng Bình">Quảng Bình</option>
-                                            <option value="Quảng Nam">Quảng Nam</option>
-                                            <option value="Quảng Ngãi">Quảng Ngãi</option>
-                                            <option value="Quảng Ninh">Quảng Ninh</option>
-                                            <option value="Quảng Trị">Quảng Trị</option>
-                                            <option value="Sóc Trăng">Sóc Trăng</option>
-                                            <option value="Sơn La">Sơn La</option>
-                                            <option value="Tây Ninh">Tây Ninh</option>
-                                            <option value="Thái Bình">Thái Bình</option>
-                                            <option value="Thái Nguyên">Thái Nguyên</option>
-                                            <option value="Thanh Hóa">Thanh Hóa</option>
-                                            <option value="Thừa Thiên Huế">Thừa Thiên Huế</option>
-                                            <option value="Tiền Giang">Tiền Giang</option>
-                                            <option value="Trà Vinh">Trà Vinh</option>
-                                            <option value="Tuyên Quang">Tuyên Quang</option>
-                                            <option value="Vĩnh Long">Vĩnh Long</option>
-                                            <option value="Vĩnh Phúc">Vĩnh Phúc</option>
-                                            <option value="Yên Bái">Yên Bái</option>
+                                        <label for="city">Khu vực giao hàng <span class="text-danger">*</span></label>
+                                        <select class="form-control" id="zoneId" name="zoneId" required>
+                                            <option value="">-- Chọn khu vực giao hàng --</option>
+                                            <c:forEach var="zone" items="${deliveryZones}">
+                                                <option value="${zone.zoneId}">${zone.zoneName}</option>
+                                            </c:forEach>
                                         </select>
                                     </div>
+                                    <input type="hidden" id="deliveryFeeInput" name="deliveryFee" value="0">
                                     <div class="form-group">
                                         <label for="note">Ghi chú (tùy chọn)</label>
                                         <textarea class="form-control" id="note" name="note" rows="3"
@@ -482,9 +423,9 @@
                                         </c:choose>
                                     </span>
                                 </div>
-                                <div class="total-row">
+                                <div class="total-row" id="deliveryFeeRow">
                                     <span class="total-label">Phí giao hàng:</span>
-                                    <span>Miễn phí</span>
+                                    <span id="deliveryFeeText">---</span>
                                 </div>
                                 <div class="total-row" style="margin-top: 1rem;">
                                     <span style="font-weight: 600; font-size: 1.1rem;">Tổng cộng:</span>
@@ -642,8 +583,59 @@
                 <script>
                     // Helper to format number as VND string
                     function formatCurrencyVND(amount) {
-                        return new Intl.NumberFormat('vi-VN').format(amount) + ' ₫';
+                        return amount.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' }).replace('₫', '').trim() + ' ₫';
                     }
+
+                    // Handle Delivery Zone change
+                    document.getElementById('zoneId').addEventListener('change', function () {
+                        var zoneId = this.value;
+                        var originalTotal = parseFloat(document.getElementById('finalAmountText').getAttribute('data-original-total')) || 0;
+                        var deliveryFeeText = document.getElementById('deliveryFeeText');
+                        var deliveryFeeInput = document.getElementById('deliveryFeeInput');
+                        var finalAmountText = document.getElementById('finalAmountText');
+                        var finalAmountInput = document.getElementById('finalAmount');
+                        var currentDiscount = parseFloat(document.getElementById('discountAmount').value) || 0;
+
+                        if (!zoneId) {
+                            deliveryFeeText.textContent = '---';
+                            deliveryFeeInput.value = 0;
+                            var newTotal = originalTotal - currentDiscount;
+                            finalAmountText.textContent = formatCurrencyVND(newTotal);
+                            finalAmountInput.value = newTotal;
+                            return;
+                        }
+
+                        fetch('${pageContext.request.contextPath}/api/calculate-delivery-fee?zoneId=' + encodeURIComponent(zoneId) + '&totalAmount=' + encodeURIComponent(originalTotal))
+                            .then(res => {
+                                if (!res.ok) throw new Error('HTTP ' + res.status);
+                                return res.json();
+                            })
+                            .then(data => {
+                                if (data.success) {
+                                    var fee = parseFloat(data.fee);
+                                    if (fee === 0) {
+                                        deliveryFeeText.textContent = 'Miễn phí';
+                                    } else {
+                                        deliveryFeeText.textContent = formatCurrencyVND(fee);
+                                    }
+                                    deliveryFeeInput.value = fee;
+                                    var newTotal = originalTotal - currentDiscount + fee;
+                                    finalAmountText.textContent = formatCurrencyVND(newTotal);
+                                    finalAmountInput.value = newTotal;
+                                } else {
+                                    alert(data.message);
+                                    document.getElementById('zoneId').value = '';
+                                    deliveryFeeText.textContent = '---';
+                                    deliveryFeeInput.value = 0;
+                                    var newTotal = originalTotal - currentDiscount;
+                                    finalAmountText.textContent = formatCurrencyVND(newTotal);
+                                    finalAmountInput.value = newTotal;
+                                }
+                            })
+                            .catch(err => {
+                                console.error('Error fetching delivery fee:', err);
+                            });
+                    });
 
                     // Update hidden input when payment method changes
                     document.querySelectorAll('input[name="paymentMethodRadio"]').forEach(function (radio) {
@@ -710,7 +702,7 @@
                             return;
                         }
 
-                        fetch('apply-discount', {
+                        fetch('${pageContext.request.contextPath}/apply-discount', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
@@ -740,11 +732,14 @@
                                 // Apply discount
                                 discountRow.style.display = 'flex';
                                 discountAmountText.textContent = '- ' + formatCurrencyVND(data.discountAmount);
-                                finalAmountText.textContent = formatCurrencyVND(data.finalAmount);
+
+                                var currentDeliveryFee = parseFloat(document.getElementById('deliveryFeeInput').value) || 0;
+                                var newFinalAmount = data.finalAmount + currentDeliveryFee;
+                                finalAmountText.textContent = formatCurrencyVND(newFinalAmount);
 
                                 discountIdInput.value = data.discountID;
                                 discountAmountInput.value = data.discountAmount;
-                                finalAmountInput.value = data.finalAmount;
+                                finalAmountInput.value = newFinalAmount;
 
                                 messageEl.innerHTML = '<i class="fas fa-check-circle"></i> ' + (data.message || 'Áp dụng mã ưu đãi thành công!');
                                 messageEl.className = 'form-text text-success mt-2 fw-bold';

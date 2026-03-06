@@ -15,6 +15,8 @@ import jakarta.servlet.http.HttpSession;
 import models.Discount;
 import models.MenuItem;
 import models.User;
+import models.RestaurantDeliveryZone;
+import dal.RestaurantDeliveryZoneDAO;
 
 @WebServlet(name = "CheckoutController", urlPatterns = {"/checkout"})
 public class CheckoutController extends HttpServlet {
@@ -124,6 +126,11 @@ public class CheckoutController extends HttpServlet {
             request.setAttribute("unusableVouchers", unusableVouchers);
             request.setAttribute("bestDiscount", bestDiscount);
             request.setAttribute("maxDiscountGained", maxDiscountGained);
+            
+            // Get Delivery Zones for this restaurant
+            RestaurantDeliveryZoneDAO zoneDAO = new RestaurantDeliveryZoneDAO();
+            List<RestaurantDeliveryZone> deliveryZones = zoneDAO.getActiveZonesByRestaurantId(restaurantId);
+            request.setAttribute("deliveryZones", deliveryZones);
             
             request.getRequestDispatcher("views/checkout.jsp").forward(request, response);
             

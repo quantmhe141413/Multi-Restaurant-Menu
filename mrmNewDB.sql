@@ -117,6 +117,7 @@ CREATE TABLE [dbo].[Orders](
 	[DiscountID] [int] NULL,
 	[TotalAmount] [decimal](10, 2) NOT NULL,
 	[DiscountAmount] [decimal](10, 2) NOT NULL,
+	[DeliveryFee] [decimal](10, 2) NOT NULL DEFAULT (0),
 	[FinalAmount] [decimal](10, 2) NOT NULL,
 	[PaymentMethod] [nvarchar](50) NULL,
 	[PaymentStatus] [nvarchar](30) NOT NULL DEFAULT 'Pending',
