@@ -262,4 +262,44 @@ public class OrderDAO extends DBContext {
         
         return -1;
     }
+
+    /**
+     * Get the latest OrderID for a restaurant.
+     * Returns 0 if the restaurant has no orders yet.
+     */
+    public int getLatestOrderIdForRestaurant(int restaurantId) {
+        String sql = "SELECT ISNULL(MAX(OrderID), 0) AS LatestId FROM Orders WHERE RestaurantID = ?";
+        try {
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setInt(1, restaurantId);
+            ResultSet rs = st.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("LatestId");
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(OrderDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return 0;
+    }
+
+    /**
+     * Count new orders created for a restaurant since the given lastOrderId.
+     * Only orders in 'Preparing' status are considered "new" for staff alerts.
+     */
+    public int countNewPreparingOrdersSince(int restaurantId, int lastOrderId) {
+        String sql = "SELECT COUNT(*) AS Cnt FROM Orders "
+                + "WHERE RestaurantID = ? AND OrderStatus = 'Preparing' AND OrderID > ?";
+        try {
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setInt(1, restaurantId);
+            st.setInt(2, lastOrderId);
+            ResultSet rs = st.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("Cnt");
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(OrderDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return 0;
+    }
 }

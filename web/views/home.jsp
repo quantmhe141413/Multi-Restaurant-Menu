@@ -283,6 +283,7 @@
                 </div>
 
                 <jsp:include page="includes/footer.jsp" />
+                <jsp:include page="includes/std_scripts.jsp" />
 
                 <script>
                     document.addEventListener('DOMContentLoaded', function () {
