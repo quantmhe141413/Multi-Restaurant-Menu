@@ -5,6 +5,7 @@ import dal.OrderDAO;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.List;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -15,6 +16,13 @@ import models.MenuItem;
 import models.Order;
 import models.OrderItem;
 import models.User;
+import models.RestaurantDeliveryZone;
+import models.DeliveryFee;
+import dal.RestaurantDeliveryZoneDAO;
+import dal.DeliveryFeeDAO;
+import dal.OrderDAO;
+import dal.DiscountDAO;
+import models.Discount;
 
 @WebServlet(name = "OrderController", urlPatterns = { "/order" })
 public class OrderController extends HttpServlet {
@@ -90,6 +98,105 @@ public class OrderController extends HttpServlet {
                 totalAmount += item.getPrice() * entry.getValue();
             }
 
+            // Read discount info from request (optional)
+            String discountIdStr = request.getParameter("discountId");
+            String discountAmountStr = request.getParameter("discountAmount");
+            String finalAmountStr = request.getParameter("finalAmount");
+
+            String zoneIdStr = request.getParameter("zoneId");
+
+            Integer discountId = null;
+            double discountAmount = 0;
+            double deliveryFeeVal = 0;
+            double finalAmount = totalAmount;
+
+            // Recalculate Delivery Fee Backend
+            if (zoneIdStr != null && !zoneIdStr.trim().isEmpty()) {
+                try {
+                    int zoneId = Integer.parseInt(zoneIdStr);
+                    DeliveryFeeDAO feeDao = new DeliveryFeeDAO();
+                    List<DeliveryFee> fees = feeDao.findFeesWithFilters(null, null, zoneId, 1, 100);
+                    double bestFee = -1;
+                    for (DeliveryFee fee : fees) {
+                        if (fee.getIsActive()) {
+                            boolean validMin = (fee.getMinOrderAmount() == null || totalAmount >= fee.getMinOrderAmount().doubleValue());
+                            boolean validMax = (fee.getMaxOrderAmount() == null || totalAmount <= fee.getMaxOrderAmount().doubleValue());
+                            if (validMin && validMax) {
+                                double calFee = 0;
+                                if ("Flat".equals(fee.getFeeType())) {
+                                    calFee = fee.getFeeValue().doubleValue();
+                                } else if ("PercentageOfOrder".equals(fee.getFeeType())) {
+                                    calFee = totalAmount * (fee.getFeeValue().doubleValue() / 100.0);
+                                } else if ("FreeAboveAmount".equals(fee.getFeeType()) || "FreeDelivery".equals(fee.getFeeType())) {
+                                    calFee = 0;
+                                }
+                                if (bestFee == -1 || calFee < bestFee) {
+                                    bestFee = calFee;
+                                }
+                            }
+                        }
+                    }
+                    if (bestFee != -1) {
+                        deliveryFeeVal = bestFee;
+                    }
+                } catch (Exception e) {}
+            }
+
+            if (discountIdStr != null && !discountIdStr.trim().isEmpty()) {
+                try {
+                    discountId = Integer.parseInt(discountIdStr);
+                } catch (NumberFormatException ex) {
+                    // ignore invalid discount id, treat as no discount
+                    discountId = null;
+                }
+            }
+
+            if (discountAmountStr != null && !discountAmountStr.trim().isEmpty()) {
+                try {
+                    discountAmount = Double.parseDouble(discountAmountStr);
+                } catch (NumberFormatException ex) {
+                    discountAmount = 0;
+                }
+            }
+
+            finalAmount = totalAmount - discountAmount + deliveryFeeVal;
+
+            if (finalAmount < 0) {
+                finalAmount = 0;
+            }
+
+            // check constraints and apply discount if any
+            if (discountId != null) {
+                DiscountDAO dDao = new DiscountDAO();
+                Discount discount = dDao.findDiscountById(discountId);
+                if (discount == null || !discount.isIsActive() || discount.getQuantity() <= 0) {
+                    session.setAttribute("error", "Mã giảm giá không hợp lệ hoặc đã hết lượt sử dụng!");
+                    response.sendRedirect("cart");
+                    return;
+                }
+                if (discount.getMinOrderAmount() != null && totalAmount < discount.getMinOrderAmount()) {
+                    session.setAttribute("error", "Đơn hàng chưa đạt giá trị tối thiểu để dùng mã giảm giá này!");
+                    response.sendRedirect("cart");
+                    return;
+                }
+                if (discount.getUsageLimitPerUser() > 0) {
+                    int usageCount = dDao.countUserUsage(discountId, user.getUserID());
+                    if (usageCount >= discount.getUsageLimitPerUser()) {
+                        session.setAttribute("error", "Bạn đã hết lượt dùng mã giảm giá này!");
+                        response.sendRedirect("cart");
+                        return;
+                    }
+                }
+                
+                // attempt to reduce quantity
+                boolean reduced = dDao.decreaseQuantity(discountId);
+                if (!reduced) {
+                    session.setAttribute("error", "Mã giảm giá vừa hết lượt sử dụng!");
+                    response.sendRedirect("cart");
+                    return;
+                }
+            }
+
             // Tạo đơn hàng
             Order order = new Order();
             order.setRestaurantID(restaurantId);
@@ -97,8 +204,10 @@ public class OrderController extends HttpServlet {
             order.setOrderType("Online");
             order.setOrderStatus("Preparing");
             order.setTotalAmount(totalAmount);
-            order.setDiscountAmount(0);
-            order.setFinalAmount(totalAmount);
+            order.setDiscountID(discountId);
+            order.setDiscountAmount(discountAmount);
+            order.setDeliveryFee(deliveryFeeVal);
+            order.setFinalAmount(finalAmount);
             order.setPaymentMethod(paymentMethod);
             order.setPaymentStatus("Pending");
 
