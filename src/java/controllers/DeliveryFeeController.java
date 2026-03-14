@@ -3,6 +3,7 @@ package controllers;
 import dal.DeliveryFeeDAO;
 import dal.RestaurantDeliveryZoneDAO;
 import models.DeliveryFee;
+import models.DeliveryFeeHistory;
 import models.RestaurantDeliveryZone;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -38,6 +39,9 @@ public class DeliveryFeeController extends HttpServlet {
                 break;
             case "toggle":
                 handleToggleStatus(request, response);
+                break;
+            case "history":
+                showFeeHistory(request, response);
                 break;
             default:
                 handleList(request, response);
@@ -193,6 +197,11 @@ public class DeliveryFeeController extends HttpServlet {
         
         request.setAttribute("zones", zones);
         request.setAttribute("userRole", user.getRoleID());
+        // Pre-select zone if coming from coverage-zone accordion "Add Fee" button
+        String preselectedZoneId = request.getParameter("zoneId");
+        if (preselectedZoneId != null && !preselectedZoneId.trim().isEmpty()) {
+            request.setAttribute("preselectedZoneId", preselectedZoneId.trim());
+        }
         request.getRequestDispatcher("/views/owner/delivery-fee-add.jsp").forward(request, response);
     }
 
@@ -307,29 +316,29 @@ public class DeliveryFeeController extends HttpServlet {
             BigDecimal feeValue = new BigDecimal(feeValueStr);
             BigDecimal minOrderAmount = null;
             BigDecimal maxOrderAmount = null;
-            
+
             if (minOrderAmountStr != null && !minOrderAmountStr.trim().isEmpty()) {
                 minOrderAmount = new BigDecimal(minOrderAmountStr);
             }
-            
+
             if (maxOrderAmountStr != null && !maxOrderAmountStr.trim().isEmpty()) {
                 maxOrderAmount = new BigDecimal(maxOrderAmountStr);
             }
-            
+
             DeliveryFeeDAO feeDAO = new DeliveryFeeDAO();
-            
+
             // Check for duplicate/conflicting fee
             if (feeDAO.hasFeeConflict(zoneId, feeType, minOrderAmount, maxOrderAmount, null)) {
-                session.setAttribute("toastMessage", 
+                session.setAttribute("toastMessage",
                     "A similar delivery fee already exists for this zone with the same type and overlapping conditions. " +
                     "Please adjust the fee type or order amount range.");
                 session.setAttribute("toastType", "error");
                 response.sendRedirect(request.getContextPath() + "/delivery-fee?action=add");
                 return;
             }
-            
+
             Boolean isActive = isActiveStr != null && isActiveStr.equals("1");
-            
+
             DeliveryFee fee = new DeliveryFee();
             fee.setZoneId(zoneId);
             fee.setFeeType(feeType);
@@ -337,9 +346,9 @@ public class DeliveryFeeController extends HttpServlet {
             fee.setMinOrderAmount(minOrderAmount);
             fee.setMaxOrderAmount(maxOrderAmount);
             fee.setIsActive(isActive);
-            
+
             int result = feeDAO.insert(fee);
-            
+
             if (result > 0) {
                 session.setAttribute("toastMessage", "Delivery fee added successfully");
                 session.setAttribute("toastType", "success");
@@ -351,8 +360,14 @@ public class DeliveryFeeController extends HttpServlet {
             session.setAttribute("toastMessage", "Invalid numeric value");
             session.setAttribute("toastType", "error");
         }
-        
-        response.sendRedirect(request.getContextPath() + "/delivery-fee?action=list");
+
+        // Redirect back to zone fees page if returnZoneId is present, else coverage-zone list
+        String returnZoneId = request.getParameter("returnZoneId");
+        if (returnZoneId != null && !returnZoneId.trim().isEmpty()) {
+            response.sendRedirect(request.getContextPath() + "/coverage-zone?action=fees&id=" + returnZoneId);
+        } else {
+            response.sendRedirect(request.getContextPath() + "/coverage-zone?action=list");
+        }
     }
 
     private void handleEdit(HttpServletRequest request, HttpServletResponse response)
@@ -430,16 +445,27 @@ public class DeliveryFeeController extends HttpServlet {
             }
             
             Boolean isActive = isActiveStr != null && isActiveStr.equals("1");
-            
+
+            // Snapshot old values before mutation
+            DeliveryFee oldFee = new DeliveryFee();
+            oldFee.setFeeId(fee.getFeeId());
+            oldFee.setFeeType(fee.getFeeType());
+            oldFee.setFeeValue(fee.getFeeValue());
+            oldFee.setMinOrderAmount(fee.getMinOrderAmount());
+            oldFee.setMaxOrderAmount(fee.getMaxOrderAmount());
+
             fee.setZoneId(zoneId);
             fee.setFeeType(feeType);
             fee.setFeeValue(feeValue);
             fee.setMinOrderAmount(minOrderAmount);
             fee.setMaxOrderAmount(maxOrderAmount);
             fee.setIsActive(isActive);
-            
-            boolean result = feeDAO.update(fee);
-            
+
+            // Save updated fee with history record
+            models.User user = (models.User) session.getAttribute("user");
+            Integer userId = user != null ? user.getUserID() : null;
+            boolean result = feeDAO.updateWithHistory(fee, oldFee, userId);
+
             if (result) {
                 session.setAttribute("toastMessage", "Delivery fee updated successfully");
                 session.setAttribute("toastType", "success");
@@ -451,8 +477,14 @@ public class DeliveryFeeController extends HttpServlet {
             session.setAttribute("toastMessage", "Invalid numeric value");
             session.setAttribute("toastType", "error");
         }
-        
-        response.sendRedirect(request.getContextPath() + "/delivery-fee?action=list");
+
+        // Redirect back to zone fees page using returnZoneId, else coverage-zone list
+        String returnZoneId = request.getParameter("returnZoneId");
+        if (returnZoneId != null && !returnZoneId.trim().isEmpty()) {
+            response.sendRedirect(request.getContextPath() + "/coverage-zone?action=fees&id=" + returnZoneId);
+        } else {
+            response.sendRedirect(request.getContextPath() + "/coverage-zone?action=list");
+        }
     }
 
     private void handleToggleStatus(HttpServletRequest request, HttpServletResponse response)
@@ -469,7 +501,7 @@ public class DeliveryFeeController extends HttpServlet {
             Integer feeId = Integer.parseInt(feeIdStr);
             DeliveryFeeDAO feeDAO = new DeliveryFeeDAO();
             boolean result = feeDAO.toggleStatus(feeId);
-            
+
             if (result) {
                 session.setAttribute("toastMessage", "Fee status updated successfully");
                 session.setAttribute("toastType", "success");
@@ -481,7 +513,56 @@ public class DeliveryFeeController extends HttpServlet {
             session.setAttribute("toastMessage", "Invalid fee ID");
             session.setAttribute("toastType", "error");
         }
-        
-        response.sendRedirect(request.getContextPath() + "/delivery-fee?action=list");
+
+        // returnZone param is passed from coverage-zone-list.jsp toggle link
+        String returnZone = request.getParameter("returnZone");
+        if (returnZone != null && !returnZone.trim().isEmpty()) {
+            response.sendRedirect(request.getContextPath() + "/coverage-zone?action=list");
+        } else {
+            response.sendRedirect(request.getContextPath() + "/delivery-fee?action=list");
+        }
+    }
+
+    private void showFeeHistory(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        HttpSession session = request.getSession();
+        models.User user = (models.User) session.getAttribute("user");
+
+        if (user == null) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
+        }
+
+        String feeIdStr = request.getParameter("id");
+        if (feeIdStr == null || feeIdStr.isEmpty()) {
+            response.sendRedirect(request.getContextPath() + "/delivery-fee?action=list");
+            return;
+        }
+
+        try {
+            Integer feeId = Integer.parseInt(feeIdStr);
+            DeliveryFeeDAO feeDAO = new DeliveryFeeDAO();
+            DeliveryFee fee = feeDAO.findById(feeId);
+
+            if (fee == null) {
+                session.setAttribute("toastMessage", "Delivery fee not found");
+                session.setAttribute("toastType", "error");
+                response.sendRedirect(request.getContextPath() + "/delivery-fee?action=list");
+                return;
+            }
+
+            List<DeliveryFeeHistory> history = feeDAO.getHistoryByFeeId(feeId);
+
+            // Get zone info for display
+            RestaurantDeliveryZoneDAO zoneDAO = new RestaurantDeliveryZoneDAO();
+            RestaurantDeliveryZone zone = zoneDAO.findById(fee.getZoneId());
+
+            request.setAttribute("fee", fee);
+            request.setAttribute("zone", zone);
+            request.setAttribute("history", history);
+            request.getRequestDispatcher("/views/owner/delivery-fee-history.jsp").forward(request, response);
+        } catch (NumberFormatException e) {
+            response.sendRedirect(request.getContextPath() + "/delivery-fee?action=list");
+        }
     }
 }

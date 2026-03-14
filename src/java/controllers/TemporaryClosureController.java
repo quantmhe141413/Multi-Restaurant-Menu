@@ -1,7 +1,9 @@
 package controllers;
 
 import dal.TemporaryClosureDAO;
+import dal.BusinessHoursDAO;
 import models.TemporaryClosure;
+import models.BusinessHours;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -125,6 +127,29 @@ public class TemporaryClosureController extends HttpServlet {
 
     private void showAddForm(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        HttpSession session = request.getSession();
+        models.User user = (models.User) session.getAttribute("user");
+
+        if (user == null) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
+        }
+
+        Integer restaurantId = getRestaurantIdForUser(session, user);
+        if (restaurantId == null && user.getRoleID() != 1) {
+            session.setAttribute("toastMessage", "You must be assigned to a restaurant to add temporary closures");
+            session.setAttribute("toastType", "error");
+            response.sendRedirect(request.getContextPath() + "/temporary-closure?action=list");
+            return;
+        }
+
+        // Load business hours to show context for conflict checking
+        if (restaurantId != null) {
+            BusinessHoursDAO hoursDAO = new BusinessHoursDAO();
+            List<BusinessHours> businessHours = hoursDAO.findByRestaurantId(restaurantId);
+            request.setAttribute("businessHours", businessHours);
+        }
+
         request.getRequestDispatcher("/views/owner/temporary-closure-add.jsp").forward(request, response);
     }
 
@@ -151,6 +176,15 @@ public class TemporaryClosureController extends HttpServlet {
             }
             
             request.setAttribute("closure", closure);
+
+            // Load business hours to show context for conflict checking
+            Integer restaurantId = closure.getRestaurantId();
+            if (restaurantId != null) {
+                BusinessHoursDAO hoursDAO = new BusinessHoursDAO();
+                List<BusinessHours> businessHours = hoursDAO.findByRestaurantId(restaurantId);
+                request.setAttribute("businessHours", businessHours);
+            }
+
             request.getRequestDispatcher("/views/owner/temporary-closure-edit.jsp").forward(request, response);
         } catch (NumberFormatException e) {
             response.sendRedirect(request.getContextPath() + "/temporary-closure?action=list");

@@ -1,6 +1,7 @@
 package dal;
 
 import models.DeliveryFee;
+import models.DeliveryFeeHistory;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -231,6 +232,129 @@ public class DeliveryFeeDAO extends DBContext {
             closeResources();
         }
         return null;
+    }
+
+    /**
+     * Update fee and save a history record of the change
+     */
+    public boolean updateWithHistory(DeliveryFee newFee, DeliveryFee oldFee, Integer changedBy) {
+        boolean updated = update(newFee);
+        if (updated) {
+            insertHistory(oldFee, newFee, changedBy);
+        }
+        return updated;
+    }
+
+    /**
+     * Insert a history record capturing before/after values
+     */
+    public void insertHistory(DeliveryFee oldFee, DeliveryFee newFee, Integer changedBy) {
+        String sql = "INSERT INTO DeliveryFeeHistory " +
+                     "(FeeID, OldFeeType, NewFeeType, OldFeeValue, NewFeeValue, " +
+                     "OldMinOrder, NewMinOrder, OldMaxOrder, NewMaxOrder, ChangedBy) " +
+                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        try {
+            connection = getConnection();
+            statement = connection.prepareStatement(sql);
+            statement.setInt(1, oldFee.getFeeId());
+            statement.setString(2, oldFee.getFeeType());
+            statement.setString(3, newFee.getFeeType());
+            statement.setBigDecimal(4, oldFee.getFeeValue());
+            statement.setBigDecimal(5, newFee.getFeeValue());
+
+            if (oldFee.getMinOrderAmount() != null) {
+                statement.setBigDecimal(6, oldFee.getMinOrderAmount());
+            } else {
+                statement.setNull(6, java.sql.Types.DECIMAL);
+            }
+            if (newFee.getMinOrderAmount() != null) {
+                statement.setBigDecimal(7, newFee.getMinOrderAmount());
+            } else {
+                statement.setNull(7, java.sql.Types.DECIMAL);
+            }
+            if (oldFee.getMaxOrderAmount() != null) {
+                statement.setBigDecimal(8, oldFee.getMaxOrderAmount());
+            } else {
+                statement.setNull(8, java.sql.Types.DECIMAL);
+            }
+            if (newFee.getMaxOrderAmount() != null) {
+                statement.setBigDecimal(9, newFee.getMaxOrderAmount());
+            } else {
+                statement.setNull(9, java.sql.Types.DECIMAL);
+            }
+            if (changedBy != null) {
+                statement.setInt(10, changedBy);
+            } else {
+                statement.setNull(10, java.sql.Types.INTEGER);
+            }
+            statement.executeUpdate();
+        } catch (SQLException ex) {
+            System.out.println("Error inserting fee history: " + ex.getMessage());
+        } finally {
+            closeResources();
+        }
+    }
+
+    /**
+     * Get change history for a specific fee, newest first
+     */
+    public List<DeliveryFeeHistory> getHistoryByFeeId(Integer feeId) {
+        List<DeliveryFeeHistory> history = new ArrayList<>();
+        String sql = "SELECT h.*, u.FullName AS ChangedByName " +
+                     "FROM DeliveryFeeHistory h " +
+                     "LEFT JOIN Users u ON h.ChangedBy = u.UserID " +
+                     "WHERE h.FeeID = ? " +
+                     "ORDER BY h.ChangedAt DESC";
+        try {
+            connection = getConnection();
+            statement = connection.prepareStatement(sql);
+            statement.setInt(1, feeId);
+            resultSet = statement.executeQuery();
+            while (resultSet.next()) {
+                DeliveryFeeHistory h = new DeliveryFeeHistory();
+                h.setHistoryId(resultSet.getInt("HistoryID"));
+                h.setFeeId(resultSet.getInt("FeeID"));
+                h.setOldFeeType(resultSet.getString("OldFeeType"));
+                h.setNewFeeType(resultSet.getString("NewFeeType"));
+                h.setOldFeeValue(resultSet.getBigDecimal("OldFeeValue"));
+                h.setNewFeeValue(resultSet.getBigDecimal("NewFeeValue"));
+                h.setOldMinOrder(resultSet.getBigDecimal("OldMinOrder"));
+                h.setNewMinOrder(resultSet.getBigDecimal("NewMinOrder"));
+                h.setOldMaxOrder(resultSet.getBigDecimal("OldMaxOrder"));
+                h.setNewMaxOrder(resultSet.getBigDecimal("NewMaxOrder"));
+                h.setChangedAt(resultSet.getTimestamp("ChangedAt"));
+                h.setChangedBy(resultSet.getInt("ChangedBy"));
+                h.setChangedByName(resultSet.getString("ChangedByName"));
+                history.add(h);
+            }
+        } catch (SQLException ex) {
+            System.out.println("Error fetching fee history: " + ex.getMessage());
+        } finally {
+            closeResources();
+        }
+        return history;
+    }
+
+    /**
+     * Get fees belonging to a specific zone (for zone detail view)
+     */
+    public List<DeliveryFee> findByZoneId(Integer zoneId) {
+        List<DeliveryFee> fees = new ArrayList<>();
+        String sql = "SELECT * FROM DeliveryFees WHERE ZoneID = ? ORDER BY CreatedAt DESC";
+        try {
+            connection = getConnection();
+            statement = connection.prepareStatement(sql);
+            statement.setInt(1, zoneId);
+            resultSet = statement.executeQuery();
+            while (resultSet.next()) {
+                fees.add(getFromResultSet(resultSet));
+            }
+        } catch (SQLException ex) {
+            System.out.println("Error finding fees by zone: " + ex.getMessage());
+        } finally {
+            closeResources();
+        }
+        return fees;
     }
 
     public boolean delete(Integer feeId) {

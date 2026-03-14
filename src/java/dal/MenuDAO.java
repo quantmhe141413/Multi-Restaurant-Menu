@@ -228,7 +228,6 @@ public class MenuDAO extends DBContext {
         item.setDescription(rs.getString("Description"));
         item.setPrice(rs.getDouble("Price"));
         item.setIsAvailable(rs.getBoolean("IsAvailable"));
-        item.setImageUrl(rs.getString("ImageUrl"));
         item.setAverageRating((Double) rs.getObject("AverageRating"));
         item.setCreatedAt(rs.getTimestamp("CreatedAt"));
         return item;

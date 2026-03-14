@@ -1,3 +1,4 @@
+<%@ page contentType="text/html" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <c:set var="pageTitle" value="Add Temporary Closure" scope="request" />
 <!DOCTYPE html>
@@ -80,6 +81,43 @@
                         <div class="alert alert-warning" role="alert">
                             <i class="fas fa-exclamation-triangle"></i>
                             <strong>Important:</strong> During an active temporary closure, the system will not accept new orders.
+                        </div>
+
+                        <!-- Business Hours Reference -->
+                        <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+                        <c:if test="${not empty businessHours}">
+                            <div class="card border-info mb-3">
+                                <div class="card-header bg-info text-white py-2">
+                                    <i class="fas fa-clock"></i> <strong>Current Business Hours</strong>
+                                    <small class="ms-2">(closure will override these days)</small>
+                                </div>
+                                <div class="card-body py-2">
+                                    <div class="row row-cols-2 row-cols-md-4 g-2">
+                                        <c:forEach var="bh" items="${businessHours}">
+                                            <div class="col">
+                                                <div class="p-2 rounded border text-center ${bh.isOpen ? 'border-success' : 'border-secondary bg-light'}">
+                                                    <div class="fw-bold small">${bh.dayOfWeek}</div>
+                                                    <c:choose>
+                                                        <c:when test="${bh.isOpen}">
+                                                            <div class="text-success small">${bh.openingTime} – ${bh.closingTime}</div>
+                                                        </c:when>
+                                                        <c:otherwise>
+                                                            <div class="text-muted small">Closed</div>
+                                                        </c:otherwise>
+                                                    </c:choose>
+                                                </div>
+                                            </div>
+                                        </c:forEach>
+                                    </div>
+                                </div>
+                            </div>
+                        </c:if>
+
+                        <!-- Conflict Warning (populated by JS when dates overlap open business hours) -->
+                        <div id="conflictWarning" class="alert alert-danger d-none" role="alert">
+                            <i class="fas fa-calendar-times"></i>
+                            <strong>Business Hours Conflict:</strong>
+                            <span id="conflictDetail"></span>
                         </div>
 
                         <div class="text-center">
@@ -179,6 +217,55 @@ document.getElementById('endDateTime').addEventListener('change', function() {
         this.setCustomValidity('');
     }
 });
+
+// Business hours conflict check
+// Build day-of-week open schedule from server-side data
+const businessHoursData = [
+    <%-- Render businessHours as JS array --%>
+    <c:forEach var="bh" items="${businessHours}" varStatus="loop">
+    { day: '${bh.dayOfWeek}', isOpen: ${bh.isOpen}, open: '${bh.openingTime}', close: '${bh.closingTime}' }${!loop.last ? ',' : ''}
+    </c:forEach>
+];
+
+const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+function checkBusinessHoursConflict() {
+    const startVal = document.getElementById('startDateTime').value;
+    const endVal = document.getElementById('endDateTime').value;
+    const warning = document.getElementById('conflictWarning');
+    const detail = document.getElementById('conflictDetail');
+
+    if (!startVal || !endVal || businessHoursData.length === 0) {
+        warning.classList.add('d-none');
+        return;
+    }
+
+    const start = new Date(startVal);
+    const end = new Date(endVal);
+    if (end <= start) { warning.classList.add('d-none'); return; }
+
+    // Collect all unique days covered by the closure range
+    const affectedDays = new Set();
+    const cursor = new Date(start);
+    while (cursor <= end) {
+        affectedDays.add(DAY_NAMES[cursor.getDay()]);
+        cursor.setDate(cursor.getDate() + 1);
+    }
+
+    // Find which of those days have open business hours
+    const conflicts = businessHoursData.filter(bh => bh.isOpen && affectedDays.has(bh.day));
+
+    if (conflicts.length > 0) {
+        const conflictList = conflicts.map(bh => bh.day + ' (' + bh.open + '–' + bh.close + ')').join(', ');
+        detail.textContent = ' This closure overlaps open business hours on: ' + conflictList + '. The closure will override these hours.';
+        warning.classList.remove('d-none');
+    } else {
+        warning.classList.add('d-none');
+    }
+}
+
+document.getElementById('startDateTime').addEventListener('change', checkBusinessHoursConflict);
+document.getElementById('endDateTime').addEventListener('change', checkBusinessHoursConflict);
 </script>
 
 <jsp:include page="/WEB-INF/includes/footer.jsp" />

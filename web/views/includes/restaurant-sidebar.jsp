@@ -147,14 +147,7 @@
             <a class="nav-link ${pageContext.request.requestURI.contains('coverage-zone') ? 'active' : ''}"
                href="${pageContext.request.contextPath}/coverage-zone?action=list">
                 <i class="fas fa-map-marked-alt"></i>
-                Coverage Zones
-            </a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link ${pageContext.request.requestURI.contains('delivery-fee') ? 'active' : ''}"
-               href="${pageContext.request.contextPath}/delivery-fee?action=list">
-                <i class="fas fa-dollar-sign"></i>
-                Delivery Fees
+                Coverage Zones &amp; Fees
             </a>
         </li>
 

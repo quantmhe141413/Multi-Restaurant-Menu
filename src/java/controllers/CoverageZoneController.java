@@ -1,7 +1,10 @@
 package controllers;
 
 import dal.RestaurantDeliveryZoneDAO;
+import dal.DeliveryFeeDAO;
 import models.RestaurantDeliveryZone;
+import models.DeliveryFee;
+import models.DeliveryFeeHistory;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -35,6 +38,9 @@ public class CoverageZoneController extends HttpServlet {
                 break;
             case "toggle":
                 handleToggleStatus(request, response);
+                break;
+            case "fees":
+                showZoneFees(request, response);
                 break;
             default:
                 handleList(request, response);
@@ -125,26 +131,34 @@ public class CoverageZoneController extends HttpServlet {
         }
         
         RestaurantDeliveryZoneDAO zoneDAO = new RestaurantDeliveryZoneDAO();
-        
+
         // Get zones based on role and filters
         List<RestaurantDeliveryZone> zones = zoneDAO.findZonesWithFilters(
                 restaurantId, statusFilter, searchFilter, page, pageSize);
-        
+
         int totalZones = zoneDAO.getTotalFilteredZones(restaurantId, statusFilter, searchFilter);
         int totalPages = (int) Math.ceil((double) totalZones / pageSize);
-        
+
+        // Load fees for each zone (for accordion inline display)
+        DeliveryFeeDAO feeDAO = new DeliveryFeeDAO();
+        java.util.Map<Integer, List<DeliveryFee>> zoneFeeMap = new java.util.LinkedHashMap<>();
+        for (RestaurantDeliveryZone zone : zones) {
+            zoneFeeMap.put(zone.getZoneId(), feeDAO.findByZoneId(zone.getZoneId()));
+        }
+        request.setAttribute("zoneFeeMap", zoneFeeMap);
+
         // Get restaurants for filter dropdown (only for SuperAdmin)
         if (user.getRoleID() == 1) {
             request.setAttribute("restaurants", zoneDAO.getAllApprovedRestaurants());
         }
-        
+
         // Set attributes for JSP
         request.setAttribute("zones", zones);
         request.setAttribute("currentPage", page);
         request.setAttribute("totalPages", totalPages);
         request.setAttribute("totalZones", totalZones);
         request.setAttribute("userRole", user.getRoleID());
-        
+
         request.getRequestDispatcher("/views/owner/coverage-zone-list.jsp").forward(request, response);
     }
 
@@ -405,5 +419,52 @@ public class CoverageZoneController extends HttpServlet {
         }
         
         response.sendRedirect(request.getContextPath() + "/coverage-zone?action=list");
+    }
+
+    // Show fees and fee history for a specific zone
+    private void showZoneFees(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        HttpSession session = request.getSession();
+        models.User user = (models.User) session.getAttribute("user");
+
+        if (user == null) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
+        }
+
+        String zoneIdStr = request.getParameter("id");
+        if (zoneIdStr == null || zoneIdStr.isEmpty()) {
+            response.sendRedirect(request.getContextPath() + "/coverage-zone?action=list");
+            return;
+        }
+
+        try {
+            Integer zoneId = Integer.parseInt(zoneIdStr);
+            RestaurantDeliveryZoneDAO zoneDAO = new RestaurantDeliveryZoneDAO();
+            RestaurantDeliveryZone zone = zoneDAO.findById(zoneId);
+
+            if (zone == null) {
+                session.setAttribute("toastMessage", "Coverage zone not found");
+                session.setAttribute("toastType", "error");
+                response.sendRedirect(request.getContextPath() + "/coverage-zone?action=list");
+                return;
+            }
+
+            DeliveryFeeDAO feeDAO = new DeliveryFeeDAO();
+            List<DeliveryFee> fees = feeDAO.findByZoneId(zoneId);
+
+            // For each fee, load its history
+            java.util.Map<Integer, List<DeliveryFeeHistory>> feeHistoryMap = new java.util.LinkedHashMap<>();
+            for (DeliveryFee fee : fees) {
+                feeHistoryMap.put(fee.getFeeId(), feeDAO.getHistoryByFeeId(fee.getFeeId()));
+            }
+
+            request.setAttribute("zone", zone);
+            request.setAttribute("fees", fees);
+            request.setAttribute("feeHistoryMap", feeHistoryMap);
+            request.getRequestDispatcher("/views/owner/coverage-zone-fees.jsp").forward(request, response);
+        } catch (NumberFormatException e) {
+            response.sendRedirect(request.getContextPath() + "/coverage-zone?action=list");
+        }
     }
 }

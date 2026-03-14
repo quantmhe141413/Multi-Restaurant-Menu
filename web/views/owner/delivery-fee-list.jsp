@@ -1,5 +1,6 @@
+<%@ page contentType="text/html" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-    <c:set var="pageTitle" value="Delivery Fee Management" scope="request" />
+<c:set var="pageTitle" value="Delivery Fee Management" scope="request" />
     <!DOCTYPE html>
     <html lang="en">
 
@@ -313,8 +314,4 @@
             </div>
         </div>
 
-        <jsp:include page="/views/includes/footer.jsp" />
-        <jsp:include page="/views/includes/std_scripts.jsp" />
-    </body>
-
-    </html>
+        <jsp:include page="/WEB-INF/includes/footer.jsp" />

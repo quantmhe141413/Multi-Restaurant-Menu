@@ -1,3 +1,4 @@
+<%@ page contentType="text/html" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <c:set var="pageTitle" value="Add Delivery Fee" scope="request" />
 <!DOCTYPE html>
@@ -44,6 +45,7 @@
                             
                             <form action="${pageContext.request.contextPath}/delivery-fee" method="POST" id="feeForm" novalidate>
                                 <input type="hidden" name="action" value="add">
+                                <input type="hidden" name="returnZoneId" value="${param.zoneId}">
                             
                             <div class="mb-3">
                                 <label for="zoneId" class="form-label">Coverage Zone <span class="text-danger">*</span></label>
@@ -55,7 +57,8 @@
                                         </c:when>
                                         <c:otherwise>
                                             <c:forEach var="zone" items="${zones}">
-                                                <option value="${zone.zoneId}">
+                                                <option value="${zone.zoneId}"
+                                                    ${preselectedZoneId == zone.zoneId.toString() ? 'selected' : ''}>
                                                     ${zone.restaurantName} - ${zone.zoneName}
                                                 </option>
                                             </c:forEach>
@@ -139,7 +142,7 @@
                             </div>
 
                             <div class="d-flex justify-content-between">
-                                <a href="${pageContext.request.contextPath}/delivery-fee?action=list" 
+                                <a href="${not empty param.zoneId ? pageContext.request.contextPath.concat('/coverage-zone?action=fees&id=').concat(param.zoneId) : pageContext.request.contextPath.concat('/coverage-zone?action=list')}"
                                    class="btn btn-secondary">
                                     <i class="fas fa-times"></i> Cancel
                                 </a>

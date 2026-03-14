@@ -1,3 +1,4 @@
+<%@ page contentType="text/html" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <c:set var="pageTitle" value="Edit Delivery Fee" scope="request" />
 <!DOCTYPE html>
@@ -37,6 +38,7 @@
                             <form action="${pageContext.request.contextPath}/delivery-fee" method="POST">
                                 <input type="hidden" name="action" value="edit">
                                 <input type="hidden" name="feeId" value="${fee.feeId}">
+                                <input type="hidden" name="returnZoneId" value="${fee.zoneId}">
                                 
                                 <div class="mb-4">
                                     <label for="zoneId" class="form-label">
@@ -108,9 +110,9 @@
                                 </div>
 
                                 <div class="d-flex justify-content-between pt-3 border-top">
-                                    <a href="${pageContext.request.contextPath}/delivery-fee?action=list" 
+                                    <a href="${pageContext.request.contextPath}/coverage-zone?action=fees&id=${fee.zoneId}"
                                        class="btn btn-secondary">
-                                        <i class="fas fa-arrow-left"></i> Back to List
+                                        <i class="fas fa-arrow-left"></i> Back
                                     </a>
                                     <button type="submit" class="btn btn-warning">
                                         <i class="fas fa-save"></i> Update Fee

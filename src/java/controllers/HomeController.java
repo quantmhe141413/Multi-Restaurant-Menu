@@ -1,10 +1,8 @@
 package controllers;
 
 import dal.RestaurantDAO;
-import dal.ReviewDAO;
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -22,19 +20,7 @@ public class HomeController extends HttpServlet {
         String zone = request.getParameter("zone");
         String cuisine = request.getParameter("cuisine");
         RestaurantDAO rdao = new RestaurantDAO();
-        ReviewDAO reviewDAO = new ReviewDAO();
         List<Restaurant> restaurants = rdao.getApprovedRestaurants(search, zone, cuisine);
-
-        // Lấy rating summary cho tất cả nhà hàng
-        Map<Integer, double[]> ratingSummary = reviewDAO.getRatingSummaryForAllRestaurants();
-        for (Restaurant r : restaurants) {
-            double[] data = ratingSummary.get(r.getRestaurantId());
-            if (data != null) {
-                r.setAverageRating(data[0]);
-                r.setReviewCount((int) data[1]);
-            }
-        }
-
         request.setAttribute("restaurants", restaurants);
         request.setAttribute("zones", rdao.getActiveZoneNames());
         request.setAttribute("cuisines", rdao.getAvailableCuisines());

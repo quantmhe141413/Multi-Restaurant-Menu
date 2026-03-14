@@ -3,13 +3,10 @@ package controllers;
 import dal.MenuDAO;
 import dal.OrderDAO;
 import dal.RestaurantDAO;
-import dal.ReviewDAO;
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -22,14 +19,14 @@ import models.OrderItem;
 import models.Restaurant;
 import models.User;
 
-@WebServlet(name = "OrderHistoryController", urlPatterns = { "/order-history" })
+@WebServlet(name = "OrderHistoryController", urlPatterns = {"/order-history"})
 public class OrderHistoryController extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         HttpSession session = request.getSession();
-
+        
         // Kiểm tra đăng nhập
         User user = (User) session.getAttribute("user");
         if (user == null) {
@@ -49,20 +46,20 @@ public class OrderHistoryController extends HttpServlet {
             OrderDAO orderDAO = new OrderDAO();
             MenuDAO menuDAO = new MenuDAO();
             RestaurantDAO restaurantDAO = new RestaurantDAO();
-
+            
             // Lấy danh sách đơn hàng của customer
             List<Order> orders = orderDAO.getOrdersByCustomer(user.getUserID());
-
+            
             // Tạo map để lưu thông tin chi tiết cho mỗi đơn hàng
             Map<Integer, List<OrderItem>> orderItemsMap = new HashMap<>();
             Map<Integer, Restaurant> restaurantMap = new HashMap<>();
             Map<Integer, MenuItem> menuItemMap = new HashMap<>();
-
+            
             for (Order order : orders) {
                 // Lấy các items của đơn hàng
                 List<OrderItem> items = orderDAO.getOrderItemsByOrderId(order.getOrderID());
                 orderItemsMap.put(order.getOrderID(), items);
-
+                
                 // Lấy thông tin restaurant
                 if (!restaurantMap.containsKey(order.getRestaurantID())) {
                     Restaurant restaurant = restaurantDAO.getRestaurantById(order.getRestaurantID());
@@ -70,7 +67,7 @@ public class OrderHistoryController extends HttpServlet {
                         restaurantMap.put(order.getRestaurantID(), restaurant);
                     }
                 }
-
+                
                 // Lấy thông tin các món ăn
                 for (OrderItem item : items) {
                     if (!menuItemMap.containsKey(item.getItemID())) {
@@ -81,26 +78,14 @@ public class OrderHistoryController extends HttpServlet {
                     }
                 }
             }
-
-            // Kiểm tra đơn hàng nào đã được đánh giá
-            ReviewDAO reviewDAO = new ReviewDAO();
-            Set<Integer> reviewedOrders = new HashSet<>();
-            for (Order order : orders) {
-                if ("Completed".equals(order.getOrderStatus())) {
-                    if (reviewDAO.hasOrderBeenReviewed(order.getOrderID())) {
-                        reviewedOrders.add(order.getOrderID());
-                    }
-                }
-            }
-
+            
             request.setAttribute("orders", orders);
             request.setAttribute("orderItemsMap", orderItemsMap);
             request.setAttribute("restaurantMap", restaurantMap);
             request.setAttribute("menuItemMap", menuItemMap);
-            request.setAttribute("reviewedOrders", reviewedOrders);
-
+            
             request.getRequestDispatcher("views/order-history.jsp").forward(request, response);
-
+            
         } catch (Exception e) {
             e.printStackTrace();
             session.setAttribute("error", "Có lỗi xảy ra khi tải lịch sử đơn hàng!");
