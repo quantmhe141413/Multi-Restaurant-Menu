@@ -39,7 +39,7 @@ public class UserDAO extends DBContext {
      */
     public Integer getRestaurantIdByUserId(int userId) {
         String sql = "SELECT TOP 1 RestaurantID FROM RestaurantUsers " +
-                     "WHERE UserID = ? AND IsActive = 1";
+                "WHERE UserID = ? AND IsActive = 1";
         try {
             PreparedStatement st = connection.prepareStatement(sql);
             st.setInt(1, userId);
@@ -123,6 +123,21 @@ public class UserDAO extends DBContext {
             PreparedStatement st = connection.prepareStatement(sql);
             st.setString(1, newPassword);
             st.setString(2, token);
+            int rowsAffected = st.executeUpdate();
+            return rowsAffected > 0;
+        } catch (SQLException ex) {
+            Logger.getLogger(UserDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return false;
+    }
+
+    // Update password for a user by userId (used for change-password flow)
+    public boolean updatePassword(int userId, String newPasswordHash) {
+        String sql = "UPDATE Users SET PasswordHash = ? WHERE UserID = ?";
+        try {
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setString(1, newPasswordHash);
+            st.setInt(2, userId);
             int rowsAffected = st.executeUpdate();
             return rowsAffected > 0;
         } catch (SQLException ex) {
