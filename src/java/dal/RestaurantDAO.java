@@ -38,12 +38,12 @@ public class RestaurantDAO extends DBContext {
         }
 
         // Note: Cuisine column does not exist in the database schema
-        // Removed cuisine filter as the Restaurants table does not have a Cuisine column
+        // Removed cuisine filter as the Restaurants table does not have a Cuisine
+        // column
         // if (cuisine != null && !cuisine.trim().isEmpty()) {
-        //     sql.append(" AND r.Cuisine = ?");
-        //     params.add(cuisine.trim());
+        // sql.append(" AND r.Cuisine = ?");
+        // params.add(cuisine.trim());
         // }
-
         sql.append(" ORDER BY r.Name");
         try {
             PreparedStatement st = connection.prepareStatement(sql.toString());
@@ -79,22 +79,22 @@ public class RestaurantDAO extends DBContext {
         // Note: The Cuisine column does not exist in the Restaurants table schema
         // Returning empty list until the column is added to the database
         List<String> cuisines = new ArrayList<>();
-        
+
         // Original query commented out as Cuisine column doesn't exist:
-        // String sql = "SELECT DISTINCT Cuisine FROM Restaurants WHERE Status = 'Approved' AND Cuisine IS NOT NULL ORDER BY Cuisine";
+        // String sql = "SELECT DISTINCT Cuisine FROM Restaurants WHERE Status =
+        // 'Approved' AND Cuisine IS NOT NULL ORDER BY Cuisine";
         // try {
-        //     PreparedStatement st = connection.prepareStatement(sql);
-        //     ResultSet rs = st.executeQuery();
-        //     while (rs.next()) {
-        //         String cuisine = rs.getString("Cuisine");
-        //         if (cuisine != null && !cuisine.trim().isEmpty()) {
-        //             cuisines.add(cuisine);
-        //         }
-        //     }
-        // } catch (SQLException ex) {
-        //     Logger.getLogger(RestaurantDAO.class.getName()).log(Level.SEVERE, null, ex);
+        // PreparedStatement st = connection.prepareStatement(sql);
+        // ResultSet rs = st.executeQuery();
+        // while (rs.next()) {
+        // String cuisine = rs.getString("Cuisine");
+        // if (cuisine != null && !cuisine.trim().isEmpty()) {
+        // cuisines.add(cuisine);
         // }
-        
+        // }
+        // } catch (SQLException ex) {
+        // Logger.getLogger(RestaurantDAO.class.getName()).log(Level.SEVERE, null, ex);
+        // }
         return cuisines;
     }
 
@@ -128,6 +128,92 @@ public class RestaurantDAO extends DBContext {
         return null;
     }
 
+    // --- Restaurant Tables Management ---
+    public java.util.List<models.RestaurantTable> getTablesByRestaurant(int restaurantId) {
+        java.util.List<models.RestaurantTable> list = new java.util.ArrayList<>();
+        String sql = "SELECT * FROM RestaurantTables WHERE RestaurantID = ? ORDER BY TableNumber";
+        try {
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setInt(1, restaurantId);
+            ResultSet rs = st.executeQuery();
+            while (rs.next()) {
+                models.RestaurantTable t = new models.RestaurantTable();
+                t.setTableID(rs.getInt("TableID"));
+                t.setRestaurantID(rs.getInt("RestaurantID"));
+                t.setTableNumber(rs.getString("TableNumber"));
+                t.setCapacity(rs.getInt("Capacity"));
+                t.setTableStatus(rs.getString("TableStatus"));
+                try {
+                    t.setCreatedAt(rs.getTimestamp("CreatedAt"));
+                } catch (Exception ignored) {
+                }
+                list.add(t);
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(RestaurantDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return list;
+    }
+
+    public boolean insertRestaurantTable(models.RestaurantTable table) {
+        String sql = "INSERT INTO RestaurantTables (RestaurantID, TableNumber, Capacity, TableStatus, IsActive) VALUES (?, ?, ?, ?, 1)";
+        try {
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setInt(1, table.getRestaurantID());
+            st.setString(2, table.getTableNumber());
+            st.setInt(3, table.getCapacity());
+            st.setString(4, table.getTableStatus());
+            return st.executeUpdate() > 0;
+        } catch (SQLException ex) {
+            Logger.getLogger(RestaurantDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return false;
+    }
+
+    public boolean updateRestaurantTable(models.RestaurantTable table) {
+        String sql = "UPDATE RestaurantTables SET TableNumber = ?, Capacity = ?, TableStatus = ?, IsActive = ? WHERE TableID = ?";
+        try {
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setString(1, table.getTableNumber());
+            st.setInt(2, table.getCapacity());
+            st.setString(3, table.getTableStatus());
+            st.setBoolean(4, true);
+            st.setInt(5, table.getTableID());
+            return st.executeUpdate() > 0;
+        } catch (SQLException ex) {
+            Logger.getLogger(RestaurantDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return false;
+    }
+
+    public boolean setTableActive(int tableId, boolean active) {
+        String sql = "UPDATE RestaurantTables SET IsActive = ? WHERE TableID = ?";
+        try {
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setBoolean(1, active);
+            st.setInt(2, tableId);
+            return st.executeUpdate() > 0;
+        } catch (SQLException ex) {
+            Logger.getLogger(RestaurantDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return false;
+    }
+
+    public void insertRestaurant(models.Restaurant restaurant) {
+        String sql = "INSERT INTO Restaurants (owner_id, name, address, phone, description) VALUES (?, ?, ?, ?, ?)";
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setInt(1, restaurant.getOwnerId());
+            ps.setString(2, restaurant.getName());
+            ps.setString(3, restaurant.getAddress());
+            ps.setString(4, restaurant.getPhone());
+            ps.setString(5, restaurant.getDescription());
+            ps.executeUpdate();
+        } catch (java.sql.SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
     private Restaurant mapRestaurant(ResultSet rs) throws SQLException {
         Restaurant r = new Restaurant();
         r.setRestaurantId(rs.getInt("RestaurantID"));
@@ -142,8 +228,43 @@ public class RestaurantDAO extends DBContext {
         r.setCommissionRate(rs.getDouble("CommissionRate"));
         r.setStatus(rs.getString("Status"));
         r.setCreatedAt(rs.getDate("CreatedAt"));
+        try {
+            r.setPhone(rs.getString("Phone"));
+        } catch (Exception ignored) {
+        }
+        try {
+            r.setDescription(rs.getString("Description"));
+        } catch (Exception ignored) {
+        }
+        try {
+            r.setLicenseFileUrl(rs.getString("LicenseFileUrl"));
+        } catch (Exception ignored) {
+        }
 
         return r;
+    }
+
+    public void updateLicenseFile(int restaurantId, String licenseFileUrl) {
+        String sql = "UPDATE Restaurants SET LicenseFileUrl = ? WHERE RestaurantID = ?";
+        try (java.sql.PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, licenseFileUrl);
+            ps.setInt(2, restaurantId);
+            ps.executeUpdate();
+        } catch (java.sql.SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void updateLogoAndTheme(int restaurantId, String logoUrl, String themeColor) {
+        String sql = "UPDATE Restaurants SET LogoUrl = ?, ThemeColor = ? WHERE RestaurantID = ?";
+        try (java.sql.PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, logoUrl);
+            ps.setString(2, themeColor);
+            ps.setInt(3, restaurantId);
+            ps.executeUpdate();
+        } catch (java.sql.SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     public static void main(String[] args) {
