@@ -19,6 +19,10 @@ public class Restaurant {
     private Double averageRating;
     private int reviewCount;
 
+    private String phone;
+    private String description;
+    private String licenseFileUrl;
+
     public Restaurant() {
     }
 
@@ -37,6 +41,30 @@ public class Restaurant {
         this.commissionRate = commissionRate;
         this.status = status;
         this.createdAt = createdAt;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getLicenseFileUrl() {
+        return licenseFileUrl;
+    }
+
+    public void setLicenseFileUrl(String licenseFileUrl) {
+        this.licenseFileUrl = licenseFileUrl;
     }
 
     public Integer getRestaurantId() {
