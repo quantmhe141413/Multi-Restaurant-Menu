@@ -110,6 +110,15 @@
             </a>
         </li>
         </c:if>
+        <c:if test="${sessionScope.user.roleID == 2}">
+        <li class="nav-item">
+            <a class="nav-link ${pageContext.request.requestURI.contains('owner/order-history') ? 'active' : ''}"
+               href="${pageContext.request.contextPath}/owner/order-history">
+                <i class="fas fa-history"></i>
+                Order History
+            </a>
+        </li>
+        </c:if>
         <li class="nav-item">
             <a class="nav-link ${pageContext.request.requestURI.contains('business-hours') ? 'active' : ''}"
                href="${pageContext.request.contextPath}/business-hours?action=list">

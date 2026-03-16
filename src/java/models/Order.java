@@ -20,6 +20,7 @@ public class Order {
     private Timestamp paidAt;
     private Timestamp createdAt;
     private String customerName;
+    private String restaurantName; // For display purposes
 
     public Order() {
     }
@@ -158,5 +159,13 @@ public class Order {
 
     public void setCustomerName(String customerName) {
         this.customerName = customerName;
+    }
+
+    public String getRestaurantName() {
+        return restaurantName;
+    }
+
+    public void setRestaurantName(String restaurantName) {
+        this.restaurantName = restaurantName;
     }
 }

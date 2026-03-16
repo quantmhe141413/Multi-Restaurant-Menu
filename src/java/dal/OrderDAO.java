@@ -5,7 +5,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import models.Order;
@@ -352,6 +354,167 @@ public class OrderDAO extends DBContext {
             Logger.getLogger(OrderDAO.class.getName()).log(Level.SEVERE, null, ex);
             return false;
         }
+    }
+
+    /**
+     * Get orders with filters for owner (date range, status).
+     * If restaurantId is null, returns orders from ALL restaurants.
+     */
+    public List<Order> getOrdersWithFilters(Integer restaurantId, String fromDate, String toDate, 
+                                            String status, int page, int pageSize) {
+        List<Order> list = new ArrayList<>();
+        StringBuilder sql = new StringBuilder();
+        sql.append("SELECT o.*, u.FullName AS CustomerName, r.Name AS RestaurantName ")
+           .append("FROM Orders o ")
+           .append("JOIN Users u ON o.CustomerID = u.UserID ")
+           .append("JOIN Restaurants r ON o.RestaurantID = r.RestaurantID ")
+           .append("WHERE 1=1 ");
+        
+        if (restaurantId != null) {
+            sql.append("AND o.RestaurantID = ? ");
+        }
+        if (fromDate != null && !fromDate.trim().isEmpty()) {
+            sql.append("AND CAST(o.CreatedAt AS DATE) >= ? ");
+        }
+        if (toDate != null && !toDate.trim().isEmpty()) {
+            sql.append("AND CAST(o.CreatedAt AS DATE) <= ? ");
+        }
+        if (status != null && !status.trim().isEmpty() && !status.equals("All")) {
+            sql.append("AND o.OrderStatus = ? ");
+        }
+        
+        sql.append("ORDER BY o.CreatedAt DESC ")
+           .append("OFFSET ? ROWS FETCH NEXT ? ROWS ONLY");
+        
+        try {
+            PreparedStatement st = connection.prepareStatement(sql.toString());
+            int idx = 1;
+            if (restaurantId != null) {
+                st.setInt(idx++, restaurantId);
+            }
+            if (fromDate != null && !fromDate.trim().isEmpty()) {
+                st.setString(idx++, fromDate);
+            }
+            if (toDate != null && !toDate.trim().isEmpty()) {
+                st.setString(idx++, toDate);
+            }
+            if (status != null && !status.trim().isEmpty() && !status.equals("All")) {
+                st.setString(idx++, status);
+            }
+            st.setInt(idx++, (page - 1) * pageSize);
+            st.setInt(idx++, pageSize);
+            
+            ResultSet rs = st.executeQuery();
+            while (rs.next()) {
+                Order order = mapOrder(rs);
+                order.setCustomerName(rs.getString("CustomerName"));
+                order.setRestaurantName(rs.getString("RestaurantName"));
+                list.add(order);
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(OrderDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return list;
+    }
+
+    /**
+     * Count orders with filters.
+     * If restaurantId is null, counts orders from ALL restaurants.
+     */
+    public int countOrdersWithFilters(Integer restaurantId, String fromDate, String toDate, String status) {
+        StringBuilder sql = new StringBuilder();
+        sql.append("SELECT COUNT(*) FROM Orders WHERE 1=1 ");
+        
+        if (restaurantId != null) {
+            sql.append("AND RestaurantID = ? ");
+        }
+        if (fromDate != null && !fromDate.trim().isEmpty()) {
+            sql.append("AND CAST(CreatedAt AS DATE) >= ? ");
+        }
+        if (toDate != null && !toDate.trim().isEmpty()) {
+            sql.append("AND CAST(CreatedAt AS DATE) <= ? ");
+        }
+        if (status != null && !status.trim().isEmpty() && !status.equals("All")) {
+            sql.append("AND OrderStatus = ? ");
+        }
+        
+        try {
+            PreparedStatement st = connection.prepareStatement(sql.toString());
+            int idx = 1;
+            if (restaurantId != null) {
+                st.setInt(idx++, restaurantId);
+            }
+            if (fromDate != null && !fromDate.trim().isEmpty()) {
+                st.setString(idx++, fromDate);
+            }
+            if (toDate != null && !toDate.trim().isEmpty()) {
+                st.setString(idx++, toDate);
+            }
+            if (status != null && !status.trim().isEmpty() && !status.equals("All")) {
+                st.setString(idx++, status);
+            }
+            
+            ResultSet rs = st.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(OrderDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return 0;
+    }
+
+    /**
+     * Get revenue statistics for a date range.
+     * If restaurantId is null, calculates stats for ALL restaurants.
+     */
+    public Map<String, Object> getRevenueStatistics(Integer restaurantId, String fromDate, String toDate) {
+        Map<String, Object> stats = new HashMap<>();
+        StringBuilder sql = new StringBuilder();
+        sql.append("SELECT ")
+           .append("COUNT(*) AS TotalOrders, ")
+           .append("SUM(CASE WHEN OrderStatus = 'Completed' THEN 1 ELSE 0 END) AS CompletedOrders, ")
+           .append("SUM(CASE WHEN OrderStatus = 'Cancelled' THEN 1 ELSE 0 END) AS CancelledOrders, ")
+           .append("SUM(CASE WHEN OrderStatus = 'Completed' THEN FinalAmount ELSE 0 END) AS TotalRevenue, ")
+           .append("AVG(CASE WHEN OrderStatus = 'Completed' THEN FinalAmount ELSE NULL END) AS AvgOrderValue ")
+           .append("FROM Orders ")
+           .append("WHERE 1=1 ");
+        
+        if (restaurantId != null) {
+            sql.append("AND RestaurantID = ? ");
+        }
+        if (fromDate != null && !fromDate.trim().isEmpty()) {
+            sql.append("AND CAST(CreatedAt AS DATE) >= ? ");
+        }
+        if (toDate != null && !toDate.trim().isEmpty()) {
+            sql.append("AND CAST(CreatedAt AS DATE) <= ? ");
+        }
+        
+        try {
+            PreparedStatement st = connection.prepareStatement(sql.toString());
+            int idx = 1;
+            if (restaurantId != null) {
+                st.setInt(idx++, restaurantId);
+            }
+            if (fromDate != null && !fromDate.trim().isEmpty()) {
+                st.setString(idx++, fromDate);
+            }
+            if (toDate != null && !toDate.trim().isEmpty()) {
+                st.setString(idx++, toDate);
+            }
+            
+            ResultSet rs = st.executeQuery();
+            if (rs.next()) {
+                stats.put("totalOrders", rs.getInt("TotalOrders"));
+                stats.put("completedOrders", rs.getInt("CompletedOrders"));
+                stats.put("cancelledOrders", rs.getInt("CancelledOrders"));
+                stats.put("totalRevenue", rs.getDouble("TotalRevenue"));
+                stats.put("avgOrderValue", rs.getDouble("AvgOrderValue"));
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(OrderDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return stats;
     }
 
     /**

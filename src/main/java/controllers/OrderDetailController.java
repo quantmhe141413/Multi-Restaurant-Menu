@@ -32,19 +32,24 @@ public class OrderDetailController extends HttpServlet {
             return;
         }
 
-        if (user.getRoleID() != 3) {
+        // Allow both Staff (roleID = 3) and Owner (roleID = 2) to view order details
+        if (user.getRoleID() != 2 && user.getRoleID() != 3) {
             session.setAttribute("toastMessage", "You don't have permission to view order details");
             session.setAttribute("toastType", "error");
             response.sendRedirect(request.getContextPath() + "/home");
             return;
         }
 
-        Integer restaurantId = (Integer) session.getAttribute("restaurantId");
-        if (restaurantId == null) {
-            session.setAttribute("toastMessage", "You must be assigned to a restaurant");
-            session.setAttribute("toastType", "error");
-            response.sendRedirect(request.getContextPath() + "/home");
-            return;
+        // Staff must be assigned to a restaurant
+        Integer restaurantId = null;
+        if (user.getRoleID() == 3) {
+            restaurantId = (Integer) session.getAttribute("restaurantId");
+            if (restaurantId == null) {
+                session.setAttribute("toastMessage", "You must be assigned to a restaurant");
+                session.setAttribute("toastType", "error");
+                response.sendRedirect(request.getContextPath() + "/home");
+                return;
+            }
         }
 
         String orderIdStr = request.getParameter("id");
@@ -57,12 +62,37 @@ public class OrderDetailController extends HttpServlet {
             int orderId = Integer.parseInt(orderIdStr);
             OrderDAO orderDAO = new OrderDAO();
             
-            // Get order with security check
-            Order order = orderDAO.getOrderDetailForRestaurant(orderId, restaurantId);
+            // Get order with security check (for Staff only - owners can view all orders)
+            Order order;
+            if (user.getRoleID() == 3 && restaurantId != null) {
+                // Staff: only their restaurant's orders
+                order = orderDAO.getOrderDetailForRestaurant(orderId, restaurantId);
+            } else {
+                // Owner: can view any order (no restaurant restriction)
+                order = orderDAO.getOrderById(orderId);
+                if (order != null) {
+                    // Load customer name for display
+                    OrderDAO dao = new OrderDAO();
+                    List<Order> tempList = dao.getOrdersWithFilters(null, null, null, null, 1, 999);
+                    for (Order o : tempList) {
+                        if (o.getOrderID() == orderId) {
+                            order.setCustomerName(o.getCustomerName());
+                            break;
+                        }
+                    }
+                }
+            }
+            
             if (order == null) {
                 session.setAttribute("toastMessage", "Order not found or access denied");
                 session.setAttribute("toastType", "error");
-                response.sendRedirect(request.getContextPath() + "/order-management");
+                
+                // Redirect based on role
+                if (user.getRoleID() == 3) {
+                    response.sendRedirect(request.getContextPath() + "/order-management");
+                } else {
+                    response.sendRedirect(request.getContextPath() + "/owner/order-history");
+                }
                 return;
             }
 
