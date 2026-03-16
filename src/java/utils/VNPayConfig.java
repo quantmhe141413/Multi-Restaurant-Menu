@@ -1,4 +1,4 @@
-package util;
+package utils;
 
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.UnsupportedEncodingException;

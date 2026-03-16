@@ -9,7 +9,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import models.Order;
 import models.User;
-import util.VNPayConfig;
+import utils.VNPayConfig;
 
 import java.io.IOException;
 import java.net.URLEncoder;
