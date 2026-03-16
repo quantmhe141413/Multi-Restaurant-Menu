@@ -168,7 +168,7 @@
                         transition: border-color 0.3s;
                     }
 
-                    .form-check:has(input:checked) {
+                    .form-check.selected {
                         border-color: #ff4757;
                         background-color: #fff5f5;
                     }
@@ -637,12 +637,24 @@
                             });
                     });
 
-                    // Update hidden input when payment method changes
-                    document.querySelectorAll('input[name="paymentMethodRadio"]').forEach(function (radio) {
-                        radio.addEventListener('change', function () {
-                            document.getElementById('selectedPaymentMethod').value = this.value;
+                    // Update hidden input and highlight selected payment method
+                    function updatePaymentSelection() {
+                        document.querySelectorAll('input[name="paymentMethodRadio"]').forEach(function (radio) {
+                            var formCheck = radio.closest('.form-check');
+                            if (radio.checked) {
+                                formCheck.classList.add('selected');
+                                document.getElementById('selectedPaymentMethod').value = radio.value;
+                            } else {
+                                formCheck.classList.remove('selected');
+                            }
                         });
+                    }
+
+                    document.querySelectorAll('input[name="paymentMethodRadio"]').forEach(function (radio) {
+                        radio.addEventListener('change', updatePaymentSelection);
                     });
+
+                    updatePaymentSelection();
 
                     // Handle checkout form submission with confirm modal
                     document.getElementById('checkoutForm').addEventListener('submit', function (e) {
