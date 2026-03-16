@@ -311,6 +311,51 @@ public class OrderDAO extends DBContext {
     }
 
     /**
+     * Get order with full details including customer info and delivery address.
+     * Returns null if order doesn't belong to the restaurant.
+     */
+    public Order getOrderDetailForRestaurant(int orderId, int restaurantId) {
+        String sql = "SELECT o.*, u.FullName AS CustomerName, u.Phone AS CustomerPhone, u.Email AS CustomerEmail, "
+                + "di.Address AS DeliveryAddress "
+                + "FROM Orders o "
+                + "JOIN Users u ON o.CustomerID = u.UserID "
+                + "LEFT JOIN DeliveryInfo di ON o.OrderID = di.OrderID "
+                + "WHERE o.OrderID = ? AND o.RestaurantID = ?";
+        try {
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setInt(1, orderId);
+            st.setInt(2, restaurantId);
+            ResultSet rs = st.executeQuery();
+            
+            if (rs.next()) {
+                Order order = mapOrder(rs);
+                order.setCustomerName(rs.getString("CustomerName"));
+                return order;
+            }
+        } catch (SQLException ex) {
+            System.out.println("DEBUG: SQL Error - " + ex.getMessage());
+            Logger.getLogger(OrderDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return null;
+    }
+
+    /**
+     * Update order status.
+     */
+    public boolean updateOrderStatus(int orderId, String newStatus) {
+        String sql = "UPDATE Orders SET OrderStatus = ? WHERE OrderID = ?";
+        try {
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setString(1, newStatus);
+            st.setInt(2, orderId);
+            return st.executeUpdate() > 0;
+        } catch (SQLException ex) {
+            Logger.getLogger(OrderDAO.class.getName()).log(Level.SEVERE, null, ex);
+            return false;
+        }
+    }
+
+    /**
      * Get the latest OrderID for a restaurant.
      * Returns 0 if the restaurant has no orders yet.
      */
