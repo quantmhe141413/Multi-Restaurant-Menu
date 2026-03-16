@@ -51,13 +51,14 @@
                                     <th>Status</th>
                                     <th>Payment</th>
                                     <th class="text-end">Amount</th>
+                                    <th class="text-center">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <c:choose>
                                     <c:when test="${empty orders}">
                                         <tr>
-                                            <td colspan="7" class="text-center py-5">
+                                            <td colspan="8" class="text-center py-5">
                                                 <i class="fas fa-inbox fa-3x text-muted mb-3 d-block"></i>
                                                 <p class="text-muted mb-0">No orders yet</p>
                                             </td>
@@ -136,6 +137,12 @@
                                                     <strong style="color: #10b981;">
                                                         $<fmt:formatNumber value="${order.finalAmount}" pattern="#,##0.00" />
                                                     </strong>
+                                                </td>
+                                                <td class="text-center">
+                                                    <a href="${pageContext.request.contextPath}/order-detail?id=${order.orderID}" 
+                                                       class="btn btn-sm btn-primary" title="View Details">
+                                                        <i class="fas fa-eye"></i>
+                                                    </a>
                                                 </td>
                                             </tr>
                                         </c:forEach>
