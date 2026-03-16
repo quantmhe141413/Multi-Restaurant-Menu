@@ -101,6 +101,15 @@
                 <i class="fas fa-cog"></i> Operations
             </div>
         </li>
+        <c:if test="${sessionScope.user.roleID == 3}">
+        <li class="nav-item">
+            <a class="nav-link ${pageContext.request.requestURI.contains('order-management') ? 'active' : ''}"
+               href="${pageContext.request.contextPath}/order-management">
+                <i class="fas fa-clipboard-list"></i>
+                Orders
+            </a>
+        </li>
+        </c:if>
         <li class="nav-item">
             <a class="nav-link ${pageContext.request.requestURI.contains('business-hours') ? 'active' : ''}"
                href="${pageContext.request.contextPath}/business-hours?action=list">

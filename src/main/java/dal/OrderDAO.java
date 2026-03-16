@@ -264,6 +264,53 @@ public class OrderDAO extends DBContext {
     }
 
     /**
+     * Get all orders for a restaurant, newest first, with customer name.
+     * Supports pagination.
+     */
+    public List<Order> getOrdersByRestaurant(int restaurantId, int page, int pageSize) {
+        List<Order> list = new ArrayList<>();
+        String sql = "SELECT o.*, u.FullName AS CustomerName "
+                + "FROM Orders o "
+                + "JOIN Users u ON o.CustomerID = u.UserID "
+                + "WHERE o.RestaurantID = ? "
+                + "ORDER BY o.CreatedAt DESC "
+                + "OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+        try {
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setInt(1, restaurantId);
+            st.setInt(2, (page - 1) * pageSize);
+            st.setInt(3, pageSize);
+            ResultSet rs = st.executeQuery();
+            while (rs.next()) {
+                Order order = mapOrder(rs);
+                order.setCustomerName(rs.getString("CustomerName"));
+                list.add(order);
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(OrderDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return list;
+    }
+
+    /**
+     * Count total orders for a restaurant (for pagination).
+     */
+    public int countOrdersByRestaurant(int restaurantId) {
+        String sql = "SELECT COUNT(*) FROM Orders WHERE RestaurantID = ?";
+        try {
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setInt(1, restaurantId);
+            ResultSet rs = st.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(OrderDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return 0;
+    }
+
+    /**
      * Get the latest OrderID for a restaurant.
      * Returns 0 if the restaurant has no orders yet.
      */

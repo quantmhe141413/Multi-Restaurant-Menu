@@ -19,6 +19,7 @@ public class Order {
     private String paymentStatus;
     private Timestamp paidAt;
     private Timestamp createdAt;
+    private String customerName;
 
     public Order() {
     }
@@ -149,5 +150,13 @@ public class Order {
 
     public void setPaidAt(Timestamp paidAt) {
         this.paidAt = paidAt;
+    }
+
+    public String getCustomerName() {
+        return customerName;
+    }
+
+    public void setCustomerName(String customerName) {
+        this.customerName = customerName;
     }
 }
