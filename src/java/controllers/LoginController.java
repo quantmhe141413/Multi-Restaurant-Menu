@@ -19,7 +19,12 @@ public class LoginController extends HttpServlet {
             throws ServletException, IOException {
         HttpSession session = request.getSession(false);
         if (session != null && session.getAttribute("user") != null) {
-            response.sendRedirect("home");
+            User user = (User) session.getAttribute("user");
+            if (user.getRoleID() == 1) { // SuperAdmin
+                response.sendRedirect(request.getContextPath() + "/admin/dashboard");
+            } else {
+                response.sendRedirect("home");
+            }
             return;
         }
         request.getRequestDispatcher("views/login.jsp").forward(request, response);
@@ -39,7 +44,8 @@ public class LoginController extends HttpServlet {
             session.setAttribute("user", u);
 
             // Owner (RoleID=2) and Staff (RoleID=3) may belong to multiple restaurants.
-            // Store the full list so invoice/order queries can filter by all assigned restaurants.
+            // Store the full list so invoice/order queries can filter by all assigned
+            // restaurants.
             if (u.getRoleID() == 2 || u.getRoleID() == 3) {
                 List<Integer> restaurantIds = udao.getRestaurantIdsByUserId(u.getUserID());
                 if (!restaurantIds.isEmpty()) {
@@ -49,7 +55,12 @@ public class LoginController extends HttpServlet {
                 }
             }
 
-            response.sendRedirect("home");
+            // Redirect based on role
+            if (u.getRoleID() == 1) { // SuperAdmin
+                response.sendRedirect(request.getContextPath() + "/admin/dashboard");
+            } else {
+                response.sendRedirect("home");
+            }
         } else {
             request.setAttribute("error", "Invalid email or password!");
             request.getRequestDispatcher("views/login.jsp").forward(request, response);
