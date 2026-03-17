@@ -1,5 +1,13 @@
+<%@ page contentType="text/html" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <c:set var="pageTitle" value="Complaint Detail" scope="request" />
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <jsp:include page="/views/includes/std_head.jsp" />
+    <title>${pageTitle}</title>
+</head>
+<body>
 <jsp:include page="/views/includes/header.jsp" />
 
 <div class="container-fluid">
@@ -101,3 +109,6 @@
 </div>
 
 <jsp:include page="/views/includes/footer.jsp" />
+<jsp:include page="/views/includes/std_scripts.jsp" />
+</body>
+</html>

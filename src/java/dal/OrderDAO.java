@@ -267,6 +267,7 @@ public class OrderDAO extends DBContext {
 
     /**
      * Get all orders for a restaurant, newest first, with customer name.
+     * Supports pagination.
      */
     public List<Order> getOrdersByRestaurant(int restaurantId, int page, int pageSize) {
         List<Order> list = new ArrayList<>();
@@ -309,51 +310,6 @@ public class OrderDAO extends DBContext {
             Logger.getLogger(OrderDAO.class.getName()).log(Level.SEVERE, null, ex);
         }
         return 0;
-    }
-
-    /**
-     * Get order with full details including customer info and delivery address.
-     * Returns null if order doesn't belong to the restaurant.
-     */
-    public Order getOrderDetailForRestaurant(int orderId, int restaurantId) {
-        String sql = "SELECT o.*, u.FullName AS CustomerName, u.Phone AS CustomerPhone, u.Email AS CustomerEmail, "
-                + "di.Address AS DeliveryAddress "
-                + "FROM Orders o "
-                + "JOIN Users u ON o.CustomerID = u.UserID "
-                + "LEFT JOIN DeliveryInfo di ON o.OrderID = di.OrderID "
-                + "WHERE o.OrderID = ? AND o.RestaurantID = ?";
-        try {
-            PreparedStatement st = connection.prepareStatement(sql);
-            st.setInt(1, orderId);
-            st.setInt(2, restaurantId);
-            ResultSet rs = st.executeQuery();
-            
-            if (rs.next()) {
-                Order order = mapOrder(rs);
-                order.setCustomerName(rs.getString("CustomerName"));
-                return order;
-            }
-        } catch (SQLException ex) {
-            System.out.println("DEBUG: SQL Error - " + ex.getMessage());
-            Logger.getLogger(OrderDAO.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        return null;
-    }
-
-    /**
-     * Update order status.
-     */
-    public boolean updateOrderStatus(int orderId, String newStatus) {
-        String sql = "UPDATE Orders SET OrderStatus = ? WHERE OrderID = ?";
-        try {
-            PreparedStatement st = connection.prepareStatement(sql);
-            st.setString(1, newStatus);
-            st.setInt(2, orderId);
-            return st.executeUpdate() > 0;
-        } catch (SQLException ex) {
-            Logger.getLogger(OrderDAO.class.getName()).log(Level.SEVERE, null, ex);
-            return false;
-        }
     }
 
     /**
@@ -496,6 +452,192 @@ public class OrderDAO extends DBContext {
             if (restaurantId != null) {
                 st.setInt(idx++, restaurantId);
             }
+            if (fromDate != null && !fromDate.trim().isEmpty()) {
+                st.setString(idx++, fromDate);
+            }
+            if (toDate != null && !toDate.trim().isEmpty()) {
+                st.setString(idx++, toDate);
+            }
+            
+            ResultSet rs = st.executeQuery();
+            if (rs.next()) {
+                stats.put("totalOrders", rs.getInt("TotalOrders"));
+                stats.put("completedOrders", rs.getInt("CompletedOrders"));
+                stats.put("cancelledOrders", rs.getInt("CancelledOrders"));
+                stats.put("totalRevenue", rs.getDouble("TotalRevenue"));
+                stats.put("avgOrderValue", rs.getDouble("AvgOrderValue"));
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(OrderDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return stats;
+    }
+
+    /**
+     * Get order with full details including customer info and delivery address.
+     * Returns null if order doesn't belong to the restaurant.
+     */
+    public Order getOrderDetailForRestaurant(int orderId, int restaurantId) {
+        String sql = "SELECT o.*, u.FullName AS CustomerName, u.Phone AS CustomerPhone, u.Email AS CustomerEmail, "
+                + "di.Address AS DeliveryAddress "
+                + "FROM Orders o "
+                + "JOIN Users u ON o.CustomerID = u.UserID "
+                + "LEFT JOIN DeliveryInfo di ON o.OrderID = di.OrderID "
+                + "WHERE o.OrderID = ? AND o.RestaurantID = ?";
+        try {
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setInt(1, orderId);
+            st.setInt(2, restaurantId);
+            ResultSet rs = st.executeQuery();
+            
+            if (rs.next()) {
+                Order order = mapOrder(rs);
+                order.setCustomerName(rs.getString("CustomerName"));
+                return order;
+            }
+        } catch (SQLException ex) {
+            System.out.println("DEBUG: SQL Error - " + ex.getMessage());
+            Logger.getLogger(OrderDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return null;
+    }
+
+    /**
+     * Update order status.
+     */
+    public boolean updateOrderStatus(int orderId, String newStatus) {
+        String sql = "UPDATE Orders SET OrderStatus = ? WHERE OrderID = ?";
+        try {
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setString(1, newStatus);
+            st.setInt(2, orderId);
+            return st.executeUpdate() > 0;
+        } catch (SQLException ex) {
+            Logger.getLogger(OrderDAO.class.getName()).log(Level.SEVERE, null, ex);
+            return false;
+        }
+    }
+
+    /**
+     * Get orders with filters for owner (date range, status).
+     */
+    public List<Order> getOrdersWithFilters(int restaurantId, String fromDate, String toDate, 
+                                            String status, int page, int pageSize) {
+        List<Order> list = new ArrayList<>();
+        StringBuilder sql = new StringBuilder();
+        sql.append("SELECT o.*, u.FullName AS CustomerName ")
+           .append("FROM Orders o ")
+           .append("JOIN Users u ON o.CustomerID = u.UserID ")
+           .append("WHERE o.RestaurantID = ? ");
+        
+        if (fromDate != null && !fromDate.trim().isEmpty()) {
+            sql.append("AND CAST(o.CreatedAt AS DATE) >= ? ");
+        }
+        if (toDate != null && !toDate.trim().isEmpty()) {
+            sql.append("AND CAST(o.CreatedAt AS DATE) <= ? ");
+        }
+        if (status != null && !status.trim().isEmpty() && !status.equals("All")) {
+            sql.append("AND o.OrderStatus = ? ");
+        }
+        
+        sql.append("ORDER BY o.CreatedAt DESC ")
+           .append("OFFSET ? ROWS FETCH NEXT ? ROWS ONLY");
+        
+        try {
+            PreparedStatement st = connection.prepareStatement(sql.toString());
+            int idx = 1;
+            st.setInt(idx++, restaurantId);
+            if (fromDate != null && !fromDate.trim().isEmpty()) {
+                st.setString(idx++, fromDate);
+            }
+            if (toDate != null && !toDate.trim().isEmpty()) {
+                st.setString(idx++, toDate);
+            }
+            if (status != null && !status.trim().isEmpty() && !status.equals("All")) {
+                st.setString(idx++, status);
+            }
+            st.setInt(idx++, (page - 1) * pageSize);
+            st.setInt(idx++, pageSize);
+            
+            ResultSet rs = st.executeQuery();
+            while (rs.next()) {
+                Order order = mapOrder(rs);
+                order.setCustomerName(rs.getString("CustomerName"));
+                list.add(order);
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(OrderDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return list;
+    }
+
+    /**
+     * Count orders with filters.
+     */
+    public int countOrdersWithFilters(int restaurantId, String fromDate, String toDate, String status) {
+        StringBuilder sql = new StringBuilder();
+        sql.append("SELECT COUNT(*) FROM Orders WHERE RestaurantID = ? ");
+        
+        if (fromDate != null && !fromDate.trim().isEmpty()) {
+            sql.append("AND CAST(CreatedAt AS DATE) >= ? ");
+        }
+        if (toDate != null && !toDate.trim().isEmpty()) {
+            sql.append("AND CAST(CreatedAt AS DATE) <= ? ");
+        }
+        if (status != null && !status.trim().isEmpty() && !status.equals("All")) {
+            sql.append("AND OrderStatus = ? ");
+        }
+        
+        try {
+            PreparedStatement st = connection.prepareStatement(sql.toString());
+            int idx = 1;
+            st.setInt(idx++, restaurantId);
+            if (fromDate != null && !fromDate.trim().isEmpty()) {
+                st.setString(idx++, fromDate);
+            }
+            if (toDate != null && !toDate.trim().isEmpty()) {
+                st.setString(idx++, toDate);
+            }
+            if (status != null && !status.trim().isEmpty() && !status.equals("All")) {
+                st.setString(idx++, status);
+            }
+            
+            ResultSet rs = st.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(OrderDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return 0;
+    }
+
+    /**
+     * Get revenue statistics for a date range.
+     */
+    public Map<String, Object> getRevenueStatistics(int restaurantId, String fromDate, String toDate) {
+        Map<String, Object> stats = new HashMap<>();
+        StringBuilder sql = new StringBuilder();
+        sql.append("SELECT ")
+           .append("COUNT(*) AS TotalOrders, ")
+           .append("SUM(CASE WHEN OrderStatus = 'Completed' THEN 1 ELSE 0 END) AS CompletedOrders, ")
+           .append("SUM(CASE WHEN OrderStatus = 'Cancelled' THEN 1 ELSE 0 END) AS CancelledOrders, ")
+           .append("SUM(CASE WHEN OrderStatus = 'Completed' THEN FinalAmount ELSE 0 END) AS TotalRevenue, ")
+           .append("AVG(CASE WHEN OrderStatus = 'Completed' THEN FinalAmount ELSE NULL END) AS AvgOrderValue ")
+           .append("FROM Orders ")
+           .append("WHERE RestaurantID = ? ");
+        
+        if (fromDate != null && !fromDate.trim().isEmpty()) {
+            sql.append("AND CAST(CreatedAt AS DATE) >= ? ");
+        }
+        if (toDate != null && !toDate.trim().isEmpty()) {
+            sql.append("AND CAST(CreatedAt AS DATE) <= ? ");
+        }
+        
+        try {
+            PreparedStatement st = connection.prepareStatement(sql.toString());
+            int idx = 1;
+            st.setInt(idx++, restaurantId);
             if (fromDate != null && !fromDate.trim().isEmpty()) {
                 st.setString(idx++, fromDate);
             }

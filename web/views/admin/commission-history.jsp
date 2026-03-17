@@ -1,5 +1,12 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <c:set var="pageTitle" value="Commission History" scope="request" />
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <jsp:include page="/views/includes/std_head.jsp" />
+    <title>${pageTitle}</title>
+</head>
+<body>
 <jsp:include page="/views/includes/header.jsp" />
 
 <div class="container-fluid">
@@ -124,3 +131,5 @@
 </div>
 
 <jsp:include page="/views/includes/footer.jsp" />
+</body>
+</html>

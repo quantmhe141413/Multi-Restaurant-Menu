@@ -5,6 +5,8 @@ import java.sql.Date;
 public class Restaurant {
     private Integer restaurantId;
     private Integer ownerId;
+    private String ownerName;
+    private String ownerEmail;
     private String name;
     private String address;
     private String licenseNumber;
@@ -51,6 +53,22 @@ public class Restaurant {
 
     public void setOwnerId(Integer ownerId) {
         this.ownerId = ownerId;
+    }
+
+    public String getOwnerName() {
+        return ownerName;
+    }
+
+    public void setOwnerName(String ownerName) {
+        this.ownerName = ownerName;
+    }
+
+    public String getOwnerEmail() {
+        return ownerEmail;
+    }
+
+    public void setOwnerEmail(String ownerEmail) {
+        this.ownerEmail = ownerEmail;
     }
 
     public String getName() {

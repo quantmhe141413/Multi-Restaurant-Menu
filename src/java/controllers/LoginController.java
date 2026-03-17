@@ -18,7 +18,12 @@ public class LoginController extends HttpServlet {
             throws ServletException, IOException {
         HttpSession session = request.getSession(false);
         if (session != null && session.getAttribute("user") != null) {
-            response.sendRedirect("home");
+            User user = (User) session.getAttribute("user");
+            if (user.getRoleID() == 1) { // SuperAdmin
+                response.sendRedirect(request.getContextPath() + "/admin/dashboard");
+            } else {
+                response.sendRedirect("home");
+            }
             return;
         }
         request.getRequestDispatcher("views/login.jsp").forward(request, response);
@@ -46,7 +51,12 @@ public class LoginController extends HttpServlet {
                 }
             }
             
-            response.sendRedirect("home");
+            // Redirect based on role
+            if (u.getRoleID() == 1) { // SuperAdmin
+                response.sendRedirect(request.getContextPath() + "/admin/dashboard");
+            } else {
+                response.sendRedirect("home");
+            }
         } else {
             request.setAttribute("error", "Invalid email or password!");
             request.getRequestDispatcher("views/login.jsp").forward(request, response);
