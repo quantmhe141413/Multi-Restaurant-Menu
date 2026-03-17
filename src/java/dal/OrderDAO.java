@@ -14,8 +14,8 @@ import models.OrderItem;
 public class OrderDAO extends DBContext {
 
     public int createOrder(Order order) {
-        String sql = "INSERT INTO Orders (RestaurantID, CustomerID, OrderType, TableID, OrderStatus, DiscountID, TotalAmount, DiscountAmount, DeliveryFee, FinalAmount, PaymentMethod, PaymentStatus, IsClosed, CreatedAt) "
-                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO Orders (RestaurantID, CustomerID, OrderType, TableID, OrderStatus, DiscountID, TotalAmount, DiscountAmount, FinalAmount, PaymentMethod, PaymentStatus, IsClosed, CreatedAt) "
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         
         try {
             PreparedStatement st = connection.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS);
@@ -35,12 +35,11 @@ public class OrderDAO extends DBContext {
             }
             st.setDouble(7, order.getTotalAmount());
             st.setDouble(8, order.getDiscountAmount());
-            st.setDouble(9, order.getDeliveryFee());
-            st.setDouble(10, order.getFinalAmount());
-            st.setString(11, order.getPaymentMethod());
-            st.setString(12, order.getPaymentStatus() != null ? order.getPaymentStatus() : "Pending");
-            st.setBoolean(13, false); // IsClosed = false khi mới tạo
-            st.setTimestamp(14, new Timestamp(System.currentTimeMillis()));
+            st.setDouble(9, order.getFinalAmount());
+            st.setString(10, order.getPaymentMethod());
+            st.setString(11, order.getPaymentStatus() != null ? order.getPaymentStatus() : "Pending");
+            st.setBoolean(12, false); // IsClosed = false khi mới tạo
+            st.setTimestamp(13, new Timestamp(System.currentTimeMillis()));
             
             int affectedRows = st.executeUpdate();
             
@@ -154,7 +153,6 @@ public class OrderDAO extends DBContext {
         }
         order.setTotalAmount(rs.getDouble("TotalAmount"));
         order.setDiscountAmount(rs.getDouble("DiscountAmount"));
-        order.setDeliveryFee(rs.getDouble("DeliveryFee"));
         order.setFinalAmount(rs.getDouble("FinalAmount"));
         order.setPaymentMethod(rs.getString("PaymentMethod"));
         order.setPaymentStatus(rs.getString("PaymentStatus"));
@@ -261,45 +259,5 @@ public class OrderDAO extends DBContext {
         }
         
         return -1;
-    }
-
-    /**
-     * Get the latest OrderID for a restaurant.
-     * Returns 0 if the restaurant has no orders yet.
-     */
-    public int getLatestOrderIdForRestaurant(int restaurantId) {
-        String sql = "SELECT ISNULL(MAX(OrderID), 0) AS LatestId FROM Orders WHERE RestaurantID = ?";
-        try {
-            PreparedStatement st = connection.prepareStatement(sql);
-            st.setInt(1, restaurantId);
-            ResultSet rs = st.executeQuery();
-            if (rs.next()) {
-                return rs.getInt("LatestId");
-            }
-        } catch (SQLException ex) {
-            Logger.getLogger(OrderDAO.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        return 0;
-    }
-
-    /**
-     * Count new orders created for a restaurant since the given lastOrderId.
-     * Only orders in 'Preparing' status are considered "new" for staff alerts.
-     */
-    public int countNewPreparingOrdersSince(int restaurantId, int lastOrderId) {
-        String sql = "SELECT COUNT(*) AS Cnt FROM Orders "
-                + "WHERE RestaurantID = ? AND OrderStatus = 'Preparing' AND OrderID > ?";
-        try {
-            PreparedStatement st = connection.prepareStatement(sql);
-            st.setInt(1, restaurantId);
-            st.setInt(2, lastOrderId);
-            ResultSet rs = st.executeQuery();
-            if (rs.next()) {
-                return rs.getInt("Cnt");
-            }
-        } catch (SQLException ex) {
-            Logger.getLogger(OrderDAO.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        return 0;
     }
 }
