@@ -13,7 +13,6 @@ public class Order {
     private String orderStatus;
     private double totalAmount;
     private double discountAmount;
-    private double deliveryFee;
     private double finalAmount;
     private String paymentMethod;
     private String paymentStatus;
@@ -101,14 +100,6 @@ public class Order {
 
     public void setDiscountAmount(double discountAmount) {
         this.discountAmount = discountAmount;
-    }
-
-    public double getDeliveryFee() {
-        return deliveryFee;
-    }
-
-    public void setDeliveryFee(double deliveryFee) {
-        this.deliveryFee = deliveryFee;
     }
 
     public double getFinalAmount() {

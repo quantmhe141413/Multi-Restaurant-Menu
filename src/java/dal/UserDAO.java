@@ -3,6 +3,8 @@ package dal;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import models.User;
@@ -34,13 +36,38 @@ public class UserDAO extends DBContext {
     }
 
     /**
-     * Get RestaurantID for a user (Owner/Staff)
-     * Returns null if user is SuperAdmin (RoleID = 1) or Customer (RoleID = 4)
+     * Get all RestaurantIDs assigned to a user (Owner/Staff can belong to multiple restaurants).
+     * Returns empty list for SuperAdmin (RoleID = 1) or Customer (RoleID = 4).
+     */
+    public List<Integer> getRestaurantIdsByUserId(int userId) {
+        List<Integer> ids = new ArrayList<>();
+        String sql = "SELECT RestaurantID FROM RestaurantUsers WHERE UserID = ? AND IsActive = 1 ORDER BY RestaurantID";
+        try {
+            connection = getConnection();
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setInt(1, userId);
+            ResultSet rs = st.executeQuery();
+            while (rs.next()) {
+                ids.add(rs.getInt("RestaurantID"));
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(UserDAO.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            closeResources();
+        }
+        return ids;
+    }
+
+    /**
+     * Get primary RestaurantID for a user - prefers 'Owner' role, falls back to first assigned.
+     * Returns null if user has no restaurant assignment.
      */
     public Integer getRestaurantIdByUserId(int userId) {
         String sql = "SELECT TOP 1 RestaurantID FROM RestaurantUsers " +
-                     "WHERE UserID = ? AND IsActive = 1";
+                     "WHERE UserID = ? AND IsActive = 1 " +
+                     "ORDER BY CASE WHEN RestaurantRole = 'Owner' THEN 0 ELSE 1 END, RestaurantID";
         try {
+            connection = getConnection();
             PreparedStatement st = connection.prepareStatement(sql);
             st.setInt(1, userId);
             ResultSet rs = st.executeQuery();
@@ -49,6 +76,8 @@ public class UserDAO extends DBContext {
             }
         } catch (SQLException ex) {
             Logger.getLogger(UserDAO.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            closeResources();
         }
         return null;
     }
