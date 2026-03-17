@@ -30,7 +30,7 @@ public class HomeController extends HttpServlet {
         for (Restaurant r : restaurants) {
             double[] data = ratingSummary.get(r.getRestaurantId());
             if (data != null) {
-                r.setAverageRating(data[0]);
+                r.setAverageRating(Double.valueOf(data[0]));
                 r.setReviewCount((int) data[1]);
             }
         }

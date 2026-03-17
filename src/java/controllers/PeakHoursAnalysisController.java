@@ -1,7 +1,6 @@
 package controllers;
 
-import dal.MenuDAO;
-import models.TopDish;
+import dal.OrderDAO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -9,10 +8,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
-import java.util.List;
+import java.util.Map;
 
-@WebServlet(name = "TopDishesReportController", urlPatterns = { "/top-dishes-report" })
-public class TopDishesReportController extends HttpServlet {
+@WebServlet(name = "PeakHoursAnalysisController", urlPatterns = { "/peak-hours-analysis" })
+public class PeakHoursAnalysisController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -24,10 +23,10 @@ public class TopDishesReportController extends HttpServlet {
             return;
         }
 
-        MenuDAO dao = new MenuDAO();
-        List<TopDish> topDishes = dao.getTopDishesByRestaurant(restaurantId);
+        OrderDAO dao = new OrderDAO();
+        Map<Integer, Integer> peakHours = dao.getPeakHoursStats(restaurantId);
         
-        request.setAttribute("topDishes", topDishes);
-        request.getRequestDispatcher("views/top-dishes-report.jsp").forward(request, response);
+        request.setAttribute("peakHours", peakHours);
+        request.getRequestDispatcher("views/peak-hours-analysis.jsp").forward(request, response);
     }
 }
