@@ -229,6 +229,7 @@
     }
 </style>
 
-<jsp:include page="/WEB-INF/includes/footer.jsp" />
+<jsp:include page="/views/includes/footer.jsp" />
+<jsp:include page="/views/includes/std_scripts.jsp" />
 </body>
 </html>

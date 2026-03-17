@@ -100,7 +100,9 @@
                             <h5 class="mb-0"><i class="fas fa-chart-bar text-primary me-2"></i>Revenue Overview</h5>
                         </div>
                         <div class="card-body">
-                            <canvas id="revenueChart" height="80"></canvas>
+                            <div class="chart-wrap chart-wrap-lg">
+                                <canvas id="revenueChart"></canvas>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -110,7 +112,9 @@
                             <h5 class="mb-0"><i class="fas fa-chart-pie text-primary me-2"></i>Order Status</h5>
                         </div>
                         <div class="card-body">
-                            <canvas id="statusChart"></canvas>
+                            <div class="chart-wrap">
+                                <canvas id="statusChart"></canvas>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -121,6 +125,21 @@
                 <div class="card-body p-4">
                     <form method="GET" action="${pageContext.request.contextPath}/owner/order-history" id="filterForm">
                         <div class="row g-3 align-items-center">
+                            <div class="col-md-3">
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white border-end-0">
+                                        <i class="fas fa-store text-muted"></i>
+                                    </span>
+                                    <select name="restaurantId" class="form-select border-start-0 ps-0">
+                                        <option value="All" ${isAllRestaurants ? 'selected' : ''}>All Restaurants</option>
+                                        <c:forEach var="r" items="${restaurants}">
+                                            <option value="${r.restaurantId}" ${!isAllRestaurants && selectedRestaurantId == r.restaurantId ? 'selected' : ''}>
+                                                ${r.name}
+                                            </option>
+                                        </c:forEach>
+                                    </select>
+                                </div>
+                            </div>
                             <div class="col-md-3">
                                 <div class="input-group">
                                     <span class="input-group-text bg-white border-end-0">
@@ -139,7 +158,7 @@
                                            placeholder="To Date" value="${toDate}">
                                 </div>
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-2">
                                 <select name="status" class="form-select">
                                     <option value="All" ${selectedStatus == 'All' ? 'selected' : ''}>All Status</option>
                                     <option value="Preparing" ${selectedStatus == 'Preparing' ? 'selected' : ''}>Preparing</option>
@@ -148,9 +167,9 @@
                                     <option value="Cancelled" ${selectedStatus == 'Cancelled' ? 'selected' : ''}>Cancelled</option>
                                 </select>
                             </div>
-                            <div class="col-md-3 d-grid">
+                            <div class="col-md-1 d-grid">
                                 <button type="submit" class="btn btn-primary shadow-sm">
-                                    <i class="fas fa-filter me-2"></i>Apply Filters
+                                    <i class="fas fa-filter"></i>
                                 </button>
                             </div>
                         </div>
@@ -271,6 +290,7 @@
             <!-- Pagination -->
             <c:if test="${totalPages > 1}">
                 <c:url value="/owner/order-history" var="paginationUrl">
+                    <c:if test="${not empty selectedRestaurantId}"><c:param name="restaurantId" value="${selectedRestaurantId}" /></c:if>
                     <c:if test="${not empty fromDate}"><c:param name="fromDate" value="${fromDate}" /></c:if>
                     <c:if test="${not empty toDate}"><c:param name="toDate" value="${toDate}" /></c:if>
                     <c:if test="${not empty selectedStatus}"><c:param name="status" value="${selectedStatus}" /></c:if>
@@ -337,7 +357,7 @@ if (statusCtx) {
         },
         options: {
             responsive: true,
-            maintainAspectRatio: true,
+            maintainAspectRatio: false,
             plugins: {
                 legend: {
                     position: 'bottom',
@@ -346,7 +366,8 @@ if (statusCtx) {
                         font: { size: 12 }
                     }
                 }
-            }
+            },
+            cutout: '62%'
         }
     });
 }
@@ -365,6 +386,9 @@ if (revenueCtx) {
                     ${stats.cancelledOrders},
                     ${stats.totalOrders} - ${stats.completedOrders} - ${stats.cancelledOrders}
                 ],
+                maxBarThickness: 72,
+                categoryPercentage: 0.7,
+                barPercentage: 0.9,
                 backgroundColor: [
                     'rgba(99, 102, 241, 0.8)',
                     'rgba(239, 68, 68, 0.8)',
@@ -394,6 +418,7 @@ if (revenueCtx) {
             scales: {
                 y: {
                     beginAtZero: true,
+                    suggestedMax: Math.max(3, ${stats.totalOrders}),
                     ticks: { stepSize: 1 },
                     grid: { color: 'rgba(0,0,0,0.05)' }
                 },
@@ -504,8 +529,20 @@ if (revenueCtx) {
     .stat-card-success { border-left: 4px solid #22c55e; }
     .stat-card-danger { border-left: 4px solid #ef4444; }
     .stat-card-info { border-left: 4px solid #3b82f6; }
+
+    /* Charts */
+    .chart-wrap {
+        position: relative;
+        width: 100%;
+        height: 260px;
+    }
+
+    .chart-wrap-lg {
+        height: 320px;
+    }
 </style>
 
-<jsp:include page="/WEB-INF/includes/footer.jsp" />
+<jsp:include page="/views/includes/footer.jsp" />
+<jsp:include page="/views/includes/std_scripts.jsp" />
 </body>
 </html>

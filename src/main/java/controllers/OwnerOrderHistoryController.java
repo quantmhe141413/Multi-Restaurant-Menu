@@ -1,7 +1,9 @@
 package controllers;
 
 import dal.OrderDAO;
+import dal.RestaurantDAO;
 import models.Order;
+import models.Restaurant;
 import models.User;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -38,19 +40,33 @@ public class OwnerOrderHistoryController extends HttpServlet {
             return;
         }
 
-        // Owner can see all restaurants, Staff only sees their assigned restaurant
+        // Load restaurants owned by this owner for filtering
+        RestaurantDAO restaurantDAO = new RestaurantDAO();
+        List<Restaurant> ownerRestaurants = restaurantDAO.getRestaurantsByOwnerId(user.getUserID());
+        request.setAttribute("restaurants", ownerRestaurants);
+
+        // Restaurant filter (owner can choose a specific restaurant or all)
         Integer restaurantId = null;
-        if (user.getRoleID() == 3) {
-            // Staff: must be assigned to a restaurant
-            restaurantId = (Integer) session.getAttribute("restaurantId");
-            if (restaurantId == null) {
-                session.setAttribute("toastMessage", "You must be assigned to a restaurant");
-                session.setAttribute("toastType", "error");
-                response.sendRedirect(request.getContextPath() + "/home");
-                return;
+        String restaurantIdStr = request.getParameter("restaurantId");
+        if (restaurantIdStr != null && !restaurantIdStr.trim().isEmpty() && !"All".equalsIgnoreCase(restaurantIdStr.trim())) {
+            try {
+                int parsed = Integer.parseInt(restaurantIdStr.trim());
+                boolean owned = false;
+                for (Restaurant r : ownerRestaurants) {
+                    if (r.getRestaurantId() != null && r.getRestaurantId() == parsed) {
+                        owned = true;
+                        break;
+                    }
+                }
+                if (owned) {
+                    restaurantId = parsed;
+                }
+            } catch (NumberFormatException ignore) {
+                restaurantId = null;
             }
         }
-        // Owner (roleID 2): restaurantId stays null → sees all restaurants
+        request.setAttribute("selectedRestaurantId", restaurantId);
+        request.setAttribute("isAllRestaurants", restaurantId == null);
 
         // Get filter parameters
         String fromDate = request.getParameter("fromDate");

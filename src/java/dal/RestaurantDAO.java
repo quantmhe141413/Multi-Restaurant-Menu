@@ -129,6 +129,30 @@ public class RestaurantDAO extends DBContext {
         return null;
     }
 
+    /**
+     * Get all restaurants owned by a specific owner.
+     */
+    public List<Restaurant> getRestaurantsByOwnerId(int ownerId) {
+        List<Restaurant> list = new ArrayList<>();
+        String sql = "SELECT RestaurantID, OwnerID, Name, Status FROM Restaurants WHERE OwnerID = ? ORDER BY Name";
+        try {
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setInt(1, ownerId);
+            ResultSet rs = st.executeQuery();
+            while (rs.next()) {
+                Restaurant r = new Restaurant();
+                r.setRestaurantId(rs.getInt("RestaurantID"));
+                r.setOwnerId(rs.getInt("OwnerID"));
+                r.setName(rs.getString("Name"));
+                r.setStatus(rs.getString("Status"));
+                list.add(r);
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(RestaurantDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return list;
+    }
+
     public List<Restaurant> getAllRestaurantsForDropdown() {
         List<Restaurant> list = new ArrayList<>();
         String sql = "SELECT RestaurantID, Name, Status FROM Restaurants ORDER BY Name";
