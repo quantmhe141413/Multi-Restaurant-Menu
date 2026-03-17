@@ -14,8 +14,6 @@ public class Discount {
     private Double maxDiscountAmount;
     private Date startDate;
     private Date endDate;
-    private int quantity;
-    private int usageLimitPerUser;
     private boolean isActive;
     private Timestamp createdAt;
 
@@ -100,22 +98,6 @@ public class Discount {
 
     public void setEndDate(Date endDate) {
         this.endDate = endDate;
-    }
-
-    public int getQuantity() {
-        return quantity;
-    }
-
-    public void setQuantity(int quantity) {
-        this.quantity = quantity;
-    }
-
-    public int getUsageLimitPerUser() {
-        return usageLimitPerUser;
-    }
-
-    public void setUsageLimitPerUser(int usageLimitPerUser) {
-        this.usageLimitPerUser = usageLimitPerUser;
     }
 
     public boolean isIsActive() {
