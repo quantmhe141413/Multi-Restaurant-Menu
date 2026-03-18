@@ -23,7 +23,9 @@ public class RestaurantDAO extends DBContext {
         List<Restaurant> list = new ArrayList<>();
         StringBuilder sql = new StringBuilder();
         sql.append("SELECT DISTINCT r.* FROM Restaurants r ");
-        sql.append("LEFT JOIN RestaurantDeliveryZones dz ON r.RestaurantID = dz.RestaurantID ");
+        if (zone != null && !zone.trim().isEmpty()) {
+            sql.append("INNER JOIN RestaurantDeliveryZones dz ON r.RestaurantID = dz.RestaurantID ");
+        }
         sql.append("WHERE r.Status = 'Approved'");
         List<String> params = new ArrayList<>();
 
@@ -37,13 +39,6 @@ public class RestaurantDAO extends DBContext {
             params.add(zone.trim());
         }
 
-        // Note: Cuisine column does not exist in the database schema
-        // Removed cuisine filter as the Restaurants table does not have a Cuisine
-        // column
-        // if (cuisine != null && !cuisine.trim().isEmpty()) {
-        // sql.append(" AND r.Cuisine = ?");
-        // params.add(cuisine.trim());
-        // }
         sql.append(" ORDER BY r.Name");
         try {
             PreparedStatement st = connection.prepareStatement(sql.toString());
@@ -200,7 +195,7 @@ public class RestaurantDAO extends DBContext {
     }
 
     public void insertRestaurant(models.Restaurant restaurant) {
-        String sql = "INSERT INTO Restaurants (owner_id, name, address, phone, description) VALUES (?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO Restaurants (OwnerID, Name, Address, Phone, Description, IsOpen, Status, CreatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, GETDATE())";
         try {
             PreparedStatement ps = connection.prepareStatement(sql);
             ps.setInt(1, restaurant.getOwnerId());
@@ -208,6 +203,8 @@ public class RestaurantDAO extends DBContext {
             ps.setString(3, restaurant.getAddress());
             ps.setString(4, restaurant.getPhone());
             ps.setString(5, restaurant.getDescription());
+            ps.setBoolean(6, restaurant.getIsOpen() != null ? restaurant.getIsOpen() : true);
+            ps.setString(7, restaurant.getStatus() != null ? restaurant.getStatus() : "Approved");
             ps.executeUpdate();
         } catch (java.sql.SQLException e) {
             e.printStackTrace();

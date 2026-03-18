@@ -1,48 +1,112 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-    <title>Phân tích khung giờ cao điểm</title>
+    <jsp:include page="includes/std_head.jsp" />
+    <title>Peak Hours Analysis - FoodieExpress</title>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/quan-tasks.css">
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        .chart-container { display: flex; align-items: flex-end; gap: 5px; height: 300px; border-bottom: 2px solid #333; padding-bottom: 10px; margin-top: 50px; }
-        .bar { background-color: #4CAF50; width: 30px; text-align: center; color: white; font-size: 12px; }
-        .hour-label { writing-mode: vertical-rl; text-orientation: mixed; margin-bottom: -40px; }
-        table { border-collapse: collapse; width: 100%; margin-top: 50px; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
-        th { background-color: #f2f2f2; }
+        .chart-wrapper {
+            background: #fff;
+            padding: 2rem;
+            border-radius: var(--radius);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+        }
+        .chart-container {
+            display: flex;
+            align-items: flex-end;
+            gap: 8px;
+            height: 250px;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 10px;
+        }
+        .bar {
+            background: linear-gradient(to top, var(--primary) 0%, #ff6b81 100%);
+            width: 100%;
+            max-width: 40px;
+            text-align: center;
+            color: white;
+            font-size: 11px;
+            font-weight: 600;
+            border-radius: 4px 4px 0 0;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+        .bar:hover {
+            filter: brightness(1.1);
+            transform: scaleX(1.1);
+            z-index: 10;
+        }
+        .hour-label {
+            position: absolute;
+            bottom: -40px;
+            left: 50%;
+            transform: translateX(-50%) rotate(-45deg);
+            color: var(--text-muted);
+            white-space: nowrap;
+            font-size: 12px;
+        }
     </style>
 </head>
-<body>
-    <h2>Phân tích khung giờ cao điểm</h2>
-    <p>Biểu đồ số lượng đơn hàng theo giờ trong ngày:</p>
-    
-    <div class="chart-container">
-        <c:forEach var="entry" items="${peakHours}">
-            <c:set var="height" value="${entry.value * 20}" />
-            <div class="bar" style="height: ${height > 0 ? height : 5}px;" title="Giờ: ${entry.key}, Đơn: ${entry.value}">
-                <c:if test="${entry.value > 0}">${entry.value}</c:if>
-                <div class="hour-label">${entry.key}h</div>
+<body class="bg-light">
+    <jsp:include page="includes/header.jsp" />
+
+    <div class="container my-5">
+        <div class="row">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h1>Peak Hours Analysis</h1>
+                    <a href="restaurant-analytics-dashboard" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-2"></i> Back to Dashboard
+                    </a>
+                </div>
+
+                <div class="dashboard-card mb-4">
+                    <h4 class="mb-4">Order Distribution by Hour</h4>
+                    <div class="chart-wrapper">
+                        <div class="chart-container">
+                            <c:forEach var="entry" items="${peakHours}">
+                                <c:set var="height" value="${entry.value * 25}" />
+                                <div class="bar" style="height: ${height > 0 ? height : 5}px;" title="${entry.key}h: ${entry.value} orders">
+                                    <c:if test="${entry.value > 0}">${entry.value}</c:if>
+                                    <div class="hour-label">${entry.key}h</div>
+                                </div>
+                            </c:forEach>
+                        </div>
+                        <div style="height: 50px;"></div> <!-- Spacer for rotated labels -->
+                    </div>
+                </div>
+
+                <div class="dashboard-card">
+                    <h4 class="mb-4">Detailed Statistics</h4>
+                    <div class="table-responsive">
+                        <table class="table-custom">
+                            <thead>
+                                <tr>
+                                    <th>Time Range</th>
+                                    <c:forEach var="entry" items="${peakHours}" step="2">
+                                        <th>${entry.key}h</th>
+                                    </c:forEach>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="fw-bold">Orders</td>
+                                    <c:forEach var="entry" items="${peakHours}" step="2">
+                                        <td>${entry.value}</td>
+                                    </c:forEach>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
-        </c:forEach>
+        </div>
     </div>
 
-    <table>
-        <tr>
-            <th>Khung giờ</th>
-            <c:forEach var="entry" items="${peakHours}">
-                <th>${entry.key}h</th>
-            </c:forEach>
-        </tr>
-        <tr>
-            <td>Số đơn hàng</td>
-            <c:forEach var="entry" items="${peakHours}">
-                <td>${entry.value}</td>
-            </c:forEach>
-        </tr>
-    </table>
-    
-    <br/>
-    <a href="restaurant-analytics-dashboard">Quay lại Dashboard</a>
+    <jsp:include page="includes/footer.jsp" />
+    <jsp:include page="includes/std_scripts.jsp" />
 </body>
 </html>

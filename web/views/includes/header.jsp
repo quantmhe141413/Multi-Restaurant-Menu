@@ -16,7 +16,7 @@
                             <i class="fas fa-history"></i> Order History
                         </a>
                     </c:if>
-                    <c:if test="${sessionScope.user.roleID == 2}">
+                    <c:if test="${sessionScope.user.roleID == 2 || sessionScope.user.roleID == 3}">
                         <a href="categories?action=list" class="nav-action">
                             <i class="fas fa-tasks"></i> Management
                         </a>
@@ -30,7 +30,10 @@
                             </span>
                         </c:if>
                     </a>
-                    <a href="logout" class="nav-action">Logout</a>
+                    <a href="profile" class="nav-action">
+                        <i class="fas fa-user-circle"></i> ${sessionScope.user.fullName}
+                    </a>
+                    <a href="logout" title="Logout" style="color: #64748b; margin-left: 1rem;"><i class="fas fa-sign-out-alt"></i></a>
                 </c:when>
                 <c:otherwise>
                     <a href="login">Login</a>

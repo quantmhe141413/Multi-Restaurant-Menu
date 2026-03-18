@@ -39,12 +39,12 @@ public class ChangePasswordController extends HttpServlet {
             return;
         }
         UserDAO userDAO = new UserDAO();
-        if (!PasswordUtils.verifyPassword(oldPassword, user.getPasswordHash())) {
+        if (!oldPassword.equals(user.getPasswordHash())) {
             request.setAttribute("error", "Mật khẩu cũ không đúng.");
             request.getRequestDispatcher("views/change-password.jsp").forward(request, response);
             return;
         }
-        userDAO.updatePassword(user.getUserID(), PasswordUtils.hashPassword(newPassword));
+        userDAO.updatePassword(user.getUserID(), newPassword);
         request.setAttribute("success", "Đổi mật khẩu thành công.");
         request.getRequestDispatcher("views/change-password.jsp").forward(request, response);
     }

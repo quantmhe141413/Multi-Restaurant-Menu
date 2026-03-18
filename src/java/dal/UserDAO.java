@@ -24,6 +24,7 @@ public class UserDAO extends DBContext {
                 u.setRoleID(rs.getInt("RoleID"));
                 u.setIsActive(rs.getBoolean("IsActive"));
                 u.setPhone(rs.getString("Phone"));
+                u.setPasswordHash(rs.getString("PasswordHash"));
                 u.setCreatedAt(rs.getTimestamp("CreatedAt"));
                 return u;
             }

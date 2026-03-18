@@ -39,7 +39,18 @@ public class LoginController extends HttpServlet {
             
             // Get RestaurantID for Owner (RoleID = 2) and Staff (RoleID = 3)
             // SuperAdmin (RoleID = 1) and Customer (RoleID = 4) will have restaurantId = null
-            if (u.getRoleID() == 2 || u.getRoleID() == 3) {
+            if (u.getRoleID() == 2) {
+                dal.RestaurantDAO rdao = new dal.RestaurantDAO();
+                models.Restaurant r = rdao.getRestaurantByOwnerId(u.getUserID());
+                if (r != null) {
+                    session.setAttribute("restaurantId", r.getRestaurantId());
+                } else {
+                    Integer restaurantId = udao.getRestaurantIdByUserId(u.getUserID());
+                    if (restaurantId != null) {
+                        session.setAttribute("restaurantId", restaurantId);
+                    }
+                }
+            } else if (u.getRoleID() == 3) {
                 Integer restaurantId = udao.getRestaurantIdByUserId(u.getUserID());
                 if (restaurantId != null) {
                     session.setAttribute("restaurantId", restaurantId);

@@ -44,6 +44,12 @@ public class RestaurantProfileSetupController extends HttpServlet {
         RestaurantDAO restaurantDAO = new RestaurantDAO();
         restaurantDAO.insertRestaurant(restaurant);
 
+        // Fetch newly created restaurant to set session if role is Owner.
+        models.Restaurant created = restaurantDAO.getRestaurantByOwnerId(ownerId);
+        if (created != null) {
+            session.setAttribute("restaurantId", created.getRestaurantId());
+        }
+
         request.setAttribute("success", "Thiết lập hồ sơ nhà hàng thành công.");
         request.getRequestDispatcher("views/restaurant-profile-setup.jsp").forward(request, response);
     }
