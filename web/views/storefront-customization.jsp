@@ -25,10 +25,14 @@
 <body class="bg-light">
     <jsp:include page="includes/header.jsp" />
 
-    <div class="container my-5">
-        <div class="row justify-content-center">
-            <div class="col-md-8">
-                <div class="dashboard-card">
+    <div class="container-fluid">
+        <div class="row">
+            <jsp:include page="includes/restaurant-sidebar.jsp" />
+            
+            <main class="col-md-9 col-lg-10 main-content p-4" style="background-color: #f8fafc; min-height: 100vh;">
+                <div class="row justify-content-center">
+                    <div class="col-md-10">
+                        <div class="dashboard-card shadow-sm border-0 p-4 bg-white rounded-3">
                     <h1 class="mb-4">Storefront Customization</h1>
                     
                     <c:if test="${not empty currentLogo || not empty currentTheme}">
@@ -89,7 +93,10 @@
                         </div>
                     </c:if>
                 </div>
-            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
         </div>
     </div>
 

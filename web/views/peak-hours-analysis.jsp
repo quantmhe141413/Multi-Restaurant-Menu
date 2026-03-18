@@ -53,9 +53,13 @@
 <body class="bg-light">
     <jsp:include page="includes/header.jsp" />
 
-    <div class="container my-5">
+    <div class="container-fluid">
         <div class="row">
-            <div class="col-12">
+            <jsp:include page="includes/restaurant-sidebar.jsp" />
+            
+            <main class="col-md-9 col-lg-10 main-content p-4" style="background-color: #f8fafc; min-height: 100vh;">
+                <div class="row justify-content-center">
+                    <div class="col-md-11">
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h1>Peak Hours Analysis</h1>
                     <a href="restaurant-analytics-dashboard" class="btn btn-outline-secondary">
@@ -102,7 +106,9 @@
                         </table>
                     </div>
                 </div>
-            </div>
+                    </div>
+                </div>
+            </main>
         </div>
     </div>
 

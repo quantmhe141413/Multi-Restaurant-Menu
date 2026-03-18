@@ -115,6 +115,13 @@
                 Temporary Closure
             </a>
         </li>
+        <li class="nav-item">
+            <a class="nav-link ${pageContext.request.requestURI.contains('storefront-customization') ? 'active' : ''}"
+               href="${pageContext.request.contextPath}/storefront-customization">
+                <i class="fas fa-paint-brush"></i>
+                Storefront Setup
+            </a>
+        </li>
 
         <!-- Workforce Section -->
         <li class="nav-item mt-2">
@@ -190,6 +197,34 @@
                href="${pageContext.request.contextPath}/items?action=list">
                 <i class="fas fa-hamburger"></i>
                 Menu Items
+            </a>
+        </li>
+
+        <!-- Analytics Section -->
+        <li class="nav-item mt-2">
+            <div class="nav-section-title">
+                <i class="fas fa-chart-pie"></i> Analytics & Reports
+            </div>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link ${pageContext.request.requestURI.contains('restaurant-analytics-dashboard') ? 'active' : ''}"
+               href="${pageContext.request.contextPath}/restaurant-analytics-dashboard">
+                <i class="fas fa-chart-line"></i>
+                Overview Dashboard
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link ${pageContext.request.requestURI.contains('top-dishes-report') ? 'active' : ''}"
+               href="${pageContext.request.contextPath}/top-dishes-report">
+                <i class="fas fa-award"></i>
+                Top Dishes Report
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link ${pageContext.request.requestURI.contains('peak-hours-analysis') ? 'active' : ''}"
+               href="${pageContext.request.contextPath}/peak-hours-analysis">
+                <i class="fas fa-clock"></i>
+                Peak Hours
             </a>
         </li>
 

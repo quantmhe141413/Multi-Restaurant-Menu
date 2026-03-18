@@ -1,12 +1,14 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
+    <jsp:include page="includes/std_head.jsp" />
     <title>Dashboard Phân tích - ${restaurant.name}</title>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/quan-tasks.css">
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; color: #333; }
-        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        body { font-family: Arial, sans-serif; color: #333; }
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin: 20px 0; }
         .stat-card { background: #f9f9f9; padding: 20px; border-radius: 8px; border: 1px solid #ddd; text-align: center; }
         .stat-value { font-size: 24px; font-weight: bold; color: #2c3e50; }
@@ -19,15 +21,24 @@
         .btn-green { background: #27ae60; }
     </style>
 </head>
-<body>
-    <div class="header">
-        <h1>Dashboard Phân tích: ${restaurant.name}</h1>
-        <div>
-            <a href="peak-hours-analysis" class="btn">Xem Giờ Cao Điểm</a>
-            <a href="menu-management-dashboard" class="btn btn-green">Quản lý Menu</a>
-        </div>
-    </div>
+<body class="bg-light">
+    <jsp:include page="includes/header.jsp" />
 
+    <div class="container-fluid">
+        <div class="row">
+            <jsp:include page="includes/restaurant-sidebar.jsp" />
+            
+            <main class="col-md-9 col-lg-10 main-content p-4" style="background-color: #f8fafc; min-height: 100vh;">
+                <div class="row justify-content-center">
+                    <div class="col-md-11">
+                        <div class="dashboard-card shadow-sm border-0 p-4 bg-white rounded-3">
+                            <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-4">
+                                <h1 class="h3 mb-0 text-primary"><i class="fas fa-chart-line me-2"></i>Dashboard Phân tích: ${restaurant.name}</h1>
+                                <div>
+                                    <a href="peak-hours-analysis" class="btn btn-outline-primary me-2"><i class="fas fa-clock me-1"></i>Xem Giờ Cao Điểm</a>
+                                    <a href="menu-management-dashboard" class="btn btn-success"><i class="fas fa-utensils me-1"></i>Quản lý Menu</a>
+                                </div>
+                            </div>
     <div class="filter-section">
         <form method="get" action="restaurant-analytics-dashboard">
             Từ ngày: <input type="date" name="startDate" value="${startDate}">
@@ -84,5 +95,14 @@
             </c:if>
         </tbody>
     </table>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <jsp:include page="includes/footer.jsp" />
+    <jsp:include page="includes/std_scripts.jsp" />
 </body>
 </html>

@@ -16,6 +16,19 @@ public class RestaurantProfileSetupController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        HttpSession session = request.getSession(false);
+        if (session != null) {
+            Integer ownerId = (Integer) session.getAttribute("userId");
+            if (ownerId != null) {
+                RestaurantDAO dao = new RestaurantDAO();
+                models.Restaurant r = dao.getRestaurantByOwnerId(ownerId);
+                if (r != null) {
+                    session.setAttribute("restaurantId", r.getRestaurantId());
+                    response.sendRedirect("restaurant-analytics-dashboard");
+                    return;
+                }
+            }
+        }
         request.getRequestDispatcher("views/restaurant-profile-setup.jsp").forward(request, response);
     }
 
@@ -26,6 +39,14 @@ public class RestaurantProfileSetupController extends HttpServlet {
         Integer ownerId = (Integer) session.getAttribute("userId");
         if (ownerId == null) {
             response.sendRedirect("login");
+            return;
+        }
+
+        RestaurantDAO restaurantDAO = new RestaurantDAO();
+        models.Restaurant existing = restaurantDAO.getRestaurantByOwnerId(ownerId);
+        if (existing != null) {
+            session.setAttribute("restaurantId", existing.getRestaurantId());
+            response.sendRedirect("restaurant-analytics-dashboard");
             return;
         }
         String name = request.getParameter("name");
