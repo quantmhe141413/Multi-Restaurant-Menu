@@ -32,41 +32,71 @@ public class OwnerOrderHistoryController extends HttpServlet {
             return;
         }
 
-        // Only owner (roleID 2) can access
-        if (user.getRoleID() != 2) {
+        // Only owner (roleID 2) and staff (roleID 3) can access
+        if (user.getRoleID() != 2 && user.getRoleID() != 3) {
             session.setAttribute("toastMessage", "You don't have permission to view order history");
             session.setAttribute("toastType", "error");
             response.sendRedirect(request.getContextPath() + "/home");
             return;
         }
 
-        // Load restaurants owned by this owner for filtering
+        // Restaurant filter:
+        // - Owner (roleID 2): can view all restaurants or filter by owned restaurant
+        // - Staff (roleID 3): only sees their assigned restaurant
         RestaurantDAO restaurantDAO = new RestaurantDAO();
-        List<Restaurant> ownerRestaurants = restaurantDAO.getRestaurantsByOwnerId(user.getUserID());
-        request.setAttribute("restaurants", ownerRestaurants);
-
-        // Restaurant filter (owner can choose a specific restaurant or all)
         Integer restaurantId = null;
-        String restaurantIdStr = request.getParameter("restaurantId");
-        if (restaurantIdStr != null && !restaurantIdStr.trim().isEmpty() && !"All".equalsIgnoreCase(restaurantIdStr.trim())) {
-            try {
-                int parsed = Integer.parseInt(restaurantIdStr.trim());
-                boolean owned = false;
-                for (Restaurant r : ownerRestaurants) {
-                    if (r.getRestaurantId() != null && r.getRestaurantId() == parsed) {
-                        owned = true;
-                        break;
-                    }
-                }
-                if (owned) {
-                    restaurantId = parsed;
-                }
-            } catch (NumberFormatException ignore) {
+        boolean isAllRestaurants = false;
+
+        if (user.getRoleID() == 3) {
+            // Staff: must be assigned to a restaurant
+            Integer staffRestaurantId = (Integer) session.getAttribute("restaurantId");
+            if (staffRestaurantId == null) {
+                session.setAttribute("toastMessage", "You must be assigned to a restaurant");
+                session.setAttribute("toastType", "error");
+                response.sendRedirect(request.getContextPath() + "/home");
+                return;
+            }
+            restaurantId = staffRestaurantId;
+            isAllRestaurants = false;
+
+            // Provide a single restaurant in dropdown list (UI may hide it for staff)
+            Restaurant r = restaurantDAO.getRestaurantById(restaurantId);
+            request.setAttribute("restaurants", r == null ? List.of() : List.of(r));
+        } else {
+            // Owner: load owned restaurants for dropdown
+            List<Restaurant> ownerRestaurants = restaurantDAO.getRestaurantsByOwnerId(user.getUserID());
+            request.setAttribute("restaurants", ownerRestaurants);
+
+            String restaurantIdStr = request.getParameter("restaurantId");
+            if (restaurantIdStr == null || restaurantIdStr.trim().isEmpty() || "All".equalsIgnoreCase(restaurantIdStr.trim())) {
                 restaurantId = null;
+                isAllRestaurants = true;
+            } else {
+                try {
+                    int parsed = Integer.parseInt(restaurantIdStr.trim());
+                    boolean owned = false;
+                    for (Restaurant rr : ownerRestaurants) {
+                        if (rr.getRestaurantId() != null && rr.getRestaurantId() == parsed) {
+                            owned = true;
+                            break;
+                        }
+                    }
+                    if (owned) {
+                        restaurantId = parsed;
+                        isAllRestaurants = false;
+                    } else {
+                        restaurantId = null;
+                        isAllRestaurants = true;
+                    }
+                } catch (NumberFormatException ignore) {
+                    restaurantId = null;
+                    isAllRestaurants = true;
+                }
             }
         }
+
         request.setAttribute("selectedRestaurantId", restaurantId);
-        request.setAttribute("isAllRestaurants", restaurantId == null);
+        request.setAttribute("isAllRestaurants", isAllRestaurants);
 
         // Get filter parameters
         String fromDate = request.getParameter("fromDate");
