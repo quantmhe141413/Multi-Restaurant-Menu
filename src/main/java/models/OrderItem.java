@@ -10,6 +10,7 @@ public class OrderItem {
     private double unitPrice;
     private String note;
     private Timestamp createdAt;
+    private String itemName; // For display purposes
 
     public OrderItem() {
     }
@@ -68,5 +69,13 @@ public class OrderItem {
 
     public void setCreatedAt(Timestamp createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public String getItemName() {
+        return itemName;
+    }
+
+    public void setItemName(String itemName) {
+        this.itemName = itemName;
     }
 }

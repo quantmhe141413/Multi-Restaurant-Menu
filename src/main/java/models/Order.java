@@ -21,6 +21,7 @@ public class Order {
     private Timestamp createdAt;
     private String customerName;
     private String restaurantName; // For display purposes
+    private String deliveryAddress; // For online/delivery orders
 
     public Order() {
     }
@@ -167,5 +168,13 @@ public class Order {
 
     public void setRestaurantName(String restaurantName) {
         this.restaurantName = restaurantName;
+    }
+
+    public String getDeliveryAddress() {
+        return deliveryAddress;
+    }
+
+    public void setDeliveryAddress(String deliveryAddress) {
+        this.deliveryAddress = deliveryAddress;
     }
 }
