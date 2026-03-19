@@ -21,7 +21,11 @@ public class LoginController extends HttpServlet {
             User user = (User) session.getAttribute("user");
             if (user.getRoleID() == 1) { // SuperAdmin
                 response.sendRedirect(request.getContextPath() + "/admin/dashboard");
-            } else {
+            } else if (user.getRoleID() == 2) { // Owner
+                response.sendRedirect(request.getContextPath() + "/owner/order-history");
+            } else if (user.getRoleID() == 3) { // Staff
+                response.sendRedirect(request.getContextPath() + "/staff/home");
+            } else { // Customer
                 response.sendRedirect("home");
             }
             return;
@@ -41,9 +45,6 @@ public class LoginController extends HttpServlet {
         if (u != null) {
             HttpSession session = request.getSession();
             session.setAttribute("user", u);
-            
-            // Get RestaurantID for Owner (RoleID = 2) and Staff (RoleID = 3)
-            // SuperAdmin (RoleID = 1) and Customer (RoleID = 4) will have restaurantId = null
             if (u.getRoleID() == 2 || u.getRoleID() == 3) {
                 Integer restaurantId = udao.getRestaurantIdByUserId(u.getUserID());
                 if (restaurantId != null) {
@@ -51,10 +52,13 @@ public class LoginController extends HttpServlet {
                 }
             }
             
-            // Redirect based on role
             if (u.getRoleID() == 1) { // SuperAdmin
                 response.sendRedirect(request.getContextPath() + "/admin/dashboard");
-            } else {
+            } else if (u.getRoleID() == 2) { // Owner
+                response.sendRedirect(request.getContextPath() + "/owner/order-history");
+            } else if (u.getRoleID() == 3) { // Staff
+                response.sendRedirect(request.getContextPath() + "/staff/home");
+            } else { // Customer
                 response.sendRedirect("home");
             }
         } else {
