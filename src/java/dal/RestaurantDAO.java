@@ -211,6 +211,21 @@ public class RestaurantDAO extends DBContext {
         }
     }
 
+    public void updateRestaurantCoreInfo(Restaurant restaurant) {
+        String sql = "UPDATE Restaurants SET Name = ?, Address = ?, Phone = ?, Description = ? WHERE RestaurantID = ?";
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setString(1, restaurant.getName());
+            ps.setString(2, restaurant.getAddress());
+            ps.setString(3, restaurant.getPhone());
+            ps.setString(4, restaurant.getDescription());
+            ps.setInt(5, restaurant.getRestaurantId());
+            ps.executeUpdate();
+        } catch (java.sql.SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
     private Restaurant mapRestaurant(ResultSet rs) throws SQLException {
         Restaurant r = new Restaurant();
         r.setRestaurantId(rs.getInt("RestaurantID"));

@@ -39,11 +39,13 @@ public class UserDAO extends DBContext {
      * Returns null if user is SuperAdmin (RoleID = 1) or Customer (RoleID = 4)
      */
     public Integer getRestaurantIdByUserId(int userId) {
-        String sql = "SELECT TOP 1 RestaurantID FROM RestaurantUsers " +
-                "WHERE UserID = ? AND IsActive = 1";
+        String sql = "SELECT RestaurantID FROM Restaurants WHERE OwnerID = ? " +
+                     "UNION " +
+                     "SELECT RestaurantID FROM RestaurantUsers WHERE UserID = ? AND IsActive = 1";
         try {
             PreparedStatement st = connection.prepareStatement(sql);
             st.setInt(1, userId);
+            st.setInt(2, userId);
             ResultSet rs = st.executeQuery();
             if (rs.next()) {
                 return rs.getInt("RestaurantID");

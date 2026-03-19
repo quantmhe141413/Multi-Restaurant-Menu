@@ -143,6 +143,9 @@
                                     <span class="badge ${restaurant.status == 'Approved' ? 'bg-success' : 'bg-warning'} mt-2">
                                         Status: ${restaurant.status}
                                     </span>
+                                    <a href="${pageContext.request.contextPath}/edit-restaurant-profile" class="btn btn-sm btn-outline-primary ms-3 mt-2">
+                                        <i class="fas fa-edit me-1"></i> Edit Profile
+                                    </a>
                                 </div>
                             </div>
                             <div class="row g-4">

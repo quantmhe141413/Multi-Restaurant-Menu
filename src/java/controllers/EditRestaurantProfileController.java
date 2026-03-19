@@ -11,8 +11,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 
-@WebServlet(name = "RestaurantProfileSetupController", urlPatterns = { "/restaurant-profile-setup" })
-public class RestaurantProfileSetupController extends HttpServlet {
+@WebServlet(name = "EditRestaurantProfileController", urlPatterns = { "/edit-restaurant-profile" })
+public class EditRestaurantProfileController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -23,13 +23,13 @@ public class RestaurantProfileSetupController extends HttpServlet {
                 RestaurantDAO dao = new RestaurantDAO();
                 models.Restaurant r = dao.getRestaurantByOwnerId(user.getUserID());
                 if (r != null) {
-                    session.setAttribute("restaurantId", r.getRestaurantId());
-                    response.sendRedirect("restaurant-analytics-dashboard");
+                    request.setAttribute("restaurant", r);
+                    request.getRequestDispatcher("views/edit-restaurant-profile.jsp").forward(request, response);
                     return;
                 }
             }
         }
-        request.getRequestDispatcher("views/restaurant-profile-setup.jsp").forward(request, response);
+        response.sendRedirect("login");
     }
 
     @Override
@@ -45,32 +45,25 @@ public class RestaurantProfileSetupController extends HttpServlet {
 
         RestaurantDAO restaurantDAO = new RestaurantDAO();
         models.Restaurant existing = restaurantDAO.getRestaurantByOwnerId(ownerId);
-        if (existing != null) {
-            session.setAttribute("restaurantId", existing.getRestaurantId());
-            response.sendRedirect("restaurant-analytics-dashboard");
+        if (existing == null) {
+            response.sendRedirect("restaurant-profile-setup");
             return;
         }
+
         String name = request.getParameter("name");
         String address = request.getParameter("address");
         String phone = request.getParameter("phone");
         String description = request.getParameter("description");
-        // Add more fields as needed
 
-        Restaurant restaurant = new Restaurant();
-        restaurant.setOwnerId(ownerId);
-        restaurant.setName(name);
-        restaurant.setAddress(address);
-        restaurant.setPhone(phone);
-        restaurant.setDescription(description);
-        restaurantDAO.insertRestaurant(restaurant);
+        existing.setName(name);
+        existing.setAddress(address);
+        existing.setPhone(phone);
+        existing.setDescription(description);
 
-        // Fetch newly created restaurant to set session if role is Owner.
-        models.Restaurant created = restaurantDAO.getRestaurantByOwnerId(ownerId);
-        if (created != null) {
-            session.setAttribute("restaurantId", created.getRestaurantId());
-        }
+        restaurantDAO.updateRestaurantCoreInfo(existing);
 
-        request.setAttribute("success", "Thiết lập hồ sơ nhà hàng thành công.");
-        request.getRequestDispatcher("views/restaurant-profile-setup.jsp").forward(request, response);
+        request.setAttribute("restaurant", existing);
+        request.setAttribute("success", "Cập nhật hồ sơ nhà hàng thành công.");
+        request.getRequestDispatcher("views/edit-restaurant-profile.jsp").forward(request, response);
     }
 }
