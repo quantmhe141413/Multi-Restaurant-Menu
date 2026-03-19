@@ -122,7 +122,9 @@ public class OrderDAO extends DBContext {
 
     public List<OrderItem> getOrderItemsByOrderId(int orderID) {
         List<OrderItem> list = new ArrayList<>();
-        String sql = "SELECT * FROM OrderItems WHERE OrderID = ?";
+        String sql = "SELECT oi.*, mi.ItemName FROM OrderItems oi " +
+                    "LEFT JOIN MenuItems mi ON oi.ItemID = mi.ItemID " +
+                    "WHERE oi.OrderID = ?";
         
         try {
             PreparedStatement st = connection.prepareStatement(sql);
@@ -130,7 +132,10 @@ public class OrderDAO extends DBContext {
             ResultSet rs = st.executeQuery();
             
             while (rs.next()) {
-                list.add(mapOrderItem(rs));
+                OrderItem item = mapOrderItem(rs);
+                // Set item name from MenuItems table
+                item.setItemName(rs.getString("ItemName"));
+                list.add(item);
             }
         } catch (SQLException ex) {
             Logger.getLogger(OrderDAO.class.getName()).log(Level.SEVERE, null, ex);
@@ -697,5 +702,218 @@ public class OrderDAO extends DBContext {
             Logger.getLogger(OrderDAO.class.getName()).log(Level.SEVERE, null, ex);
         }
         return 0;
+    }
+
+    // =====================================================================
+    // Staff POS Methods
+    // =====================================================================
+
+    /**
+     * Get all orders for a specific table (by TableID).
+     * Returns all orders including unpaid ones, sorted by creation date descending.
+     */
+    public List<Order> getOrdersByTable(int tableId) {
+        List<Order> list = new ArrayList<>();
+        String sql = "SELECT * FROM Orders WHERE TableID = ? ORDER BY CreatedAt DESC";
+        try {
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setInt(1, tableId);
+            ResultSet rs = st.executeQuery();
+            while (rs.next()) {
+                list.add(mapOrder(rs));
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(OrderDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return list;
+    }
+
+    /**
+     * Get the active (unpaid/pending) order for a specific table in a restaurant.
+     * Returns null if no active order exists.
+     */
+    public Order getActiveOrderByTable(int tableId, Integer restaurantId) {
+        String sql = "SELECT TOP 1 * FROM Orders WHERE TableID = ? AND RestaurantID = ? "
+                + "AND PaymentStatus != 'Success' AND OrderStatus != 'Cancelled' "
+                + "ORDER BY CreatedAt DESC";
+        try {
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setInt(1, tableId);
+            st.setInt(2, restaurantId);
+            ResultSet rs = st.executeQuery();
+            if (rs.next()) {
+                return mapOrder(rs);
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(OrderDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return null;
+    }
+
+    /**
+     * Add an order item directly to an existing order.
+     * Convenience method for Staff POS.
+     */
+    public boolean addOrderItem(int orderId, int itemId, int quantity, double unitPrice, String note) {
+        String sql = "INSERT INTO OrderItems (OrderID, ItemID, Quantity, UnitPrice, Note, CreatedAt) "
+                + "VALUES (?, ?, ?, ?, ?, ?)";
+        try {
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setInt(1, orderId);
+            st.setInt(2, itemId);
+            st.setInt(3, quantity);
+            st.setDouble(4, unitPrice);
+            if (note != null && !note.trim().isEmpty()) {
+                st.setString(5, note);
+            } else {
+                st.setNull(5, java.sql.Types.NVARCHAR);
+            }
+            st.setTimestamp(6, new Timestamp(System.currentTimeMillis()));
+            return st.executeUpdate() > 0;
+        } catch (SQLException ex) {
+            Logger.getLogger(OrderDAO.class.getName()).log(Level.SEVERE, null, ex);
+            return false;
+        }
+    }
+
+    /**
+     * Recalculate and update the TotalAmount and FinalAmount of an order
+     * based on its current OrderItems.
+     */
+    public boolean updateOrderTotal(int orderId) {
+        String sql = "UPDATE Orders SET TotalAmount = "
+                + "(SELECT ISNULL(SUM(Quantity * UnitPrice), 0) FROM OrderItems WHERE OrderID = ?), "
+                + "FinalAmount = "
+                + "(SELECT ISNULL(SUM(Quantity * UnitPrice), 0) FROM OrderItems WHERE OrderID = ?) "
+                + "- DiscountAmount + DeliveryFee "
+                + "WHERE OrderID = ?";
+        try {
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setInt(1, orderId);
+            st.setInt(2, orderId);
+            st.setInt(3, orderId);
+            return st.executeUpdate() > 0;
+        } catch (SQLException ex) {
+            Logger.getLogger(OrderDAO.class.getName()).log(Level.SEVERE, null, ex);
+            return false;
+        }
+    }
+
+    /**
+     * Create an order for a walk-in customer (Staff POS).
+     * Inserts a temporary customer record if needed, then creates the order.
+     * Returns the generated OrderID, or -1 on failure.
+     */
+    public int createOrderForStaff(Order order, String customerName, String customerPhone, String deliveryAddress) {
+        // For staff orders, we need a valid CustomerID. 
+        // We'll use the staff user ID from session or create a guest user approach
+        String sql = "INSERT INTO Orders (RestaurantID, CustomerID, OrderType, TableID, OrderStatus, "
+                + "DiscountID, TotalAmount, DiscountAmount, DeliveryFee, FinalAmount, "
+                + "PaymentMethod, PaymentStatus, IsClosed, CreatedAt) "
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        try {
+            // Get or create a guest customer ID
+            int guestCustomerId = getOrCreateGuestCustomer();
+            
+            PreparedStatement st = connection.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS);
+            st.setInt(1, order.getRestaurantID());
+            st.setInt(2, guestCustomerId); // Use valid guest customer ID
+            st.setString(3, order.getOrderType());
+            if (order.getTableID() != null) {
+                st.setInt(4, order.getTableID());
+            } else {
+                st.setNull(4, java.sql.Types.INTEGER);
+            }
+            st.setString(5, order.getOrderStatus());
+            if (order.getDiscountID() != null) {
+                st.setInt(6, order.getDiscountID());
+            } else {
+                st.setNull(6, java.sql.Types.INTEGER);
+            }
+            st.setDouble(7, order.getTotalAmount());
+            st.setDouble(8, order.getDiscountAmount());
+            st.setDouble(9, order.getDeliveryFee());
+            st.setDouble(10, order.getFinalAmount());
+            st.setString(11, order.getPaymentMethod());
+            st.setString(12, order.getPaymentStatus() != null ? order.getPaymentStatus() : "Pending");
+            st.setBoolean(13, false);
+            st.setTimestamp(14, new Timestamp(System.currentTimeMillis()));
+
+            int affectedRows = st.executeUpdate();
+            if (affectedRows > 0) {
+                try (ResultSet generatedKeys = st.getGeneratedKeys()) {
+                    if (generatedKeys.next()) {
+                        int orderId = generatedKeys.getInt(1);
+                        // Store delivery address if provided
+                        if (deliveryAddress != null && !deliveryAddress.trim().isEmpty()) {
+                            saveDeliveryInfo(orderId, deliveryAddress, customerName, customerPhone);
+                        }
+                        return orderId;
+                    }
+                }
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(OrderDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return -1;
+    }
+
+    /**
+     * Get or create a guest customer for staff orders
+     */
+    private int getOrCreateGuestCustomer() throws SQLException {
+        // First try to find existing guest customer
+        String findSql = "SELECT UserID FROM Users WHERE Email = 'guest@system.local' AND RoleID = 4";
+        PreparedStatement findSt = connection.prepareStatement(findSql);
+        ResultSet rs = findSt.getResultSet();
+        
+        try (PreparedStatement st = connection.prepareStatement(findSql)) {
+            rs = st.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("UserID");
+            }
+        }
+        
+        // If not found, create guest customer
+        String createSql = "INSERT INTO Users (FullName, Email, PasswordHash, Phone, RoleID, IsActive, CreatedAt) " +
+                          "VALUES ('Khách lẻ', 'guest@system.local', 'N/A', '0000000000', 4, 1, GETDATE())";
+        try (PreparedStatement createSt = connection.prepareStatement(createSql, PreparedStatement.RETURN_GENERATED_KEYS)) {
+            createSt.executeUpdate();
+            try (ResultSet generatedKeys = createSt.getGeneratedKeys()) {
+                if (generatedKeys.next()) {
+                    return generatedKeys.getInt(1);
+                }
+            }
+        }
+        
+        // Fallback: return 1 (assuming there's always a user with ID 1)
+        return 1;
+    }
+
+    /**
+     * Save delivery info for an order (used for Online/Delivery orders).
+     */
+    private void saveDeliveryInfo(int orderId, String address, String recipientName, String phone) {
+        String sql = "IF EXISTS (SELECT 1 FROM DeliveryInfo WHERE OrderID = ?) "
+                + "UPDATE DeliveryInfo SET Address = ?, RecipientName = ?, Phone = ? WHERE OrderID = ? "
+                + "ELSE "
+                + "INSERT INTO DeliveryInfo (OrderID, Address, RecipientName, Phone) VALUES (?, ?, ?, ?)";
+        try {
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setInt(1, orderId);
+            st.setString(2, address);
+            st.setString(3, recipientName);
+            st.setString(4, phone);
+            st.setInt(5, orderId);
+            st.setInt(6, orderId);
+            st.setString(7, address);
+            st.setString(8, recipientName);
+            st.setString(9, phone);
+            st.executeUpdate();
+        } catch (SQLException ex) {
+            // DeliveryInfo table may not exist, log but don't fail the order creation
+            Logger.getLogger(OrderDAO.class.getName()).log(Level.WARNING,
+                    "Could not save delivery info for order " + orderId + ": " + ex.getMessage(), ex);
+        }
     }
 }
