@@ -42,14 +42,27 @@ public class LoginController extends HttpServlet {
         if (u != null) {
             HttpSession session = request.getSession();
             session.setAttribute("user", u);
-
-            // Owner (RoleID=2) and Staff (RoleID=3) may belong to multiple restaurants.
-            // Store the full list so invoice/order queries can filter by all assigned
-            // restaurants.
-            if (u.getRoleID() == 2 || u.getRoleID() == 3) {
+            // Handle Restaurant IDs for session
+            if (u.getRoleID() == 2) {
+                // Owner
+                dal.RestaurantDAO rdao = new dal.RestaurantDAO();
+                models.Restaurant r = rdao.getRestaurantByOwnerId(u.getUserID());
+                List<Integer> rList = new java.util.ArrayList<>();
+                if (r != null) {
+                    session.setAttribute("restaurantId", r.getRestaurantId());
+                    rList.add(r.getRestaurantId());
+                } else {
+                    Integer restaurantId = udao.getRestaurantIdByUserId(u.getUserID());
+                    if (restaurantId != null) {
+                        session.setAttribute("restaurantId", restaurantId);
+                        rList.add(restaurantId);
+                    }
+                }
+                session.setAttribute("restaurantIds", rList);
+            } else if (u.getRoleID() == 3) {
+                // Staff
                 List<Integer> restaurantIds = udao.getRestaurantIdsByUserId(u.getUserID());
                 if (!restaurantIds.isEmpty()) {
-                    // Keep single-value shortcut for legacy code that reads "restaurantId"
                     session.setAttribute("restaurantId", restaurantIds.get(0));
                     session.setAttribute("restaurantIds", restaurantIds);
                 }

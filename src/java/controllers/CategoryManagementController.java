@@ -233,11 +233,11 @@ public class CategoryManagementController extends HttpServlet {
 
     private Restaurant getRestaurantFromSession(HttpServletRequest request) {
         HttpSession session = request.getSession(false);
-        if (session == null || session.getAttribute("user") == null) {
+        if (session == null || session.getAttribute("restaurantId") == null) {
             return null;
         }
-        User user = (User) session.getAttribute("user");
+        int restaurantId = (int) session.getAttribute("restaurantId");
         RestaurantDAO restaurantDAO = new RestaurantDAO();
-        return restaurantDAO.getRestaurantByOwnerId(user.getUserID());
+        return restaurantDAO.getRestaurantById(restaurantId);
     }
 }

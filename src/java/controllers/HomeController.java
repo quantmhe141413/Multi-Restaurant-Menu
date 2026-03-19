@@ -21,6 +21,15 @@ public class HomeController extends HttpServlet {
         String cuisine = request.getParameter("cuisine");
         RestaurantDAO rdao = new RestaurantDAO();
         List<Restaurant> restaurants = rdao.getApprovedRestaurants(search, zone, cuisine);
+        dal.ReviewDAO reviewDAO = new dal.ReviewDAO();
+        java.util.Map<Integer, double[]> ratingSummary = reviewDAO.getRatingSummaryForAllRestaurants();
+        for (Restaurant r : restaurants) {
+            double[] data = ratingSummary.get(r.getRestaurantId());
+            if (data != null) {
+                r.setAverageRating(Double.valueOf(data[0]));
+                r.setReviewCount((int) data[1]);
+            }
+        }
         request.setAttribute("restaurants", restaurants);
         request.setAttribute("zones", rdao.getActiveZoneNames());
         request.setAttribute("cuisines", rdao.getAvailableCuisines());
