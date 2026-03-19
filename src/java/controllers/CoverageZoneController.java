@@ -2,6 +2,7 @@ package controllers;
 
 import dal.RestaurantDeliveryZoneDAO;
 import dal.DeliveryFeeDAO;
+import dal.RestaurantDAO;
 import models.RestaurantDeliveryZone;
 import models.DeliveryFee;
 import models.DeliveryFeeHistory;
@@ -174,7 +175,8 @@ public class CoverageZoneController extends HttpServlet {
         }
         
         RestaurantDeliveryZoneDAO zoneDAO = new RestaurantDeliveryZoneDAO();
-        
+        RestaurantDAO restaurantDAO = new RestaurantDAO();
+
         // Determine restaurant ID based on role
         if (user.getRoleID() == 1) {
             // SuperAdmin - can add for any restaurant
@@ -187,6 +189,13 @@ public class CoverageZoneController extends HttpServlet {
                 session.setAttribute("toastType", "error");
                 response.sendRedirect(request.getContextPath() + "/coverage-zone?action=list");
                 return;
+            }
+            // Load restaurant info to populate the dropdown
+            models.Restaurant restaurant = restaurantDAO.getRestaurantById(restaurantId);
+            if (restaurant != null) {
+                java.util.List<models.Restaurant> restaurants = new java.util.ArrayList<>();
+                restaurants.add(restaurant);
+                request.setAttribute("restaurants", restaurants);
             }
             request.setAttribute("currentRestaurantId", restaurantId);
         } else {

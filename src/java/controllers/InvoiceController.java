@@ -60,42 +60,38 @@ public class InvoiceController extends HttpServlet {
             throws ServletException, IOException {
         HttpSession session = request.getSession();
         models.User user = (models.User) session.getAttribute("user");
-        
-        // Check if user is logged in
+
         if (user == null) {
             response.sendRedirect(request.getContextPath() + "/login");
             return;
         }
-        
-        // Determine restaurant ID based on role
-        Integer restaurantId = null;
-        
+
+        // Determine restaurant filter based on role
+        List<Integer> restaurantIds = null;
+
         if (user.getRoleID() == 1) {
-            // SuperAdmin - can view all invoices from all restaurants
-            restaurantId = null;
-            // If restaurantId is null, DAO will return all invoices
+            // SuperAdmin - sees all invoices, restaurantIds stays null
         } else if (user.getRoleID() == 2 || user.getRoleID() == 3) {
-            // Owner or Staff - can only view their own restaurant's invoices
-            restaurantId = (Integer) session.getAttribute("restaurantId");
-            if (restaurantId == null) {
+            // Owner/Staff - filter by all restaurants they are assigned to
+            @SuppressWarnings("unchecked")
+            List<Integer> ids = (List<Integer>) session.getAttribute("restaurantIds");
+            if (ids == null || ids.isEmpty()) {
                 session.setAttribute("toastMessage", "You must be assigned to a restaurant to view invoices");
                 session.setAttribute("toastType", "error");
                 response.sendRedirect(request.getContextPath() + "/home");
                 return;
             }
+            restaurantIds = ids;
         } else {
-            // Other roles don't have access
             session.setAttribute("toastMessage", "You don't have permission to view invoices");
             session.setAttribute("toastType", "error");
             response.sendRedirect(request.getContextPath() + "/home");
             return;
         }
-        
-        // Get filter parameters
+
         String fromDate = request.getParameter("fromDate");
         String toDate = request.getParameter("toDate");
-        
-        // Get pagination parameters
+
         int page = 1;
         int pageSize = 10;
         String pageStr = request.getParameter("page");
@@ -107,17 +103,12 @@ public class InvoiceController extends HttpServlet {
                 page = 1;
             }
         }
-        
+
         InvoiceDAO invoiceDAO = new InvoiceDAO();
-        
-        // Get invoices based on role and filters
-        List<Invoice> invoices = invoiceDAO.findInvoicesWithFilters(
-                restaurantId, fromDate, toDate, page, pageSize);
-        
-        int totalInvoices = invoiceDAO.getTotalFilteredInvoices(restaurantId, fromDate, toDate);
+        List<Invoice> invoices = invoiceDAO.findInvoicesWithFilters(restaurantIds, fromDate, toDate, page, pageSize);
+        int totalInvoices = invoiceDAO.getTotalFilteredInvoices(restaurantIds, fromDate, toDate);
         int totalPages = (int) Math.ceil((double) totalInvoices / pageSize);
-        
-        // Set attributes for JSP
+
         request.setAttribute("invoices", invoices);
         request.setAttribute("currentPage", page);
         request.setAttribute("totalPages", totalPages);
@@ -125,7 +116,7 @@ public class InvoiceController extends HttpServlet {
         request.setAttribute("fromDate", fromDate);
         request.setAttribute("toDate", toDate);
         request.setAttribute("userRole", user.getRoleID());
-        
+
         request.getRequestDispatcher("/views/owner/invoice-list.jsp").forward(request, response);
     }
 
@@ -170,9 +161,10 @@ public class InvoiceController extends HttpServlet {
             
             // Check permission based on role
             if (user.getRoleID() == 2 || user.getRoleID() == 3) {
-                // Owner or Staff - verify the invoice belongs to their restaurant
-                Integer restaurantId = (Integer) session.getAttribute("restaurantId");
-                if (restaurantId == null || !invoice.getRestaurantId().equals(restaurantId)) {
+                // Owner or Staff - verify the invoice belongs to one of their restaurants
+                @SuppressWarnings("unchecked")
+                List<Integer> restaurantIds = (List<Integer>) session.getAttribute("restaurantIds");
+                if (restaurantIds == null || !restaurantIds.contains(invoice.getRestaurantId())) {
                     session.setAttribute("toastMessage", "Access denied - This invoice does not belong to your restaurant");
                     session.setAttribute("toastType", "error");
                     response.sendRedirect(request.getContextPath() + "/invoice?action=list");
@@ -230,8 +222,9 @@ public class InvoiceController extends HttpServlet {
             
             // Check permission based on role
             if (user.getRoleID() == 2 || user.getRoleID() == 3) {
-                Integer restaurantId = (Integer) session.getAttribute("restaurantId");
-                if (restaurantId == null || !invoice.getRestaurantId().equals(restaurantId)) {
+                @SuppressWarnings("unchecked")
+                List<Integer> restaurantIds = (List<Integer>) session.getAttribute("restaurantIds");
+                if (restaurantIds == null || !restaurantIds.contains(invoice.getRestaurantId())) {
                     session.setAttribute("toastMessage", "Access denied - This invoice does not belong to your restaurant");
                     session.setAttribute("toastType", "error");
                     response.sendRedirect(request.getContextPath() + "/invoice?action=list");

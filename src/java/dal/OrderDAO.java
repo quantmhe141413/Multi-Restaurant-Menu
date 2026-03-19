@@ -16,9 +16,9 @@ import models.OrderItem;
 public class OrderDAO extends DBContext {
 
     public int createOrder(Order order) {
-        String sql = "INSERT INTO Orders (RestaurantID, CustomerID, OrderType, TableID, OrderStatus, DiscountID, TotalAmount, DiscountAmount, DeliveryFee, FinalAmount, PaymentMethod, PaymentStatus, IsClosed, CreatedAt) "
-                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        
+        String sql = "INSERT INTO Orders (RestaurantID, CustomerID, OrderType, TableID, OrderStatus, DiscountID, TotalAmount, DiscountAmount, FinalAmount, PaymentMethod, PaymentStatus, IsClosed, CreatedAt) "
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
         try {
             PreparedStatement st = connection.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS);
             st.setInt(1, order.getRestaurantID());
@@ -37,15 +37,14 @@ public class OrderDAO extends DBContext {
             }
             st.setDouble(7, order.getTotalAmount());
             st.setDouble(8, order.getDiscountAmount());
-            st.setDouble(9, order.getDeliveryFee());
-            st.setDouble(10, order.getFinalAmount());
-            st.setString(11, order.getPaymentMethod());
-            st.setString(12, order.getPaymentStatus() != null ? order.getPaymentStatus() : "Pending");
-            st.setBoolean(13, false); // IsClosed = false khi mới tạo
-            st.setTimestamp(14, new Timestamp(System.currentTimeMillis()));
-            
+            st.setDouble(9, order.getFinalAmount());
+            st.setString(10, order.getPaymentMethod());
+            st.setString(11, order.getPaymentStatus() != null ? order.getPaymentStatus() : "Pending");
+            st.setBoolean(12, false); // IsClosed = false khi mới tạo
+            st.setTimestamp(13, new Timestamp(System.currentTimeMillis()));
+
             int affectedRows = st.executeUpdate();
-            
+
             if (affectedRows > 0) {
                 try (ResultSet generatedKeys = st.getGeneratedKeys()) {
                     if (generatedKeys.next()) {
@@ -62,7 +61,7 @@ public class OrderDAO extends DBContext {
     public boolean createOrderItem(OrderItem orderItem) {
         String sql = "INSERT INTO OrderItems (OrderID, ItemID, Quantity, UnitPrice, Note, CreatedAt) "
                 + "VALUES (?, ?, ?, ?, ?, ?)";
-        
+
         try {
             PreparedStatement st = connection.prepareStatement(sql);
             st.setInt(1, orderItem.getOrderID());
@@ -75,7 +74,7 @@ public class OrderDAO extends DBContext {
                 st.setNull(5, java.sql.Types.NVARCHAR);
             }
             st.setTimestamp(6, new Timestamp(System.currentTimeMillis()));
-            
+
             return st.executeUpdate() > 0;
         } catch (SQLException ex) {
             Logger.getLogger(OrderDAO.class.getName()).log(Level.SEVERE, null, ex);
@@ -86,56 +85,56 @@ public class OrderDAO extends DBContext {
     public List<Order> getOrdersByCustomer(int customerID) {
         List<Order> list = new ArrayList<>();
         String sql = "SELECT * FROM Orders WHERE CustomerID = ? ORDER BY CreatedAt DESC";
-        
+
         try {
             PreparedStatement st = connection.prepareStatement(sql);
             st.setInt(1, customerID);
             ResultSet rs = st.executeQuery();
-            
+
             while (rs.next()) {
                 list.add(mapOrder(rs));
             }
         } catch (SQLException ex) {
             Logger.getLogger(OrderDAO.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
+
         return list;
     }
 
     public Order getOrderById(int orderID) {
         String sql = "SELECT * FROM Orders WHERE OrderID = ?";
-        
+
         try {
             PreparedStatement st = connection.prepareStatement(sql);
             st.setInt(1, orderID);
             ResultSet rs = st.executeQuery();
-            
+
             if (rs.next()) {
                 return mapOrder(rs);
             }
         } catch (SQLException ex) {
             Logger.getLogger(OrderDAO.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
+
         return null;
     }
 
     public List<OrderItem> getOrderItemsByOrderId(int orderID) {
         List<OrderItem> list = new ArrayList<>();
         String sql = "SELECT * FROM OrderItems WHERE OrderID = ?";
-        
+
         try {
             PreparedStatement st = connection.prepareStatement(sql);
             st.setInt(1, orderID);
             ResultSet rs = st.executeQuery();
-            
+
             while (rs.next()) {
                 list.add(mapOrderItem(rs));
             }
         } catch (SQLException ex) {
             Logger.getLogger(OrderDAO.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
+
         return list;
     }
 
@@ -156,7 +155,6 @@ public class OrderDAO extends DBContext {
         }
         order.setTotalAmount(rs.getDouble("TotalAmount"));
         order.setDiscountAmount(rs.getDouble("DiscountAmount"));
-        order.setDeliveryFee(rs.getDouble("DeliveryFee"));
         order.setFinalAmount(rs.getDouble("FinalAmount"));
         order.setPaymentMethod(rs.getString("PaymentMethod"));
         order.setPaymentStatus(rs.getString("PaymentStatus"));
@@ -181,10 +179,11 @@ public class OrderDAO extends DBContext {
     }
 
     // Payment Methods
-    public boolean createPayment(int orderID, int customerID, String paymentType, String txnRef, long amount) throws SQLException {
+    public boolean createPayment(int orderID, int customerID, String paymentType, String txnRef, long amount)
+            throws SQLException {
         String sql = "INSERT INTO Payments (OrderID, CustomerID, PaymentType, TransactionRef, Amount, PaymentStatus, CreatedAt) "
                 + "VALUES (?, ?, ?, ?, ?, 'Pending', GETDATE())";
-        
+
         try {
             PreparedStatement st = connection.prepareStatement(sql);
             st.setInt(1, orderID);
@@ -192,7 +191,7 @@ public class OrderDAO extends DBContext {
             st.setString(3, paymentType);
             st.setString(4, txnRef);
             st.setLong(5, amount);
-            
+
             return st.executeUpdate() > 0;
         } catch (SQLException ex) {
             Logger.getLogger(OrderDAO.class.getName()).log(Level.SEVERE, null, ex);
@@ -201,12 +200,12 @@ public class OrderDAO extends DBContext {
     }
 
     public boolean updatePayment(String txnRef, String bankCode, String cardType, String payDate,
-                                 String responseCode, String transactionNo, String transactionStatus,
-                                 String secureHash, String paymentStatus) throws SQLException {
+            String responseCode, String transactionNo, String transactionStatus,
+            String secureHash, String paymentStatus) throws SQLException {
         String sql = "UPDATE Payments SET BankCode = ?, CardType = ?, PayDate = ?, ResponseCode = ?, "
                 + "TransactionNo = ?, TransactionStatus = ?, SecureHash = ?, PaymentStatus = ?, UpdatedAt = GETDATE() "
                 + "WHERE TransactionRef = ?";
-        
+
         try {
             PreparedStatement st = connection.prepareStatement(sql);
             st.setString(1, bankCode);
@@ -218,7 +217,7 @@ public class OrderDAO extends DBContext {
             st.setString(7, secureHash);
             st.setString(8, paymentStatus);
             st.setString(9, txnRef);
-            
+
             return st.executeUpdate() > 0;
         } catch (SQLException ex) {
             Logger.getLogger(OrderDAO.class.getName()).log(Level.SEVERE, null, ex);
@@ -228,7 +227,7 @@ public class OrderDAO extends DBContext {
 
     public boolean updateOrderPaymentStatus(int orderID, String paymentStatus, Timestamp paidAt) throws SQLException {
         String sql = "UPDATE Orders SET PaymentStatus = ?, PaidAt = ? WHERE OrderID = ?";
-        
+
         try {
             PreparedStatement st = connection.prepareStatement(sql);
             st.setString(1, paymentStatus);
@@ -238,7 +237,7 @@ public class OrderDAO extends DBContext {
                 st.setNull(2, java.sql.Types.TIMESTAMP);
             }
             st.setInt(3, orderID);
-            
+
             return st.executeUpdate() > 0;
         } catch (SQLException ex) {
             Logger.getLogger(OrderDAO.class.getName()).log(Level.SEVERE, null, ex);
@@ -248,12 +247,12 @@ public class OrderDAO extends DBContext {
 
     public int getOrderIdByTxnRef(String txnRef) throws SQLException {
         String sql = "SELECT OrderID FROM Payments WHERE TransactionRef = ?";
-        
+
         try {
             PreparedStatement st = connection.prepareStatement(sql);
             st.setString(1, txnRef);
             ResultSet rs = st.executeQuery();
-            
+
             if (rs.next()) {
                 return rs.getInt("OrderID");
             }
@@ -261,7 +260,7 @@ public class OrderDAO extends DBContext {
             Logger.getLogger(OrderDAO.class.getName()).log(Level.SEVERE, null, ex);
             throw ex;
         }
-        
+
         return -1;
     }
 
@@ -316,16 +315,16 @@ public class OrderDAO extends DBContext {
      * Get orders with filters for owner (date range, status).
      * If restaurantId is null, returns orders from ALL restaurants.
      */
-    public List<Order> getOrdersWithFilters(Integer restaurantId, String fromDate, String toDate, 
-                                            String status, int page, int pageSize) {
+    public List<Order> getOrdersWithFilters(Integer restaurantId, String fromDate, String toDate,
+            String status, int page, int pageSize) {
         List<Order> list = new ArrayList<>();
         StringBuilder sql = new StringBuilder();
         sql.append("SELECT o.*, u.FullName AS CustomerName, r.Name AS RestaurantName ")
-           .append("FROM Orders o ")
-           .append("JOIN Users u ON o.CustomerID = u.UserID ")
-           .append("JOIN Restaurants r ON o.RestaurantID = r.RestaurantID ")
-           .append("WHERE 1=1 ");
-        
+                .append("FROM Orders o ")
+                .append("JOIN Users u ON o.CustomerID = u.UserID ")
+                .append("JOIN Restaurants r ON o.RestaurantID = r.RestaurantID ")
+                .append("WHERE 1=1 ");
+
         if (restaurantId != null) {
             sql.append("AND o.RestaurantID = ? ");
         }
@@ -338,10 +337,10 @@ public class OrderDAO extends DBContext {
         if (status != null && !status.trim().isEmpty() && !status.equals("All")) {
             sql.append("AND o.OrderStatus = ? ");
         }
-        
+
         sql.append("ORDER BY o.CreatedAt DESC ")
-           .append("OFFSET ? ROWS FETCH NEXT ? ROWS ONLY");
-        
+                .append("OFFSET ? ROWS FETCH NEXT ? ROWS ONLY");
+
         try {
             PreparedStatement st = connection.prepareStatement(sql.toString());
             int idx = 1;
@@ -359,7 +358,7 @@ public class OrderDAO extends DBContext {
             }
             st.setInt(idx++, (page - 1) * pageSize);
             st.setInt(idx++, pageSize);
-            
+
             ResultSet rs = st.executeQuery();
             while (rs.next()) {
                 Order order = mapOrder(rs);
@@ -380,7 +379,7 @@ public class OrderDAO extends DBContext {
     public int countOrdersWithFilters(Integer restaurantId, String fromDate, String toDate, String status) {
         StringBuilder sql = new StringBuilder();
         sql.append("SELECT COUNT(*) FROM Orders WHERE 1=1 ");
-        
+
         if (restaurantId != null) {
             sql.append("AND RestaurantID = ? ");
         }
@@ -393,7 +392,7 @@ public class OrderDAO extends DBContext {
         if (status != null && !status.trim().isEmpty() && !status.equals("All")) {
             sql.append("AND OrderStatus = ? ");
         }
-        
+
         try {
             PreparedStatement st = connection.prepareStatement(sql.toString());
             int idx = 1;
@@ -409,7 +408,7 @@ public class OrderDAO extends DBContext {
             if (status != null && !status.trim().isEmpty() && !status.equals("All")) {
                 st.setString(idx++, status);
             }
-            
+
             ResultSet rs = st.executeQuery();
             if (rs.next()) {
                 return rs.getInt(1);
@@ -428,14 +427,14 @@ public class OrderDAO extends DBContext {
         Map<String, Object> stats = new HashMap<>();
         StringBuilder sql = new StringBuilder();
         sql.append("SELECT ")
-           .append("COUNT(*) AS TotalOrders, ")
-           .append("SUM(CASE WHEN OrderStatus = 'Completed' THEN 1 ELSE 0 END) AS CompletedOrders, ")
-           .append("SUM(CASE WHEN OrderStatus = 'Cancelled' THEN 1 ELSE 0 END) AS CancelledOrders, ")
-           .append("SUM(CASE WHEN OrderStatus = 'Completed' THEN FinalAmount ELSE 0 END) AS TotalRevenue, ")
-           .append("AVG(CASE WHEN OrderStatus = 'Completed' THEN FinalAmount ELSE NULL END) AS AvgOrderValue ")
-           .append("FROM Orders ")
-           .append("WHERE 1=1 ");
-        
+                .append("COUNT(*) AS TotalOrders, ")
+                .append("SUM(CASE WHEN OrderStatus = 'Completed' THEN 1 ELSE 0 END) AS CompletedOrders, ")
+                .append("SUM(CASE WHEN OrderStatus = 'Cancelled' THEN 1 ELSE 0 END) AS CancelledOrders, ")
+                .append("SUM(CASE WHEN OrderStatus = 'Completed' THEN FinalAmount ELSE 0 END) AS TotalRevenue, ")
+                .append("AVG(CASE WHEN OrderStatus = 'Completed' THEN FinalAmount ELSE NULL END) AS AvgOrderValue ")
+                .append("FROM Orders ")
+                .append("WHERE 1=1 ");
+
         if (restaurantId != null) {
             sql.append("AND RestaurantID = ? ");
         }
@@ -445,7 +444,7 @@ public class OrderDAO extends DBContext {
         if (toDate != null && !toDate.trim().isEmpty()) {
             sql.append("AND CAST(CreatedAt AS DATE) <= ? ");
         }
-        
+
         try {
             PreparedStatement st = connection.prepareStatement(sql.toString());
             int idx = 1;
@@ -458,7 +457,7 @@ public class OrderDAO extends DBContext {
             if (toDate != null && !toDate.trim().isEmpty()) {
                 st.setString(idx++, toDate);
             }
-            
+
             ResultSet rs = st.executeQuery();
             if (rs.next()) {
                 stats.put("totalOrders", rs.getInt("TotalOrders"));
@@ -489,7 +488,7 @@ public class OrderDAO extends DBContext {
             st.setInt(1, orderId);
             st.setInt(2, restaurantId);
             ResultSet rs = st.executeQuery();
-            
+
             if (rs.next()) {
                 Order order = mapOrder(rs);
                 order.setCustomerName(rs.getString("CustomerName"));
@@ -521,15 +520,15 @@ public class OrderDAO extends DBContext {
     /**
      * Get orders with filters for owner (date range, status).
      */
-    public List<Order> getOrdersWithFilters(int restaurantId, String fromDate, String toDate, 
-                                            String status, int page, int pageSize) {
+    public List<Order> getOrdersWithFilters(int restaurantId, String fromDate, String toDate,
+            String status, int page, int pageSize) {
         List<Order> list = new ArrayList<>();
         StringBuilder sql = new StringBuilder();
         sql.append("SELECT o.*, u.FullName AS CustomerName ")
-           .append("FROM Orders o ")
-           .append("JOIN Users u ON o.CustomerID = u.UserID ")
-           .append("WHERE o.RestaurantID = ? ");
-        
+                .append("FROM Orders o ")
+                .append("JOIN Users u ON o.CustomerID = u.UserID ")
+                .append("WHERE o.RestaurantID = ? ");
+
         if (fromDate != null && !fromDate.trim().isEmpty()) {
             sql.append("AND CAST(o.CreatedAt AS DATE) >= ? ");
         }
@@ -539,10 +538,10 @@ public class OrderDAO extends DBContext {
         if (status != null && !status.trim().isEmpty() && !status.equals("All")) {
             sql.append("AND o.OrderStatus = ? ");
         }
-        
+
         sql.append("ORDER BY o.CreatedAt DESC ")
-           .append("OFFSET ? ROWS FETCH NEXT ? ROWS ONLY");
-        
+                .append("OFFSET ? ROWS FETCH NEXT ? ROWS ONLY");
+
         try {
             PreparedStatement st = connection.prepareStatement(sql.toString());
             int idx = 1;
@@ -558,7 +557,7 @@ public class OrderDAO extends DBContext {
             }
             st.setInt(idx++, (page - 1) * pageSize);
             st.setInt(idx++, pageSize);
-            
+
             ResultSet rs = st.executeQuery();
             while (rs.next()) {
                 Order order = mapOrder(rs);
@@ -577,7 +576,7 @@ public class OrderDAO extends DBContext {
     public int countOrdersWithFilters(int restaurantId, String fromDate, String toDate, String status) {
         StringBuilder sql = new StringBuilder();
         sql.append("SELECT COUNT(*) FROM Orders WHERE RestaurantID = ? ");
-        
+
         if (fromDate != null && !fromDate.trim().isEmpty()) {
             sql.append("AND CAST(CreatedAt AS DATE) >= ? ");
         }
@@ -587,7 +586,7 @@ public class OrderDAO extends DBContext {
         if (status != null && !status.trim().isEmpty() && !status.equals("All")) {
             sql.append("AND OrderStatus = ? ");
         }
-        
+
         try {
             PreparedStatement st = connection.prepareStatement(sql.toString());
             int idx = 1;
@@ -601,7 +600,7 @@ public class OrderDAO extends DBContext {
             if (status != null && !status.trim().isEmpty() && !status.equals("All")) {
                 st.setString(idx++, status);
             }
-            
+
             ResultSet rs = st.executeQuery();
             if (rs.next()) {
                 return rs.getInt(1);
@@ -619,21 +618,21 @@ public class OrderDAO extends DBContext {
         Map<String, Object> stats = new HashMap<>();
         StringBuilder sql = new StringBuilder();
         sql.append("SELECT ")
-           .append("COUNT(*) AS TotalOrders, ")
-           .append("SUM(CASE WHEN OrderStatus = 'Completed' THEN 1 ELSE 0 END) AS CompletedOrders, ")
-           .append("SUM(CASE WHEN OrderStatus = 'Cancelled' THEN 1 ELSE 0 END) AS CancelledOrders, ")
-           .append("SUM(CASE WHEN OrderStatus = 'Completed' THEN FinalAmount ELSE 0 END) AS TotalRevenue, ")
-           .append("AVG(CASE WHEN OrderStatus = 'Completed' THEN FinalAmount ELSE NULL END) AS AvgOrderValue ")
-           .append("FROM Orders ")
-           .append("WHERE RestaurantID = ? ");
-        
+                .append("COUNT(*) AS TotalOrders, ")
+                .append("SUM(CASE WHEN OrderStatus = 'Completed' THEN 1 ELSE 0 END) AS CompletedOrders, ")
+                .append("SUM(CASE WHEN OrderStatus = 'Cancelled' THEN 1 ELSE 0 END) AS CancelledOrders, ")
+                .append("SUM(CASE WHEN OrderStatus = 'Completed' THEN FinalAmount ELSE 0 END) AS TotalRevenue, ")
+                .append("AVG(CASE WHEN OrderStatus = 'Completed' THEN FinalAmount ELSE NULL END) AS AvgOrderValue ")
+                .append("FROM Orders ")
+                .append("WHERE RestaurantID = ? ");
+
         if (fromDate != null && !fromDate.trim().isEmpty()) {
             sql.append("AND CAST(CreatedAt AS DATE) >= ? ");
         }
         if (toDate != null && !toDate.trim().isEmpty()) {
             sql.append("AND CAST(CreatedAt AS DATE) <= ? ");
         }
-        
+
         try {
             PreparedStatement st = connection.prepareStatement(sql.toString());
             int idx = 1;
@@ -644,7 +643,7 @@ public class OrderDAO extends DBContext {
             if (toDate != null && !toDate.trim().isEmpty()) {
                 st.setString(idx++, toDate);
             }
-            
+
             ResultSet rs = st.executeQuery();
             if (rs.next()) {
                 stats.put("totalOrders", rs.getInt("TotalOrders"));

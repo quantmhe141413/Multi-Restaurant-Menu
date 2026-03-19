@@ -46,9 +46,10 @@ public class InvoiceDAO extends DBContext {
 
     /**
      * Find invoices with filters (paginated).
-     * restaurantId = null → SuperAdmin sees all restaurants.
+     * restaurantIds = null or empty → SuperAdmin sees all restaurants.
+     * restaurantIds with values → Owner/Staff see only their assigned restaurants.
      */
-    public List<Invoice> findInvoicesWithFilters(Integer restaurantId, String fromDate,
+    public List<Invoice> findInvoicesWithFilters(List<Integer> restaurantIds, String fromDate,
                                                   String toDate, int page, int pageSize) {
         List<Invoice> invoices = new ArrayList<>();
         StringBuilder sql = new StringBuilder();
@@ -65,8 +66,13 @@ public class InvoiceDAO extends DBContext {
            .append("LEFT JOIN Payments p ON o.OrderID = p.OrderID ")
            .append("WHERE 1=1 ");
 
-        if (restaurantId != null) {
-            sql.append("AND r.RestaurantID = ? ");
+        // Build IN clause for multiple restaurant IDs
+        if (restaurantIds != null && !restaurantIds.isEmpty()) {
+            sql.append("AND r.RestaurantID IN (");
+            for (int i = 0; i < restaurantIds.size(); i++) {
+                sql.append(i == 0 ? "?" : ",?");
+            }
+            sql.append(") ");
         }
         if (fromDate != null && !fromDate.trim().isEmpty()) {
             sql.append("AND CAST(inv.IssuedDate AS DATE) >= ? ");
@@ -83,8 +89,10 @@ public class InvoiceDAO extends DBContext {
             statement = connection.prepareStatement(sql.toString());
 
             int idx = 1;
-            if (restaurantId != null) {
-                statement.setInt(idx++, restaurantId);
+            if (restaurantIds != null && !restaurantIds.isEmpty()) {
+                for (Integer rid : restaurantIds) {
+                    statement.setInt(idx++, rid);
+                }
             }
             if (fromDate != null && !fromDate.trim().isEmpty()) {
                 statement.setString(idx++, fromDate);
@@ -108,16 +116,30 @@ public class InvoiceDAO extends DBContext {
     }
 
     /**
-     * Total count for pagination.
+     * Overload for backward compatibility - single restaurantId.
+     * null → all restaurants (SuperAdmin).
      */
-    public int getTotalFilteredInvoices(Integer restaurantId, String fromDate, String toDate) {
+    public List<Invoice> findInvoicesWithFilters(Integer restaurantId, String fromDate,
+                                                  String toDate, int page, int pageSize) {
+        List<Integer> ids = (restaurantId != null) ? List.of(restaurantId) : null;
+        return findInvoicesWithFilters(ids, fromDate, toDate, page, pageSize);
+    }
+
+    /**
+     * Total count for pagination - supports multiple restaurant IDs.
+     */
+    public int getTotalFilteredInvoices(List<Integer> restaurantIds, String fromDate, String toDate) {
         StringBuilder sql = new StringBuilder();
         sql.append("SELECT COUNT(*) FROM Invoices inv ")
            .append("JOIN Orders o ON inv.OrderID = o.OrderID ")
            .append("WHERE 1=1 ");
 
-        if (restaurantId != null) {
-            sql.append("AND o.RestaurantID = ? ");
+        if (restaurantIds != null && !restaurantIds.isEmpty()) {
+            sql.append("AND o.RestaurantID IN (");
+            for (int i = 0; i < restaurantIds.size(); i++) {
+                sql.append(i == 0 ? "?" : ",?");
+            }
+            sql.append(") ");
         }
         if (fromDate != null && !fromDate.trim().isEmpty()) {
             sql.append("AND CAST(inv.IssuedDate AS DATE) >= ? ");
@@ -131,8 +153,10 @@ public class InvoiceDAO extends DBContext {
             statement = connection.prepareStatement(sql.toString());
 
             int idx = 1;
-            if (restaurantId != null) {
-                statement.setInt(idx++, restaurantId);
+            if (restaurantIds != null && !restaurantIds.isEmpty()) {
+                for (Integer rid : restaurantIds) {
+                    statement.setInt(idx++, rid);
+                }
             }
             if (fromDate != null && !fromDate.trim().isEmpty()) {
                 statement.setString(idx++, fromDate);
@@ -151,6 +175,14 @@ public class InvoiceDAO extends DBContext {
             closeResources();
         }
         return 0;
+    }
+
+    /**
+     * Overload for backward compatibility - single restaurantId.
+     */
+    public int getTotalFilteredInvoices(Integer restaurantId, String fromDate, String toDate) {
+        List<Integer> ids = (restaurantId != null) ? List.of(restaurantId) : null;
+        return getTotalFilteredInvoices(ids, fromDate, toDate);
     }
 
     /**

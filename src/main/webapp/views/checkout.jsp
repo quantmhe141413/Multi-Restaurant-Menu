@@ -345,15 +345,10 @@
                                         <input type="text" class="form-control" id="district" name="district" required>
                                     </div>
                                     <div class="form-group">
-                                        <label for="city">Khu vực giao hàng <span class="text-danger">*</span></label>
-                                        <select class="form-control" id="zoneId" name="zoneId" required>
-                                            <option value="">-- Chọn khu vực giao hàng --</option>
-                                            <c:forEach var="zone" items="${deliveryZones}">
-                                                <option value="${zone.zoneId}">${zone.zoneName}</option>
-                                            </c:forEach>
-                                        </select>
+                                        <label for="city">Tỉnh/Thành phố <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="city" name="city"
+                                            value="Hồ Chí Minh" required>
                                     </div>
-                                    <input type="hidden" id="deliveryFeeInput" name="deliveryFee" value="0">
                                     <div class="form-group">
                                         <label for="note">Ghi chú (tùy chọn)</label>
                                         <textarea class="form-control" id="note" name="note" rows="3"
@@ -410,29 +405,14 @@
                                         <fmt:formatNumber value="${totalAmount}" pattern="#,###" /> ₫
                                     </span>
                                 </div>
-                                <!-- Discount row (hidden by default, shown when a valid code is applied) -->
-                                <div class="total-row" id="discountRow"
-                                    style="display: ${not empty bestDiscount ? 'flex' : 'none'};">
-                                    <span class="total-label">Giảm giá:</span>
-                                    <span id="discountAmountText" style="color: #ff4757; font-weight: 600;">
-                                        <c:choose>
-                                            <c:when test="${not empty bestDiscount}">-
-                                                <fmt:formatNumber value="${maxDiscountGained}" pattern="#,###" /> ₫
-                                            </c:when>
-                                            <c:otherwise>- 0 ₫</c:otherwise>
-                                        </c:choose>
-                                    </span>
-                                </div>
-                                <div class="total-row" id="deliveryFeeRow">
+                                <div class="total-row">
                                     <span class="total-label">Phí giao hàng:</span>
-                                    <span id="deliveryFeeText">---</span>
+                                    <span>Miễn phí</span>
                                 </div>
                                 <div class="total-row" style="margin-top: 1rem;">
                                     <span style="font-weight: 600; font-size: 1.1rem;">Tổng cộng:</span>
-                                    <span class="total-amount" id="finalAmountText"
-                                        data-original-total="${totalAmount}">
-                                        <fmt:formatNumber value="${totalAmount - maxDiscountGained}" pattern="#,###" />
-                                        ₫
+                                    <span class="total-amount">
+                                        <fmt:formatNumber value="${totalAmount}" pattern="#,###" /> ₫
                                     </span>
                                 </div>
                             </div>
