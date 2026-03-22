@@ -1,0 +1,129 @@
+/* 
+   QuanTM Tasks Global Styles 
+   Aligned with Foodie Project Design System
+*/
+
+:root {
+    --primary: #ff4757;
+    --primary-hover: #ff6b81;
+    --secondary: #2f3542;
+    --background: #f1f2f6;
+    --white: #ffffff;
+    --text-main: #2f3542;
+    --text-muted: #57606f;
+    --border: #ced4da;
+    --radius: 16px;
+    --shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+/* Auth Screens (Matching .auth-layout and .login-card) */
+.auth-layout {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem 1rem;
+}
+
+.auth-card { /* Flexible name for register, forgot pass, etc. */
+    background-color: var(--white);
+    padding: 2.5rem;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    width: 100%;
+    max-width: 400px;
+}
+
+.auth-card h1 {
+    margin-top: 0;
+    font-size: 1.8rem;
+    color: var(--secondary);
+    text-align: center;
+}
+
+/* Form elements matching .btn-submit and .form-group */
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: var(--text-muted);
+}
+
+.form-group input, .form-group select, .form-group textarea {
+    width: 100%;
+    padding: 0.8rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-sizing: border-box;
+    outline: none;
+    transition: border-color 0.3s;
+}
+
+.form-group input:focus, .form-group select:focus {
+    border-color: var(--primary);
+}
+
+.btn-submit {
+    width: 100%;
+    padding: 0.9rem;
+    background-color: var(--primary);
+    color: var(--white);
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.btn-submit:hover {
+    background-color: var(--primary-hover);
+}
+
+/* Dashboard & Analytics (Shared components for QuanTM tasks) */
+.dashboard-card {
+    background: var(--white);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    border: 1px solid rgba(0,0,0,0.05);
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.dashboard-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow);
+}
+
+.stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--primary);
+}
+
+/* Tables Customization */
+.table-custom {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    background: var(--white);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+
+.table-custom th {
+    background: #f8f9fa;
+    padding: 1rem;
+    color: var(--secondary);
+    font-weight: 600;
+}
+
+.table-custom td {
+    padding: 1rem;
+    border-top: 1px solid var(--background);
+}

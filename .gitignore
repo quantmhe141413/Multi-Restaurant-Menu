@@ -27,5 +27,8 @@ Thumbs.db
 *.iml
 .vscode/
 
+# Kiro AI assistant files
+.kiro/
+
 # Database backup files
 *.sql~
