@@ -8,6 +8,7 @@ public class RestaurantTable {
     private String tableNumber;
     private int capacity;
     private String tableStatus;
+    private boolean isActive;
     private Timestamp createdAt;
 
     public RestaurantTable() {
@@ -51,6 +52,14 @@ public class RestaurantTable {
 
     public void setTableStatus(String tableStatus) {
         this.tableStatus = tableStatus;
+    }
+
+    public boolean isActive() {
+        return isActive;
+    }
+
+    public void setActive(boolean isActive) {
+        this.isActive = isActive;
     }
 
     public Timestamp getCreatedAt() {
