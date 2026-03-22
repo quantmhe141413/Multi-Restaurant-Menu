@@ -199,6 +199,9 @@
                     <div class="register-link">
                         Don't have an account? <a href="register">Register here</a>
                     </div>
+                    <div class="register-link" style="margin-top: 10px; border-top: 1px dashed #ced4da; padding-top: 10px;">
+                        Are you a restaurant owner? <a href="register?role=owner" style="color: #2ed573;">Register your restaurant</a>
+                    </div>
                 </div>
             </main>
 
