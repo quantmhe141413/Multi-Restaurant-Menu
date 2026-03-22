@@ -26,6 +26,7 @@ public class UserDAO extends DBContext {
                 u.setRoleID(rs.getInt("RoleID"));
                 u.setIsActive(rs.getBoolean("IsActive"));
                 u.setPhone(rs.getString("Phone"));
+                u.setPasswordHash(rs.getString("PasswordHash"));
                 u.setCreatedAt(rs.getTimestamp("CreatedAt"));
                 return u;
             }
@@ -63,13 +64,14 @@ public class UserDAO extends DBContext {
      * Returns null if user has no restaurant assignment.
      */
     public Integer getRestaurantIdByUserId(int userId) {
-        String sql = "SELECT TOP 1 RestaurantID FROM RestaurantUsers " +
-                     "WHERE UserID = ? AND IsActive = 1 " +
-                     "ORDER BY CASE WHEN RestaurantRole = 'Owner' THEN 0 ELSE 1 END, RestaurantID";
+        String sql = "SELECT RestaurantID FROM Restaurants WHERE OwnerID = ? " +
+                     "UNION " +
+                     "SELECT RestaurantID FROM RestaurantUsers WHERE UserID = ? AND IsActive = 1";
         try {
             connection = getConnection();
             PreparedStatement st = connection.prepareStatement(sql);
             st.setInt(1, userId);
+            st.setInt(2, userId);
             ResultSet rs = st.executeQuery();
             if (rs.next()) {
                 return rs.getInt("RestaurantID");
@@ -152,6 +154,21 @@ public class UserDAO extends DBContext {
             PreparedStatement st = connection.prepareStatement(sql);
             st.setString(1, newPassword);
             st.setString(2, token);
+            int rowsAffected = st.executeUpdate();
+            return rowsAffected > 0;
+        } catch (SQLException ex) {
+            Logger.getLogger(UserDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return false;
+    }
+
+    // Update password for a user by userId (used for change-password flow)
+    public boolean updatePassword(int userId, String newPasswordHash) {
+        String sql = "UPDATE Users SET PasswordHash = ? WHERE UserID = ?";
+        try {
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setString(1, newPasswordHash);
+            st.setInt(2, userId);
             int rowsAffected = st.executeUpdate();
             return rowsAffected > 0;
         } catch (SQLException ex) {
