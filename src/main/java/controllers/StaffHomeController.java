@@ -59,9 +59,13 @@ public class StaffHomeController extends HttpServlet {
             }
         }
 
+        // Get today's orders for the restaurant (first 50 orders)
+        List<Order> orders = orderDAO.getOrdersByRestaurant(restaurantId, 1, 50);
+        
         request.setAttribute("restaurant", restaurant);
         request.setAttribute("tables", tables);
         request.setAttribute("tableHasUnpaidOrders", tableHasUnpaidOrders);
+        request.setAttribute("orders", orders);
 
         request.getRequestDispatcher("/views/staff/staff-home.jsp").forward(request, response);
     }

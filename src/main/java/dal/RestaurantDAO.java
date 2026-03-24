@@ -385,4 +385,78 @@ public class RestaurantDAO extends DBContext {
             System.out.println("Connection failed!");
         }
     }
+    
+    // Pagination methods
+    public List<Restaurant> getApprovedRestaurants(String search, String zone, String cuisine, int page, int pageSize) {
+        List<Restaurant> list = new ArrayList<>();
+        StringBuilder sql = new StringBuilder();
+        sql.append("SELECT DISTINCT r.* FROM Restaurants r ");
+        sql.append("LEFT JOIN RestaurantDeliveryZones dz ON r.RestaurantID = dz.RestaurantID ");
+        sql.append("WHERE r.Status = 'Approved'");
+        List<String> params = new ArrayList<>();
+
+        if (search != null && !search.trim().isEmpty()) {
+            sql.append(" AND r.Name LIKE ?");
+            params.add("%" + search.trim() + "%");
+        }
+
+        if (zone != null && !zone.trim().isEmpty()) {
+            sql.append(" AND dz.ZoneName = ?");
+            params.add(zone.trim());
+        }
+
+        sql.append(" ORDER BY r.Name ");
+        sql.append("OFFSET ? ROWS FETCH NEXT ? ROWS ONLY");
+        
+        try {
+            PreparedStatement st = connection.prepareStatement(sql.toString());
+            int idx = 1;
+            for (String param : params) {
+                st.setString(idx++, param);
+            }
+            st.setInt(idx++, (page - 1) * pageSize);
+            st.setInt(idx++, pageSize);
+            
+            ResultSet rs = st.executeQuery();
+            while (rs.next()) {
+                list.add(mapRestaurant(rs));
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(RestaurantDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return list;
+    }
+    
+    public int countApprovedRestaurants(String search, String zone, String cuisine) {
+        StringBuilder sql = new StringBuilder();
+        sql.append("SELECT COUNT(DISTINCT r.RestaurantID) FROM Restaurants r ");
+        sql.append("LEFT JOIN RestaurantDeliveryZones dz ON r.RestaurantID = dz.RestaurantID ");
+        sql.append("WHERE r.Status = 'Approved'");
+        List<String> params = new ArrayList<>();
+
+        if (search != null && !search.trim().isEmpty()) {
+            sql.append(" AND r.Name LIKE ?");
+            params.add("%" + search.trim() + "%");
+        }
+
+        if (zone != null && !zone.trim().isEmpty()) {
+            sql.append(" AND dz.ZoneName = ?");
+            params.add(zone.trim());
+        }
+
+        try {
+            PreparedStatement st = connection.prepareStatement(sql.toString());
+            int idx = 1;
+            for (String param : params) {
+                st.setString(idx++, param);
+            }
+            ResultSet rs = st.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(RestaurantDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return 0;
+    }
 }
