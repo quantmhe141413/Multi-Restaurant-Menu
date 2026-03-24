@@ -1,5 +1,4 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-
     <!DOCTYPE html>
     <html lang="en">
 
@@ -171,22 +170,8 @@
         <main class="auth-layout">
             <div class="register-card">
                 <h1>Create Account</h1>
-                <%
-                    String roleParam = request.getParameter("role");
-                    String initialRoleAttr = (String) request.getAttribute("initialRole");
-                    boolean isOwnerReg = "owner".equals(roleParam) || "owner".equals(initialRoleAttr);
-                    String roleIDValue = isOwnerReg ? "2" : "4";
-                    String roleIcon = isOwnerReg ? "fa-store" : "fa-user";
-                    String roleLabel = isOwnerReg ? "Restaurant Owner Registration" : "Customer Registration";
-                %>
-                <form action="register?role=<%= isOwnerReg ? "owner" : "customer" %>" method="post" id="registerForm">
-                    <input type="hidden" name="roleID" id="roleIDHidden" value="<%= roleIDValue %>">
-                    <div style="margin-bottom: 20px; padding: 10px; background-color: #f1f2f6; border-radius: 8px; text-align: center; border-left: 4px solid var(--primary);">
-                        <h2 style="margin: 0; font-size: 1.2rem; color: var(--secondary);">
-                            <i class="fas <%= roleIcon %>"></i> 
-                            <%= roleLabel %>
-                        </h2>
-                    </div>
+                <form action="register" method="post" id="registerForm">
+                    <input type="hidden" name="roleID" value="4">
                     <div class="form-group">
                         <label for="fullName">Full Name</label>
                         <input type="text" id="fullName" name="fullName" required>
@@ -206,29 +191,6 @@
                     <div class="form-group">
                         <label for="phone">Phone Number</label>
                         <input type="tel" id="phone" name="phone" required>
-                    </div>
-
-                    <!-- Restaurant Details Section -->
-                    <div id="restaurantDetails" style="display: none; border: 1px solid #ddd; padding: 15px; border-radius: 8px; margin-bottom: 20px; background-color: #f9f9f9;">
-                        <h3 style="margin-top: 0; font-size: 1.1rem; color: var(--secondary); margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 8px;">
-                            <i class="fas fa-store"></i> Restaurant Information
-                        </h3>
-                        <div class="form-group">
-                            <label for="restaurantName">Restaurant Name</label>
-                            <input type="text" id="restaurantName" name="restaurantName">
-                        </div>
-                        <div class="form-group">
-                            <label for="restaurantAddress">Restaurant Address</label>
-                            <input type="text" id="restaurantAddress" name="restaurantAddress">
-                        </div>
-                        <div class="form-group">
-                            <label for="restaurantPhone">Restaurant Business Phone</label>
-                            <input type="tel" id="restaurantPhone" name="restaurantPhone">
-                        </div>
-                        <div class="form-group">
-                            <label for="restaurantDescription">Description</label>
-                            <textarea id="restaurantDescription" name="restaurantDescription" rows="3" style="width: 100%; padding: 0.8rem; border: 1px solid #ced4da; border-radius: 8px; box-sizing: border-box; outline: none; transition: border-color 0.3s;"></textarea>
-                        </div>
                     </div>
                     <button type="submit" class="btn-submit">Register</button>
                 </form>
@@ -252,36 +214,12 @@
             const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             const phonePattern = /^\d{8,}$/;
 
-            const restaurantDetails = document.getElementById('restaurantDetails');
-            const roleIDInput = document.getElementById('roleIDHidden');
-            const restaurantNameInput = document.getElementById('restaurantName');
-            const restaurantAddressInput = document.getElementById('restaurantAddress');
-
-            function toggleRestaurantFields() {
-                const isOwner = roleIDInput.value === '2';
-                
-                if (isOwner) {
-                    restaurantDetails.style.display = 'block';
-                    restaurantNameInput.required = true;
-                    restaurantAddressInput.required = true;
-                } else {
-                    restaurantDetails.style.display = 'none';
-                    restaurantNameInput.required = false;
-                    restaurantAddressInput.required = false;
-                }
-            }
-
-            // Trigger initially to handle pre-selected roles
-            toggleRestaurantFields();
-
             form.addEventListener('submit', function (event) {
                 const fullName = fullNameInput.value.trim();
                 const email = emailInput.value.trim();
                 const password = passwordInput.value.trim();
                 const confirmPassword = confirmPasswordInput.value.trim();
                 const phone = phoneInput.value.trim();
-
-                const isOwner = roleIDInput.value === '2';
 
                 if (fullName.length < 3) {
                     event.preventDefault();
@@ -310,22 +248,6 @@
                 if (!phonePattern.test(phone)) {
                     event.preventDefault();
                     Swal.fire('Invalid phone', 'Phone number must contain at least 8 digits.', 'warning');
-                    return;
-                }
-
-                if (isOwner) {
-                    const rName = restaurantNameInput.value.trim();
-                    const rAddress = restaurantAddressInput.value.trim();
-                    if (rName.length < 2) {
-                        event.preventDefault();
-                        Swal.fire('Invalid Restaurant Name', 'Please enter a valid restaurant name.', 'warning');
-                        return;
-                    }
-                    if (rAddress.length < 5) {
-                        event.preventDefault();
-                        Swal.fire('Invalid Restaurant Address', 'Please enter a valid restaurant address.', 'warning');
-                        return;
-                    }
                 }
             });
 

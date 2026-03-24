@@ -13,7 +13,6 @@ import models.User;
 @WebServlet(name = "RegisterController", urlPatterns = { "/register" })
 public class RegisterController extends HttpServlet {
 
-
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -32,19 +31,11 @@ public class RegisterController extends HttpServlet {
         String email = request.getParameter("email");
         String password = request.getParameter("password");
         String phone = request.getParameter("phone");
-        String roleIDParam = request.getParameter("roleID");
-
-        // Validate roleID: only allow 2 (Owner) or 4 (Customer) to prevent manipulation
-        int roleID = 4; // default to Customer
-        if ("2".equals(roleIDParam)) {
-            roleID = 2; // Restaurant Owner
-        }
+        final int customerRoleId = 4;
 
         UserDAO udao = new UserDAO();
         if (udao.checkEmailExists(email)) {
             request.setAttribute("error", "Email already exists!");
-            // Preserve the role so the form re-renders correctly
-            request.setAttribute("initialRole", roleID == 2 ? "owner" : "customer");
             request.getRequestDispatcher("views/register.jsp").forward(request, response);
             return;
         }
@@ -54,13 +45,12 @@ public class RegisterController extends HttpServlet {
         u.setEmail(email);
         u.setPasswordHash(password); // TODO: hash before storing
         u.setPhone(phone);
-        u.setRoleID(roleID);
+        u.setRoleID(customerRoleId);
 
         if (udao.register(u)) {
             response.sendRedirect("login?registered=1");
         } else {
             request.setAttribute("error", "Registration failed! Please try again.");
-            request.setAttribute("initialRole", roleID == 2 ? "owner" : "customer");
             request.getRequestDispatcher("views/register.jsp").forward(request, response);
         }
     }

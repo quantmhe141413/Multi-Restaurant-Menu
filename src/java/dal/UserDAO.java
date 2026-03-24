@@ -84,28 +84,22 @@ public class UserDAO extends DBContext {
         return null;
     }
 
-    public int register(User user) {
+    public boolean register(User user) {
         String sql = "INSERT INTO [dbo].[Users] ([FullName], [Email], [PasswordHash], [Phone], [RoleID], [IsActive], [CreatedAt]) "
                 + "VALUES (?, ?, ?, ?, ?, 1, GETDATE())";
         try {
-            PreparedStatement st = connection.prepareStatement(sql, java.sql.Statement.RETURN_GENERATED_KEYS);
+            PreparedStatement st = connection.prepareStatement(sql);
             st.setString(1, user.getFullName());
             st.setString(2, user.getEmail());
             st.setString(3, user.getPasswordHash());
             st.setString(4, user.getPhone());
             st.setInt(5, user.getRoleID());
-            int affectedRows = st.executeUpdate();
-            
-            if (affectedRows > 0) {
-                ResultSet rs = st.getGeneratedKeys();
-                if (rs.next()) {
-                    return rs.getInt(1);
-                }
-            }
+            st.executeUpdate();
+            return true;
         } catch (SQLException ex) {
             Logger.getLogger(UserDAO.class.getName()).log(Level.SEVERE, null, ex);
         }
-        return -1;
+        return false;
     }
 
     public boolean checkEmailExists(String email) {
