@@ -135,6 +135,13 @@
                 </a>
             </li>
             <li class="nav-item">
+                <a class="nav-link ${pageContext.request.requestURI.contains('storefront-customization') ? 'active' : ''}"
+                   href="${pageContext.request.contextPath}/storefront-customization">
+                    <i class="fas fa-paint-brush"></i>
+                    Restaurant Branding
+                </a>
+            </li>
+            <li class="nav-item">
                 <a class="nav-link ${pageContext.request.requestURI.contains('/admin/commission-history') ? 'active' : ''}"
                    href="${pageContext.request.contextPath}/admin/commission-history?action=list">
                     <i class="fas fa-clock-rotate-left"></i>
