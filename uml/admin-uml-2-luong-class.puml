@@ -1,0 +1,121 @@
+@startuml
+' =============================================================================
+' CLASS DIAGRAM — 2 luồng chính admin (2 trang newpage)
+' Luồng 1: Giám sát và báo cáo  |  Luồng 2: Quản trị nghiệp vụ
+' Web: https://www.plantuml.com/plantuml/uml/ — dán TOÀN BỘ file
+' =============================================================================
+
+title Luồng class 1 - Giám sát và báo cáo\n(Dashboard + Báo cáo hệ thống)
+
+package "Controller" {
+  class AdminDashboardController {
+    +doGet(req, res)
+  }
+  class AdminSystemReportController {
+    +doGet(req, res)
+  }
+}
+
+package "DAO" {
+  class RestaurantAnalyticsDAO {
+    +countAllRestaurants()
+    +countRestaurantsByStatus(status)
+    +getTotalOrdersAllRestaurants()
+    +getTotalRevenueAllRestaurants()
+    +getTopRestaurantsByRevenue(limit)
+  }
+  class SystemReportDAO {
+    +getDailyReport(from, to)
+  }
+}
+
+package "Model" {
+  class RestaurantAnalytics
+  class SystemReportRow
+  class User
+}
+
+AdminDashboardController ..> User : session
+AdminDashboardController ..> RestaurantAnalyticsDAO
+RestaurantAnalyticsDAO ..> RestaurantAnalytics : List
+
+AdminSystemReportController ..> User : session
+AdminSystemReportController ..> SystemReportDAO
+SystemReportDAO ..> SystemReportRow : List
+
+newpage
+title Luồng class 2 - Quản trị nghiệp vụ\n(Đơn ĐK nhà hàng, Khiếu nại, Hoa hồng, Lịch sử)
+
+package "Controller" {
+  class AdminRestaurantApplicationsController {
+    +doGet()
+    +doPost()
+  }
+  class AdminComplaintController {
+    +doGet()
+    +doPost()
+  }
+  class AdminCommissionController {
+    +doGet()
+    +doPost()
+  }
+  class AdminCommissionHistoryController {
+    +doGet()
+  }
+}
+
+package "DAO" {
+  class RestaurantDAO {
+    +findRestaurantsWithFilters()
+    +getTotalFilteredRestaurants()
+    +findByIdWithOwner()
+    +updateRestaurantStatus()
+    +findRestaurantsForCommissionConfig()
+    +updateCommissionRate()
+    +getAllRestaurantsForDropdown()
+  }
+  class ComplaintDAO {
+    +findComplaintsWithFilters()
+    +getTotalComplaints()
+    +findById()
+    +updateComplaintStatus()
+  }
+  class CommissionHistoryDAO {
+    +insertHistory()
+    +historyTableExists()
+    +findHistoryWithFilters()
+    +getTotalFilteredHistory()
+  }
+}
+
+package "Model" {
+  class Restaurant
+  class ComplaintView
+  class CommissionHistory
+  class User
+}
+
+class EmailService {
+  {static} sendRestaurantApprovalEmail()
+  {static} sendRestaurantRejectionEmail()
+}
+
+AdminRestaurantApplicationsController ..> User : session
+AdminRestaurantApplicationsController ..> RestaurantDAO
+AdminRestaurantApplicationsController ..> EmailService
+RestaurantDAO ..> Restaurant
+
+AdminComplaintController ..> User : session
+AdminComplaintController ..> ComplaintDAO
+ComplaintDAO ..> ComplaintView
+
+AdminCommissionController ..> User : session
+AdminCommissionController ..> RestaurantDAO
+AdminCommissionController ..> CommissionHistoryDAO
+
+AdminCommissionHistoryController ..> User : session
+AdminCommissionHistoryController ..> CommissionHistoryDAO
+AdminCommissionHistoryController ..> RestaurantDAO
+CommissionHistoryDAO ..> CommissionHistory
+
+@enduml
