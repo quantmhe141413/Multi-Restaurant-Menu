@@ -12,35 +12,81 @@
             <c:choose>
                 <c:when test="${not empty sessionScope.user}">
                     <c:if test="${sessionScope.user.roleID == 1}">
-                        <a href="${pageContext.request.contextPath}/admin/dashboard" class="nav-action">
-                            <i class="fas fa-chart-pie"></i> Admin Dashboard
+                        <a href="${pageContext.request.contextPath}/admin/dashboard" class="nav-link px-3 py-2 text-dark fw-bold">
+                            <i class="fas fa-chart-pie me-2"></i>Admin
                         </a>
                     </c:if>
-                    <c:if test="${sessionScope.user.roleID == 4}">
-                        <a href="${pageContext.request.contextPath}/order-history" class="${isOrderHistoryPage ? 'nav-action' : ''}">
-                            <i class="fas fa-history"></i> Order History
-                        </a>
-                    </c:if>
+                    
                     <c:if test="${sessionScope.user.roleID == 2}">
-                        <a href="${pageContext.request.contextPath}/categories?action=list" class="nav-action">
-                            <i class="fas fa-tasks"></i> Management
+                        <a href="${pageContext.request.contextPath}/categories?action=list" class="btn btn-danger rounded-pill px-4 py-2 ms-2 fw-bold text-white shadow-sm" style="font-size: 0.85rem; border: none; min-width: 130px;">
+                            <i class="fas fa-tasks me-1"></i> Management
                         </a>
                     </c:if>
                     <c:if test="${sessionScope.user.roleID == 3}">
-                        <a href="${pageContext.request.contextPath}/order-management" class="nav-action">
-                            <i class="fas fa-tasks"></i> Management
+                        <a href="${pageContext.request.contextPath}/order-management" class="btn btn-danger rounded-pill px-4 py-2 ms-2 fw-bold text-white shadow-sm" style="font-size: 0.85rem; border: none; min-width: 130px;">
+                            <i class="fas fa-tasks me-1"></i> Management
                         </a>
                     </c:if>
-                    <a href="${pageContext.request.contextPath}/cart" class="${isCartPage ? 'nav-action' : ''}">
-                        <i class="fas fa-shopping-cart"></i> Cart
+
+                    <a href="${pageContext.request.contextPath}/cart" class="nav-link px-3 py-2 text-dark position-relative ms-2">
+                        <i class="fas fa-shopping-cart fs-5"></i>
                         <c:if test="${not empty sessionScope.cart and sessionScope.cart.size() > 0}">
-                            <span
-                                style="background: #ff4757; color: white; border-radius: 50%; padding: 2px 6px; font-size: 0.8rem; margin-left: 5px;">
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem; border: 1.5px solid #fff;">
                                 ${sessionScope.cart.size()}
                             </span>
                         </c:if>
                     </a>
-                    <a href="${pageContext.request.contextPath}/logout" class="nav-action">Logout</a>
+
+                    <!-- Robust User Dropdown -->
+                    <div class="dropdown ms-3" id="userAccountDropdown">
+                        <button class="btn btn-white d-flex align-items-center border rounded-pill px-3 py-2 shadow-sm" 
+                                type="button" id="userMenuBtn"
+                                style="background: #fff; border: 1.5px solid #eee !important; cursor: pointer;">
+                             <i class="fas fa-user-circle me-2 text-danger fs-5"></i>
+                             <span class="fw-bold text-dark me-1" style="font-size: 0.92rem;">${sessionScope.user.fullName}</span>
+                             <i class="fas fa-chevron-down ms-1 small text-muted"></i>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end shadow border-0 p-2 mt-2" id="userMenuContent" style="border-radius: 12px; min-width: 220px; z-index: 2000;">
+                            <li><a class="dropdown-item rounded-3 py-2" href="${pageContext.request.contextPath}/profile"><i class="fas fa-user-edit me-2 opacity-75"></i> My Profile</a></li>
+                            <c:if test="${sessionScope.user.roleID == 2 || sessionScope.user.roleID == 3}">
+                                <li><a class="dropdown-item rounded-3 py-2" href="${pageContext.request.contextPath}/edit-restaurant-profile"><i class="fas fa-store-alt me-2 opacity-75"></i> Edit Restaurant</a></li>
+                            </c:if>
+                            <li><hr class="dropdown-divider my-2"></li>
+                            <li><a class="dropdown-item rounded-3 py-2 text-danger fw-bold" href="${pageContext.request.contextPath}/logout"><i class="fas fa-sign-out-alt me-2"></i> Logout</a></li>
+                        </ul>
+                    </div>
+
+                    <!-- Fail-safe Toggle Script -->
+                    <script>
+                        (function() {
+                            const btn = document.getElementById('userMenuBtn');
+                            const menu = document.getElementById('userMenuContent');
+                            
+                            if (btn && menu) {
+                                btn.addEventListener('click', function(e) {
+                                    e.stopPropagation();
+                                    const isShown = menu.classList.contains('show');
+                                    // Close all other dropdowns if any
+                                    document.querySelectorAll('.dropdown-menu.show').forEach(m => m.classList.remove('show'));
+                                    if (!isShown) menu.classList.add('show');
+                                });
+
+                                document.addEventListener('click', function() {
+                                    menu.classList.remove('show');
+                                });
+                            }
+                        })();
+                    </script>
+
+                    <style>
+                        /* Ensure the 'show' class works even if Bootstrap JS fails */
+                        .dropdown-menu.show {
+                            display: block !important;
+                            opacity: 1 !important;
+                            visibility: visible !important;
+                            transform: translateY(0) !important;
+                        }
+                    </style>
                 </c:when>
                 <c:otherwise>
                     <a href="${pageContext.request.contextPath}/login">Login</a>

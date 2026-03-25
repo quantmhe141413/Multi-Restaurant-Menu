@@ -11,40 +11,39 @@
     <jsp:include page="includes/header.jsp" />
 
     <main class="auth-layout">
-        <div class="auth-card" style="max-width: 600px;">
-            <h1>Chỉnh sửa hồ sơ nhà hàng</h1>
-            <p class="text-center text-muted mb-4">Cập nhật thông tin nhà hàng của bạn.</p>
+        <div class="auth-card" style="max-width: 650px;">
+            <h1>Edit Restaurant Profile</h1>
+            <p class="text-center text-muted mb-4">Update your business information to stay up to date.</p>
 
             <form method="post" action="edit-restaurant-profile">
                 <div class="form-group">
-                    <label><i class="fas fa-store me-2"></i> Tên nhà hàng</label>
-                    <input type="text" name="name" value="${restaurant.name}" required>
+                    <label>Restaurant Name</label>
+                    <input type="text" name="name" value="${restaurant.name}" placeholder="e.g. Italian Bistro" required>
                 </div>
 
                 <div class="form-group">
-                    <label><i class="fas fa-map-marker-alt me-2"></i> Địa chỉ</label>
-                    <input type="text" name="address" value="${restaurant.address}" required>
+                    <label>Business Address</label>
+                    <input type="text" name="address" value="${restaurant.address}" placeholder="Street, City, State" required>
                 </div>
 
                 <div class="form-group">
-                    <label><i class="fas fa-phone me-2"></i> Số điện thoại</label>
-                    <input type="text" name="phone" value="${restaurant.phone}" required>
+                    <label>Contact Phone</label>
+                    <input type="text" name="phone" value="${restaurant.phone}" placeholder="Phone number" required>
                 </div>
 
                 <div class="form-group">
-                    <label><i class="fas fa-align-left me-2"></i> Mô tả</label>
-                    <textarea name="description" rows="4">${restaurant.description}</textarea>
+                    <label>Description</label>
+                    <textarea name="description" rows="4" placeholder="Tell customers about your restaurant...">${restaurant.description}</textarea>
                 </div>
 
-                <div class="mt-4">
-                    <button type="submit" class="btn-submit">Lưu thay đổi</button>
-                    <div class="text-center mt-3">
+                <div class="mt-4 pt-2">
+                    <button type="submit" class="btn-submit">Save Changes</button>
+                    <div class="d-flex justify-content-between align-items-center mt-4">
                         <a href="business-license-upload" class="text-decoration-none text-primary fw-bold">
-                            <i class="fas fa-file-upload me-1"></i> Cập nhật giấy phép kinh doanh
+                            <i class="fas fa-file-upload me-1"></i> Business License
                         </a>
-                        &nbsp;|&nbsp;
-                        <a href="profile" class="text-decoration-none text-secondary">
-                            Quay lại hồ sơ
+                        <a href="profile" class="text-decoration-none text-muted fw-bold">
+                            <i class="fas fa-arrow-left me-1"></i> Back to Profile
                         </a>
                     </div>
                 </div>
@@ -57,7 +56,7 @@
                             icon: 'success',
                             title: 'Thành công!',
                             text: '${success}',
-                            confirmButtonColor: '#3085d6'
+                            confirmButtonColor: '#ff4757'
                         });
                     });
                 </script>

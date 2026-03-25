@@ -353,6 +353,21 @@ public class RestaurantDAO extends DBContext {
         return false;
     }
 
+    public void insertRestaurant(Restaurant restaurant) {
+        String sql = "INSERT INTO Restaurants (OwnerID, Name, Address, Phone, Description, Status, CreatedAt) " +
+                     "VALUES (?, ?, ?, ?, ?, 'Pending', GETDATE())";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, restaurant.getOwnerId());
+            ps.setString(2, restaurant.getName());
+            ps.setString(3, restaurant.getAddress());
+            ps.setString(4, restaurant.getPhone());
+            ps.setString(5, restaurant.getDescription());
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
     private Restaurant mapRestaurant(ResultSet rs) throws SQLException {
         Restaurant r = new Restaurant();
         r.setRestaurantId(rs.getInt("RestaurantID"));
@@ -367,8 +382,58 @@ public class RestaurantDAO extends DBContext {
         r.setCommissionRate(rs.getDouble("CommissionRate"));
         r.setStatus(rs.getString("Status"));
         r.setCreatedAt(rs.getDate("CreatedAt"));
+        try {
+            r.setPhone(rs.getString("Phone"));
+        } catch (Exception ignored) {
+        }
+        try {
+            r.setDescription(rs.getString("Description"));
+        } catch (Exception ignored) {
+        }
+        try {
+            r.setLicenseFileUrl(rs.getString("LicenseFileUrl"));
+        } catch (Exception ignored) {
+        }
 
         return r;
+    }
+
+    public void updateRestaurantCoreInfo(Restaurant restaurant) {
+        String sql = "UPDATE Restaurants SET Name = ?, Address = ?, Phone = ?, Description = ? WHERE RestaurantID = ?";
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setString(1, restaurant.getName());
+            ps.setString(2, restaurant.getAddress());
+            ps.setString(3, restaurant.getPhone());
+            ps.setString(4, restaurant.getDescription());
+            ps.setInt(5, restaurant.getRestaurantId());
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void updateLicenseFile(int restaurantId, String licenseFileUrl) {
+        String sql = "UPDATE Restaurants SET LicenseFileUrl = ? WHERE RestaurantID = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, licenseFileUrl);
+            ps.setInt(2, restaurantId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void updateLogoAndTheme(int restaurantId, String logoUrl, String themeColor) {
+        String sql = "UPDATE Restaurants SET LogoUrl = ?, ThemeColor = ? WHERE RestaurantID = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, logoUrl);
+            ps.setString(2, themeColor);
+            ps.setInt(3, restaurantId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     public static void main(String[] args) {
@@ -384,5 +449,79 @@ public class RestaurantDAO extends DBContext {
         } else {
             System.out.println("Connection failed!");
         }
+    }
+    
+    // Pagination methods
+    public List<Restaurant> getApprovedRestaurants(String search, String zone, String cuisine, int page, int pageSize) {
+        List<Restaurant> list = new ArrayList<>();
+        StringBuilder sql = new StringBuilder();
+        sql.append("SELECT DISTINCT r.* FROM Restaurants r ");
+        sql.append("LEFT JOIN RestaurantDeliveryZones dz ON r.RestaurantID = dz.RestaurantID ");
+        sql.append("WHERE r.Status = 'Approved'");
+        List<String> params = new ArrayList<>();
+
+        if (search != null && !search.trim().isEmpty()) {
+            sql.append(" AND r.Name LIKE ?");
+            params.add("%" + search.trim() + "%");
+        }
+
+        if (zone != null && !zone.trim().isEmpty()) {
+            sql.append(" AND dz.ZoneName = ?");
+            params.add(zone.trim());
+        }
+
+        sql.append(" ORDER BY r.Name ");
+        sql.append("OFFSET ? ROWS FETCH NEXT ? ROWS ONLY");
+        
+        try {
+            PreparedStatement st = connection.prepareStatement(sql.toString());
+            int idx = 1;
+            for (String param : params) {
+                st.setString(idx++, param);
+            }
+            st.setInt(idx++, (page - 1) * pageSize);
+            st.setInt(idx++, pageSize);
+            
+            ResultSet rs = st.executeQuery();
+            while (rs.next()) {
+                list.add(mapRestaurant(rs));
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(RestaurantDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return list;
+    }
+    
+    public int countApprovedRestaurants(String search, String zone, String cuisine) {
+        StringBuilder sql = new StringBuilder();
+        sql.append("SELECT COUNT(DISTINCT r.RestaurantID) FROM Restaurants r ");
+        sql.append("LEFT JOIN RestaurantDeliveryZones dz ON r.RestaurantID = dz.RestaurantID ");
+        sql.append("WHERE r.Status = 'Approved'");
+        List<String> params = new ArrayList<>();
+
+        if (search != null && !search.trim().isEmpty()) {
+            sql.append(" AND r.Name LIKE ?");
+            params.add("%" + search.trim() + "%");
+        }
+
+        if (zone != null && !zone.trim().isEmpty()) {
+            sql.append(" AND dz.ZoneName = ?");
+            params.add(zone.trim());
+        }
+
+        try {
+            PreparedStatement st = connection.prepareStatement(sql.toString());
+            int idx = 1;
+            for (String param : params) {
+                st.setString(idx++, param);
+            }
+            ResultSet rs = st.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(RestaurantDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return 0;
     }
 }

@@ -14,7 +14,7 @@ import models.Order;
 @WebServlet(name = "StaffOrdersAPIController", urlPatterns = {"/staff/orders"})
 public class StaffOrdersAPIController extends HttpServlet {
 
-    private static final int PAGE_SIZE = 20;
+    private static final int PAGE_SIZE = 10;
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -23,7 +23,10 @@ public class StaffOrdersAPIController extends HttpServlet {
         HttpSession session = request.getSession();
         Integer restaurantId = (Integer) session.getAttribute("restaurantId");
 
+        System.out.println("StaffOrdersAPIController - restaurantId from session: " + restaurantId);
+
         if (restaurantId == null) {
+            System.out.println("StaffOrdersAPIController - restaurantId is null, redirecting to login");
             response.sendRedirect(request.getContextPath() + "/login");
             return;
         }
@@ -76,6 +79,7 @@ public class StaffOrdersAPIController extends HttpServlet {
 
         // Get orders with filters
         OrderDAO orderDAO = new OrderDAO();
+        
         List<Order> orders = orderDAO.getOrdersWithFilters(
             restaurantId, 
             fromDate,

@@ -1,0 +1,136 @@
+@startuml
+' =============================================================================
+' CHỈ CLASS DIAGRAM — 6 luồng admin, phân trang bằng newpage
+' (Không trộn sequence vào file này — PlantUML sẽ báo lỗi nếu trộn.)
+' Web: https://www.plantuml.com/plantuml/uml/ — dán TOÀN BỘ file
+' =============================================================================
+
+title Luồng 1 - Class (Dashboard)
+
+class AdminDashboardController {
+  +doGet(req, res)
+}
+class RestaurantAnalyticsDAO {
+  +countAllRestaurants()
+  +countRestaurantsByStatus(status)
+  +getTotalOrdersAllRestaurants()
+  +getTotalRevenueAllRestaurants()
+  +getTopRestaurantsByRevenue(limit)
+}
+class RestaurantAnalytics
+class User
+
+AdminDashboardController ..> User : reads session
+AdminDashboardController ..> RestaurantAnalyticsDAO
+RestaurantAnalyticsDAO ..> RestaurantAnalytics : returns List
+
+newpage
+title Luồng 2 - Class (System report)
+
+class AdminSystemReportController {
+  +doGet(req, res)
+}
+class SystemReportDAO {
+  +getDailyReport(from, to)
+}
+class SystemReportRow
+
+AdminSystemReportController ..> SystemReportDAO
+SystemReportDAO ..> SystemReportRow : List
+
+newpage
+title Luồng 3 - Class (Restaurant applications)
+
+class AdminRestaurantApplicationsController {
+  +doGet()
+  +doPost()
+  -handleList()
+  -handleDetail()
+  -handleUpdateStatus()
+}
+class RestaurantDAO {
+  +findRestaurantsWithFilters()
+  +getTotalFilteredRestaurants()
+  +findByIdWithOwner()
+  +updateRestaurantStatus()
+}
+class EmailService {
+  {static} sendRestaurantApprovalEmail()
+  {static} sendRestaurantRejectionEmail()
+}
+class Restaurant
+
+AdminRestaurantApplicationsController ..> RestaurantDAO
+AdminRestaurantApplicationsController ..> EmailService
+RestaurantDAO ..> Restaurant
+
+newpage
+title Luồng 4 - Class (Complaints)
+
+class AdminComplaintController {
+  +doGet()
+  +doPost()
+  -handleList()
+  -handleDetail()
+  -handleUpdate()
+}
+class ComplaintDAO {
+  +findComplaintsWithFilters()
+  +getTotalComplaints()
+  +findById()
+  +updateComplaintStatus()
+}
+class ComplaintView
+
+AdminComplaintController ..> ComplaintDAO
+ComplaintDAO ..> ComplaintView
+
+newpage
+title Luồng 5 - Class (Commission config)
+
+class AdminCommissionController {
+  +doGet()
+  +doPost()
+  -handleList()
+  -handleEdit()
+  -handleUpdate()
+}
+class RestaurantDAO {
+  +findRestaurantsForCommissionConfig()
+  +getTotalFilteredRestaurants()
+  +findByIdWithOwner()
+  +updateCommissionRate()
+}
+class CommissionHistoryDAO {
+  +insertHistory()
+}
+class Restaurant
+class User
+
+AdminCommissionController ..> RestaurantDAO
+AdminCommissionController ..> CommissionHistoryDAO
+AdminCommissionController ..> User
+
+newpage
+title Luồng 6 - Class (Commission history)
+
+class AdminCommissionHistoryController {
+  +doGet()
+  -handleList()
+}
+class CommissionHistoryDAO {
+  +historyTableExists()
+  +findHistoryWithFilters()
+  +getTotalFilteredHistory()
+}
+class RestaurantDAO {
+  +getAllRestaurantsForDropdown()
+}
+class CommissionHistory
+class Restaurant
+
+AdminCommissionHistoryController ..> CommissionHistoryDAO
+AdminCommissionHistoryController ..> RestaurantDAO
+CommissionHistoryDAO ..> CommissionHistory
+
+@enduml

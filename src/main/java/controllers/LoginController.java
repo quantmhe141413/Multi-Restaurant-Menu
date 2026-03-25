@@ -18,16 +18,7 @@ public class LoginController extends HttpServlet {
             throws ServletException, IOException {
         HttpSession session = request.getSession(false);
         if (session != null && session.getAttribute("user") != null) {
-            User user = (User) session.getAttribute("user");
-            if (user.getRoleID() == 1) { // SuperAdmin
-                response.sendRedirect(request.getContextPath() + "/admin/dashboard");
-            } else if (user.getRoleID() == 2) { // Owner
-                response.sendRedirect(request.getContextPath() + "/owner/order-history");
-            } else if (user.getRoleID() == 3) { // Staff
-                response.sendRedirect(request.getContextPath() + "/staff/home");
-            } else { // Customer
-                response.sendRedirect("home");
-            }
+            response.sendRedirect("home");
             return;
         }
         request.getRequestDispatcher("views/login.jsp").forward(request, response);
@@ -51,16 +42,10 @@ public class LoginController extends HttpServlet {
                     session.setAttribute("restaurantId", restaurantId);
                 }
             }
-            
-            if (u.getRoleID() == 1) { // SuperAdmin
-                response.sendRedirect(request.getContextPath() + "/admin/dashboard");
-            } else if (u.getRoleID() == 2) { // Owner
-                response.sendRedirect(request.getContextPath() + "/owner/order-history");
-            } else if (u.getRoleID() == 3) { // Staff
-                response.sendRedirect(request.getContextPath() + "/staff/home");
-            } else { // Customer
-                response.sendRedirect("home");
-            }
+
+            // Redirect all users to home
+            response.sendRedirect("home");
+
         } else {
             request.setAttribute("error", "Invalid email or password!");
             request.getRequestDispatcher("views/login.jsp").forward(request, response);

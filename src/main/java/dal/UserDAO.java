@@ -131,6 +131,21 @@ public class UserDAO extends DBContext {
         return false;
     }
 
+    // Change password for logged in user
+    public boolean changePassword(int userId, String newPassword) {
+        String sql = "UPDATE Users SET PasswordHash = ? WHERE UserID = ?";
+        try {
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setString(1, newPassword);
+            st.setInt(2, userId);
+            int rowsAffected = st.executeUpdate();
+            return rowsAffected > 0;
+        } catch (SQLException ex) {
+            Logger.getLogger(UserDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return false;
+    }
+
     public static void main(String[] args) {
         UserDAO dao = new UserDAO();
         if (dao.connection != null) {
