@@ -14,7 +14,7 @@
 <div class="container-fluid">
     <div class="row">
         <jsp:include page="/views/includes/restaurant-sidebar.jsp" />
-        
+
         <!-- Main Content -->
         <main class="col-md-9 col-lg-10 main-content">
             <!-- Page Header -->
@@ -29,7 +29,7 @@
                     </nav>
                 </div>
                 <div>
-                    <a href="${pageContext.request.contextPath}/shift-management?action=add-assignment" 
+                    <a href="${pageContext.request.contextPath}/shift-management?action=add-assignment"
                        class="btn btn-primary">
                         <i class="fas fa-plus-circle"></i> Assign Shift
                     </a>
@@ -46,7 +46,7 @@
                                 <label class="form-label">
                                     <i class="fas fa-calendar-day"></i> Filter by Date (Optional)
                                 </label>
-                                <input type="date" class="form-control" name="date" 
+                                <input type="date" class="form-control" name="date"
                                        value="<c:if test='${selectedDate != null}'><fmt:formatDate value='${selectedDate}' pattern='yyyy-MM-dd' /></c:if>">
                             </div>
                             <div class="col-md-3">
@@ -55,7 +55,7 @@
                                 </button>
                             </div>
                             <div class="col-md-3">
-                                <a href="${pageContext.request.contextPath}/shift-management?action=assignments" 
+                                <a href="${pageContext.request.contextPath}/shift-management?action=assignments"
                                    class="btn btn-secondary w-100">
                                     <i class="fas fa-list"></i> Show All
                                 </a>
@@ -68,7 +68,7 @@
             <!-- Selected Date Info -->
             <div class="alert alert-info" role="alert">
                 <i class="fas fa-calendar-check"></i>
-                <strong>Viewing shifts for:</strong> 
+                <strong>Viewing shifts for:</strong>
                 <c:choose>
                     <c:when test="${selectedDate != null}">
                         <fmt:formatDate value="${selectedDate}" pattern="EEEE, MMMM dd, yyyy" />
@@ -93,6 +93,7 @@
                                     <th>Position</th>
                                     <th>Start Time</th>
                                     <th>End Time</th>
+                                    <th>Attendance</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -100,7 +101,7 @@
                                 <c:choose>
                                     <c:when test="${empty shifts}">
                                         <tr>
-                                            <td colspan="8" class="text-center py-5">
+                                            <td colspan="9" class="text-center py-5">
                                                 <i class="fas fa-user-slash fa-3x text-muted mb-3"></i>
                                                 <p class="text-muted">
                                                     <c:choose>
@@ -112,7 +113,7 @@
                                                         </c:otherwise>
                                                     </c:choose>
                                                 </p>
-                                                <a href="${pageContext.request.contextPath}/shift-management?action=add-assignment" 
+                                                <a href="${pageContext.request.contextPath}/shift-management?action=add-assignment"
                                                    class="btn btn-primary btn-sm">
                                                     <i class="fas fa-plus"></i> Assign First Shift
                                                 </a>
@@ -136,14 +137,10 @@
                                                     <strong>${shift.staffName}</strong>
                                                 </td>
                                                 <td>
-                                                    <span class="badge bg-primary">
-                                                        ${shift.shiftName}
-                                                    </span>
+                                                    <span class="badge bg-primary">${shift.shiftName}</span>
                                                 </td>
                                                 <td>
-                                                    <span class="badge" style="background: #6366f1;">
-                                                        ${shift.position}
-                                                    </span>
+                                                    <span class="badge" style="background: #6366f1;">${shift.position}</span>
                                                 </td>
                                                 <td>
                                                     <i class="fas fa-clock text-success"></i>
@@ -153,20 +150,58 @@
                                                     <i class="fas fa-clock text-danger"></i>
                                                     <fmt:formatDate value="${shift.endTime}" pattern="HH:mm" />
                                                 </td>
+
+                                                <!-- Attendance Status Column -->
                                                 <td>
                                                     <c:choose>
-                                                        <c:when test="${isPastShift}">
-                                                            <button class="btn btn-sm btn-secondary" disabled title="Cannot delete past shifts">
-                                                                <i class="fas fa-lock"></i>
-                                                            </button>
+                                                        <c:when test="${shift.attendanceStatus == 'Present'}">
+                                                            <span class="badge bg-success"><i class="fas fa-check-circle"></i> Present</span>
+                                                        </c:when>
+                                                        <c:when test="${shift.attendanceStatus == 'Late'}">
+                                                            <span class="badge bg-warning text-dark"><i class="fas fa-clock"></i> Late</span>
+                                                        </c:when>
+                                                        <c:when test="${shift.attendanceStatus == 'Absent'}">
+                                                            <span class="badge bg-danger"><i class="fas fa-times-circle"></i> Absent</span>
+                                                        </c:when>
+                                                        <c:when test="${shift.attendanceStatus == 'Excused'}">
+                                                            <span class="badge bg-info"><i class="fas fa-info-circle"></i> Excused</span>
                                                         </c:when>
                                                         <c:otherwise>
-                                                            <a href="#" onclick="confirmDelete(${shift.shiftId})" 
-                                                               class="btn btn-sm btn-danger" title="Remove Assignment">
-                                                                <i class="fas fa-times"></i>
-                                                            </a>
+                                                            <span class="badge bg-light text-muted border">Not marked</span>
                                                         </c:otherwise>
                                                     </c:choose>
+                                                </td>
+
+                                                <!-- Actions Column -->
+                                                <td>
+                                                    <div class="d-flex gap-1">
+                                                        <!-- Mark Attendance (Owner only, shown for all shifts) -->
+                                                        <c:if test="${sessionScope.user.roleID == 2 || sessionScope.user.roleID == 1}">
+                                                            <a href="${pageContext.request.contextPath}/shift-management?action=mark-attendance&id=${shift.shiftId}"
+                                                               class="btn btn-sm btn-outline-success" title="Mark Attendance">
+                                                                <i class="fas fa-clipboard-check"></i>
+                                                            </a>
+                                                            <!-- View work history for this employee -->
+                                                            <a href="${pageContext.request.contextPath}/shift-management?action=staff-history&staffId=${shift.staffId}"
+                                                               class="btn btn-sm btn-outline-info" title="View Work History">
+                                                                <i class="fas fa-history"></i>
+                                                            </a>
+                                                        </c:if>
+                                                        <!-- Delete (future shifts only) -->
+                                                        <c:choose>
+                                                            <c:when test="${isPastShift}">
+                                                                <button class="btn btn-sm btn-secondary" disabled title="Cannot delete past shifts">
+                                                                    <i class="fas fa-lock"></i>
+                                                                </button>
+                                                            </c:when>
+                                                            <c:otherwise>
+                                                                <a href="#" onclick="confirmDelete(${shift.shiftId})"
+                                                                   class="btn btn-sm btn-danger" title="Remove Assignment">
+                                                                    <i class="fas fa-times"></i>
+                                                                </a>
+                                                            </c:otherwise>
+                                                        </c:choose>
+                                                    </div>
                                                 </td>
                                             </tr>
                                         </c:forEach>
@@ -181,14 +216,14 @@
             <!-- Business Rules Card -->
             <div class="card mt-4">
                 <div class="card-header bg-light">
-                    <h6 class="mb-0"><i class="fas fa-rules text-info"></i> Assignment Rules</h6>
+                    <h6 class="mb-0"><i class="fas fa-info-circle text-info"></i> Assignment Rules</h6>
                 </div>
                 <div class="card-body">
                     <ul class="mb-0">
                         <li>An employee cannot be assigned overlapping shifts on the same date</li>
                         <li>Assigned shifts must fall within configured business hours</li>
                         <li>Shift end time must be after start time</li>
-                        <li>Employees can view their assigned shifts (read-only)</li>
+                        <li>Owners can mark attendance and view employee work history</li>
                         <li>Remove assignments that are no longer needed</li>
                     </ul>
                 </div>

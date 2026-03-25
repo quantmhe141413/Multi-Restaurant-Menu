@@ -49,6 +49,12 @@ public class ShiftManagementController extends HttpServlet {
             case "delete-assignment":
                 handleDeleteAssignment(request, response);
                 break;
+            case "mark-attendance":
+                showMarkAttendanceForm(request, response);
+                break;
+            case "staff-history":
+                handleStaffHistory(request, response);
+                break;
             default:
                 handleTemplatesList(request, response);
                 break;
@@ -74,6 +80,9 @@ public class ShiftManagementController extends HttpServlet {
                 break;
             case "add-assignment":
                 handleAddAssignment(request, response);
+                break;
+            case "save-attendance":
+                handleSaveAttendance(request, response);
                 break;
             default:
                 response.sendRedirect(request.getContextPath() + "/shift-management?action=templates");
@@ -500,26 +509,26 @@ public class ShiftManagementController extends HttpServlet {
             throws ServletException, IOException {
         HttpSession session = request.getSession();
         String shiftIdStr = request.getParameter("id");
-        
+
         if (shiftIdStr == null || shiftIdStr.isEmpty()) {
             response.sendRedirect(request.getContextPath() + "/shift-management?action=assignments");
             return;
         }
-        
+
         try {
             Integer shiftId = Integer.parseInt(shiftIdStr);
             EmployeeShiftDAO shiftDAO = new EmployeeShiftDAO();
-            
+
             // Get the shift to check its date
             EmployeeShift shift = shiftDAO.findById(shiftId);
-            
+
             if (shift == null) {
                 session.setAttribute("toastMessage", "Shift assignment not found");
                 session.setAttribute("toastType", "error");
                 response.sendRedirect(request.getContextPath() + "/shift-management?action=assignments");
                 return;
             }
-            
+
             // Validate: Cannot delete past shifts
             Date currentDate = new Date(System.currentTimeMillis());
             if (shift.getShiftDate().before(currentDate)) {
@@ -528,9 +537,9 @@ public class ShiftManagementController extends HttpServlet {
                 response.sendRedirect(request.getContextPath() + "/shift-management?action=assignments");
                 return;
             }
-            
+
             boolean result = shiftDAO.delete(shiftId);
-            
+
             if (result) {
                 session.setAttribute("toastMessage", "Shift assignment deleted successfully");
                 session.setAttribute("toastType", "success");
@@ -542,7 +551,144 @@ public class ShiftManagementController extends HttpServlet {
             session.setAttribute("toastMessage", "Invalid shift ID");
             session.setAttribute("toastType", "error");
         }
-        
+
         response.sendRedirect(request.getContextPath() + "/shift-management?action=assignments");
+    }
+
+    // ==================== ATTENDANCE MARKING ====================
+
+    /**
+     * Show mark-attendance form for a specific shift (GET)
+     * Only Owner (roleID=2) can access
+     */
+    private void showMarkAttendanceForm(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        HttpSession session = request.getSession();
+        models.User user = (models.User) session.getAttribute("user");
+
+        if (user == null) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
+        }
+
+        // Only Owner can mark attendance
+        if (user.getRoleID() != 2 && user.getRoleID() != 1) {
+            session.setAttribute("toastMessage", "Only owners can mark attendance");
+            session.setAttribute("toastType", "error");
+            response.sendRedirect(request.getContextPath() + "/shift-management?action=assignments");
+            return;
+        }
+
+        String shiftIdStr = request.getParameter("id");
+        if (shiftIdStr == null || shiftIdStr.isEmpty()) {
+            response.sendRedirect(request.getContextPath() + "/shift-management?action=assignments");
+            return;
+        }
+
+        try {
+            Integer shiftId = Integer.parseInt(shiftIdStr);
+            EmployeeShiftDAO shiftDAO = new EmployeeShiftDAO();
+            EmployeeShift shift = shiftDAO.findById(shiftId);
+
+            if (shift == null) {
+                session.setAttribute("toastMessage", "Shift not found");
+                session.setAttribute("toastType", "error");
+                response.sendRedirect(request.getContextPath() + "/shift-management?action=assignments");
+                return;
+            }
+
+            request.setAttribute("shift", shift);
+            request.getRequestDispatcher("/views/owner/shift-mark-attendance.jsp").forward(request, response);
+        } catch (NumberFormatException e) {
+            response.sendRedirect(request.getContextPath() + "/shift-management?action=assignments");
+        }
+    }
+
+    /**
+     * Save attendance mark submitted by owner (POST)
+     */
+    private void handleSaveAttendance(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        HttpSession session = request.getSession();
+        models.User user = (models.User) session.getAttribute("user");
+
+        if (user == null) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
+        }
+
+        if (user.getRoleID() != 2 && user.getRoleID() != 1) {
+            session.setAttribute("toastMessage", "Only owners can mark attendance");
+            session.setAttribute("toastType", "error");
+            response.sendRedirect(request.getContextPath() + "/shift-management?action=assignments");
+            return;
+        }
+
+        String shiftIdStr = request.getParameter("shiftId");
+        String status      = request.getParameter("attendanceStatus");
+        String note        = request.getParameter("note");
+
+        try {
+            Integer shiftId = Integer.parseInt(shiftIdStr);
+
+            EmployeeShiftDAO shiftDAO = new EmployeeShiftDAO();
+            boolean saved = shiftDAO.markAttendance(shiftId, status, note, user.getUserID());
+            if (saved) {
+                session.setAttribute("toastMessage", "Attendance marked successfully");
+                session.setAttribute("toastType", "success");
+            } else {
+                session.setAttribute("toastMessage", "Failed to mark attendance");
+                session.setAttribute("toastType", "error");
+            }
+        } catch (Exception e) {
+            session.setAttribute("toastMessage", "Error: " + e.getMessage());
+            session.setAttribute("toastType", "error");
+        }
+
+        response.sendRedirect(request.getContextPath() + "/shift-management?action=assignments");
+    }
+
+    /**
+     * View work history (attendance log) for a specific staff member (GET)
+     * action=staff-history&staffId=X
+     */
+    private void handleStaffHistory(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        HttpSession session = request.getSession();
+        models.User user = (models.User) session.getAttribute("user");
+
+        if (user == null) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
+        }
+
+        if (user.getRoleID() != 2 && user.getRoleID() != 1) {
+            session.setAttribute("toastMessage", "Access denied");
+            session.setAttribute("toastType", "error");
+            response.sendRedirect(request.getContextPath() + "/shift-management?action=assignments");
+            return;
+        }
+
+        String staffIdStr = request.getParameter("staffId");
+        if (staffIdStr == null || staffIdStr.isEmpty()) {
+            response.sendRedirect(request.getContextPath() + "/shift-management?action=assignments");
+            return;
+        }
+
+        try {
+            Integer staffId = Integer.parseInt(staffIdStr);
+            EmployeeShiftDAO shiftDAO = new EmployeeShiftDAO();
+            List<EmployeeShift> history = shiftDAO.findWorkHistoryByStaff(staffId);
+
+            // Get staff name from first record, or fall back to querying separately
+            String staffName = (!history.isEmpty()) ? history.get(0).getStaffName() : "Staff #" + staffId;
+
+            request.setAttribute("history", history);
+            request.setAttribute("staffName", staffName);
+            request.setAttribute("staffId", staffId);
+            request.getRequestDispatcher("/views/owner/shift-staff-history.jsp").forward(request, response);
+        } catch (NumberFormatException e) {
+            response.sendRedirect(request.getContextPath() + "/shift-management?action=assignments");
+        }
     }
 }
