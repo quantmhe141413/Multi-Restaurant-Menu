@@ -1,0 +1,333 @@
+@startuml
+' =============================================================================
+' admin-flows-plantuml.puml — bản sequence (dán web được)
+'
+' LỖI KHI TRỘN CLASS + SEQUENCE TRONG MỘT @startuml:
+' PlantUML chọn loại sơ đồ từ phần đầu; nếu có class trước thì cả khối là class —
+' gặp actor/autonumber sau newpage vẫn lỗi (Assumed diagram type: class).
+'
+' Hai file cùng thư mục uml/:
+'   - admin-flows-plantuml-CLASS.puml
+'   - admin-flows-plantuml-SEQUENCE.puml
+' File này = SEQUENCE (giữ tên cũ admin-flows-plantuml.puml).
+' =============================================================================
+' CHỈ SEQUENCE — https://www.plantuml.com/plantuml/uml/
+' =============================================================================
+
+title Luồng 1 - Sequence: Xem dashboard (GET)
+
+actor Admin
+participant "AdminDashboardController" as Ctrl
+participant "HttpSession" as Sess
+participant "RestaurantAnalyticsDAO" as DAO
+database "Database" as DB
+participant "admin-dashboard.jsp" as JSP
+
+Admin -> Ctrl: GET /admin/dashboard
+Ctrl -> Sess: getSession(false), getAttribute("user")
+alt user null hoặc roleID khác 1
+  Ctrl -> Admin: redirect /login
+else admin
+  Ctrl -> DAO: countAllRestaurants()
+  DAO -> DB: query
+  DB --> DAO
+  DAO --> Ctrl
+  Ctrl -> DAO: countRestaurantsByStatus (Pending, Approved, Rejected)
+  DAO -> DB: query
+  DB --> DAO
+  DAO --> Ctrl
+  Ctrl -> DAO: getTotalOrdersAllRestaurants()
+  DAO -> DB
+  DB --> DAO
+  DAO --> Ctrl
+  Ctrl -> DAO: getTotalRevenueAllRestaurants()
+  DAO -> DB
+  DB --> DAO
+  DAO --> Ctrl
+  Ctrl -> DAO: getTopRestaurantsByRevenue(10)
+  DAO -> DB
+  DB --> DAO
+  DAO --> Ctrl
+  Ctrl -> JSP: forward /views/admin/admin-dashboard.jsp
+  JSP --> Admin: HTML
+end
+
+newpage
+title Luồng 2 - Sequence: Xem báo cáo (GET)
+
+actor Admin
+participant "AdminSystemReportController" as Ctrl
+participant "HttpSession" as Sess
+participant "SystemReportDAO" as DAO
+database "Database" as DB
+participant "system-report.jsp" as JSP
+
+Admin -> Ctrl: GET /admin/system-report ?from & to & action=view
+Ctrl -> Sess: session + roleID bang 1
+alt không phải admin
+  Ctrl -> Admin: redirect /login
+else ok
+  Ctrl -> Ctrl: parse from/to, tổng hợp
+  Ctrl -> DAO: getDailyReport(Date from, Date to)
+  DAO -> DB: query
+  DB --> DAO
+  DAO --> Ctrl: rows
+  Ctrl -> JSP: forward system-report.jsp
+  JSP --> Admin: HTML
+end
+
+newpage
+title Luồng 2 - Sequence: Xuất CSV (GET action=export)
+
+actor Admin
+participant "AdminSystemReportController" as Ctrl
+participant "SystemReportDAO" as DAO
+database "Database" as DB
+
+Admin -> Ctrl: GET action=export, from, to
+Ctrl -> Ctrl: auth admin
+Ctrl -> DAO: getDailyReport(...)
+DAO -> DB
+DB --> DAO
+DAO --> Ctrl
+Ctrl -> Ctrl: set headers CSV
+Ctrl -> Admin: body file CSV
+
+newpage
+title Luồng 3 - Sequence: Danh sách đơn (GET list)
+
+actor Admin
+participant "AdminRestaurantApplicationsController" as Ctrl
+participant "RestaurantDAO" as DAO
+database "Database" as DB
+participant "restaurant-application-list.jsp" as JSP
+
+Admin -> Ctrl: GET action=list, status, search, page
+Ctrl -> Ctrl: auth admin
+Ctrl -> DAO: findRestaurantsWithFilters(...)
+DAO -> DB
+DB --> DAO
+DAO --> Ctrl
+Ctrl -> DAO: getTotalFilteredRestaurants(...)
+DAO -> DB
+DB --> DAO
+DAO --> Ctrl
+Ctrl -> JSP: forward list JSP
+JSP --> Admin: HTML
+
+newpage
+title Luồng 3 - Sequence: Chi tiết đơn (GET detail)
+
+actor Admin
+participant "AdminRestaurantApplicationsController" as Ctrl
+participant "RestaurantDAO" as DAO
+database "Database" as DB
+participant "restaurant-application-detail.jsp" as JSP
+
+Admin -> Ctrl: GET action=detail, id
+Ctrl -> Ctrl: auth admin
+Ctrl -> DAO: findByIdWithOwner(id)
+DAO -> DB
+DB --> DAO
+DAO --> Ctrl
+Ctrl -> JSP: forward detail JSP
+JSP --> Admin: HTML
+
+newpage
+title Luồng 3 - Sequence: Duyệt đơn (POST approve)
+
+actor Admin
+participant "AdminRestaurantApplicationsController" as Ctrl
+participant "RestaurantDAO" as DAO
+participant "EmailService" as Mail
+database "Database" as DB
+
+Admin -> Ctrl: POST approve, id, reason
+Ctrl -> Ctrl: auth admin
+Ctrl -> DAO: findByIdWithOwner(id)
+DAO -> DB
+DB --> DAO
+DAO --> Ctrl
+Ctrl -> DAO: updateRestaurantStatus Approved
+DAO -> DB
+DB --> DAO
+DAO --> Ctrl
+Ctrl -> Mail: sendRestaurantApprovalEmail
+Mail --> Ctrl
+Ctrl -> Admin: redirect + toast
+
+newpage
+title Luồng 3 - Sequence: Từ chối đơn (POST reject)
+
+actor Admin
+participant "AdminRestaurantApplicationsController" as Ctrl
+participant "RestaurantDAO" as DAO
+participant "EmailService" as Mail
+database "Database" as DB
+
+Admin -> Ctrl: POST reject, id, reason
+Ctrl -> Ctrl: auth admin
+Ctrl -> DAO: findByIdWithOwner(id)
+DAO -> DB
+DB --> DAO
+DAO --> Ctrl
+Ctrl -> DAO: updateRestaurantStatus Rejected
+DAO -> DB
+DB --> DAO
+DAO --> Ctrl
+Ctrl -> Mail: sendRestaurantRejectionEmail
+Mail --> Ctrl
+Ctrl -> Admin: redirect + toast
+
+newpage
+title Luồng 4 - Sequence: Danh sách khiếu nại (GET list)
+
+actor Admin
+participant "AdminComplaintController" as Ctrl
+participant "ComplaintDAO" as DAO
+database "Database" as DB
+participant "complaint-list.jsp" as JSP
+
+Admin -> Ctrl: GET list, status, search, from, to, page
+Ctrl -> Ctrl: auth admin
+Ctrl -> DAO: findComplaintsWithFilters(...)
+DAO -> DB
+DB --> DAO
+DAO --> Ctrl
+Ctrl -> DAO: getTotalComplaints(...)
+DAO -> DB
+DB --> DAO
+DAO --> Ctrl
+Ctrl -> JSP: forward list JSP
+JSP --> Admin: HTML
+
+newpage
+title Luồng 4 - Sequence: Chi tiết khiếu nại (GET detail)
+
+actor Admin
+participant "AdminComplaintController" as Ctrl
+participant "ComplaintDAO" as DAO
+database "Database" as DB
+participant "complaint-detail.jsp" as JSP
+
+Admin -> Ctrl: GET detail, id
+Ctrl -> DAO: findById(id)
+DAO -> DB
+DB --> DAO
+DAO --> Ctrl
+Ctrl -> JSP: forward detail JSP
+JSP --> Admin: HTML
+
+newpage
+title Luồng 4 - Sequence: Cập nhật trạng thái (POST update)
+
+actor Admin
+participant "AdminComplaintController" as Ctrl
+participant "ComplaintDAO" as DAO
+database "Database" as DB
+
+Admin -> Ctrl: POST update, id, status
+Ctrl -> DAO: updateComplaintStatus(id, status)
+DAO -> DB
+DB --> DAO
+DAO --> Ctrl
+Ctrl -> Admin: redirect detail
+
+newpage
+title Luồng 5 - Sequence: Danh sách cấu hình (GET list)
+
+actor Admin
+participant "AdminCommissionController" as Ctrl
+participant "RestaurantDAO" as DAO
+database "Database" as DB
+participant "commission-config.jsp" as JSP
+
+Admin -> Ctrl: GET list, search, page
+Ctrl -> Ctrl: auth admin
+Ctrl -> DAO: findRestaurantsForCommissionConfig Approved
+DAO -> DB
+DB --> DAO
+DAO --> Ctrl
+Ctrl -> DAO: getTotalFilteredRestaurants
+DAO -> DB
+DB --> DAO
+DAO --> Ctrl
+Ctrl -> JSP: forward commission-config.jsp
+JSP --> Admin: HTML
+
+newpage
+title Luồng 5 - Sequence: Mở form sửa (GET edit)
+
+actor Admin
+participant "AdminCommissionController" as Ctrl
+participant "RestaurantDAO" as DAO
+database "Database" as DB
+participant "commission-config.jsp" as JSP
+
+Admin -> Ctrl: GET edit, id
+Ctrl -> DAO: findByIdWithOwner(id)
+DAO -> DB
+DB --> DAO
+DAO --> Ctrl
+Ctrl -> Ctrl: kiểm tra Approved, set editRestaurant
+Ctrl -> Ctrl: handleList
+Ctrl -> JSP: forward commission-config.jsp
+JSP --> Admin: HTML
+
+newpage
+title Luồng 5 - Sequence: Lưu hoa hồng (POST update)
+
+actor Admin
+participant "AdminCommissionController" as Ctrl
+participant "RestaurantDAO" as RDAO
+participant "CommissionHistoryDAO" as HDAO
+database "Database" as DB
+
+Admin -> Ctrl: POST update, id, commissionRate, reason
+Ctrl -> RDAO: findByIdWithOwner(id)
+RDAO -> DB
+DB --> RDAO
+RDAO --> Ctrl
+Ctrl -> Ctrl: validate 0..100
+Ctrl -> RDAO: updateCommissionRate
+RDAO -> DB
+DB --> RDAO
+RDAO --> Ctrl
+Ctrl -> HDAO: insertHistory
+HDAO -> DB
+DB --> HDAO
+HDAO --> Ctrl
+Ctrl -> Admin: redirect list
+
+newpage
+title Luồng 6 - Sequence: Xem lịch sử (GET list)
+
+actor Admin
+participant "AdminCommissionHistoryController" as Ctrl
+participant "CommissionHistoryDAO" as HDAO
+participant "RestaurantDAO" as RDAO
+database "Database" as DB
+participant "commission-history.jsp" as JSP
+
+Admin -> Ctrl: GET list, restaurant, search, page
+Ctrl -> Ctrl: auth admin
+Ctrl -> HDAO: historyTableExists()
+HDAO -> DB
+DB --> HDAO
+HDAO --> Ctrl
+Ctrl -> HDAO: findHistoryWithFilters(...)
+HDAO -> DB
+DB --> HDAO
+HDAO --> Ctrl
+Ctrl -> HDAO: getTotalFilteredHistory(...)
+HDAO -> DB
+DB --> HDAO
+HDAO --> Ctrl
+Ctrl -> RDAO: getAllRestaurantsForDropdown()
+RDAO -> DB
+DB --> RDAO
+RDAO --> Ctrl
+Ctrl -> JSP: forward commission-history.jsp
+JSP --> Admin: HTML
+
+@enduml
