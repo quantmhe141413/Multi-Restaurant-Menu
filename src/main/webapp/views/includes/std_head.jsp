@@ -10,18 +10,22 @@
 
 <!-- Bootstrap 5 -->
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- QuanTM Tasks Custom Styles -->
+<link rel="stylesheet" href="${pageContext.request.contextPath}/css/quan-tasks.css">
 
 <style>
     :root {
-        --primary-color: #6366f1;
-        --secondary-color: #8b5cf6;
-        --accent-color: #4f46e5;
+        --primary-color: #ff4757;
+        --secondary-color: #ff6b81;
+        --accent-color: #ff7f50;
         --bg-light: #f8fafc;
         --text-main: #1e293b;
         --text-muted: #64748b;
         --white: #ffffff;
         --sidebar-bg: #ffffff;
-        --gradient-primary: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        --gradient-primary: linear-gradient(135deg, #ff4757 0%, #ff6b81 100%);
     }
 
     body {

@@ -6,81 +6,67 @@
     <jsp:include page="includes/std_head.jsp" />
     <title>Change Password - FoodieExpress</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/quan-tasks.css">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        .login-container {
+            max-width: 500px;
+            margin: 80px auto;
+            padding: 30px;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        .text-danger { color: #ff4757; }
+        .text-success { color: #2ed573; }
+        .form-control:focus {
+            border-color: #ff4757;
+            box-shadow: 0 0 0 0.2rem rgba(255, 71, 87, 0.25);
+        }
+    </style>
 </head>
-<body class="bg-light">
+<body>
     <jsp:include page="includes/header.jsp" />
 
-    <main class="auth-layout">
-        <div class="auth-card">
-            <h1>Change Password</h1>
-            <p class="text-center text-muted mb-4">Please enter your current and new password.</p>
+    <div class="container">
+        <div class="login-container">
+            <h2 class="text-center mb-4"><i class="fas fa-key me-2 text-danger"></i> Đổi mật khẩu</h2>
             
-            <form method="post" action="change-password" id="changePasswordForm">
-                <div class="form-group">
-                    <label><i class="fas fa-key me-2"></i> Current Password</label>
-                    <input type="password" name="oldPassword" placeholder="••••••••" required>
-                </div>
-                
-                <div class="form-group">
-                    <label><i class="fas fa-lock me-2"></i> New Password</label>
-                    <input type="password" name="newPassword" id="newPassword" placeholder="••••••••" required>
-                </div>
-                
-                <div class="form-group">
-                    <label><i class="fas fa-check-circle me-2"></i> Confirm New Password</label>
-                    <input type="password" name="confirmPassword" id="confirmPassword" placeholder="••••••••" required>
-                </div>
-
-                <div class="mt-4">
-                    <button type="submit" class="btn-submit">Update Password</button>
-                    <a href="profile" class="btn btn-link w-100 text-decoration-none text-muted mt-2">Back to Profile</a>
-                </div>
-            </form>
-
             <c:if test="${not empty error}">
-                <script>
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Oops...',
-                        text: '${error}',
-                        confirmButtonColor: '#ff4757'
-                    });
-                </script>
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="fas fa-exclamation-circle me-2"></i> ${error}
+                </div>
             </c:if>
             <c:if test="${not empty success}">
-                <script>
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Success!',
-                        text: '${success}',
-                        confirmButtonColor: '#ff4757'
-                    }).then(() => {
-                        window.location.href = 'profile';
-                    });
-                </script>
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="fas fa-check-circle me-2"></i> ${success}
+                </div>
             </c:if>
+
+            <form action="${pageContext.request.contextPath}/change-password" method="POST">
+                <div class="mb-4">
+                    <label class="form-label fw-bold">Mật khẩu cũ</label>
+                    <input type="password" name="oldPassword" class="form-control form-control-lg" required>
+                </div>
+                <div class="mb-4">
+                    <label class="form-label fw-bold">Mật khẩu mới</label>
+                    <input type="password" name="newPassword" class="form-control form-control-lg" required placeholder="Tối thiểu 6 ký tự">
+                </div>
+                <div class="mb-4">
+                    <label class="form-label fw-bold">Xác nhận mật khẩu mới</label>
+                    <input type="password" name="confirmPassword" class="form-control form-control-lg" required>
+                </div>
+                <button type="submit" class="btn btn-danger btn-lg w-100 fw-bold shadow-sm">
+                    Lưu thay đổi
+                </button>
+                <div class="text-center mt-3">
+                    <a href="${pageContext.request.contextPath}/profile" class="text-decoration-none text-muted small">
+                        <i class="fas fa-arrow-left me-1"></i> Quay lại profile
+                    </a>
+                </div>
+            </form>
         </div>
-    </main>
+    </div>
 
     <jsp:include page="includes/footer.jsp" />
-    
-    <script>
-    document.getElementById('changePasswordForm').addEventListener('submit', function(e) {
-        const newPass = document.getElementById('newPassword').value;
-        const confirmPass = document.getElementById('confirmPassword').value;
-        
-        if (newPass.length < 6) {
-            e.preventDefault();
-            Swal.fire('Weak Password', 'New password must be at least 6 characters.', 'warning');
-            return;
-        }
-        
-        if (newPass !== confirmPass) {
-            e.preventDefault();
-            Swal.fire('Mismatch', 'Passwords do not match.', 'error');
-        }
-    });
-    </script>
+    <jsp:include page="includes/std_scripts.jsp" />
 </body>
 </html>

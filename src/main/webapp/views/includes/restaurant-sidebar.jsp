@@ -25,7 +25,7 @@
             }
 
             .sidebar-header h5 i {
-                color: #6366f1;
+                color: #e31837;
             }
 
             .sidebar .nav-link {
@@ -45,13 +45,13 @@
                 font-size: 0.95rem;
                 width: 18px;
                 text-align: center;
-                color: #6366f1;
+                color: #e31837;
                 opacity: 0.8;
             }
 
             .sidebar .nav-link:hover {
-                background: rgba(99, 102, 241, 0.08);
-                color: #6366f1;
+                background: rgba(227, 24, 55, 0.08);
+                color: #e31837;
                 transform: translateX(3px);
             }
 
@@ -60,15 +60,15 @@
             }
 
             .sidebar .nav-link.active {
-                background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(139, 92, 246, 0.12));
-                color: #6366f1;
+                background: linear-gradient(135deg, rgba(227, 24, 55, 0.15), rgba(220, 53, 69, 0.12));
+                color: #e31837;
                 font-weight: 600;
-                box-shadow: 0 2px 8px rgba(99, 102, 241, 0.15);
+                box-shadow: 0 2px 8px rgba(227, 24, 55, 0.15);
             }
 
             .sidebar .nav-link.active i {
                 opacity: 1;
-                color: #6366f1;
+                color: #e31837;
             }
 
             .nav-section-title {
@@ -131,13 +131,6 @@
                         href="${pageContext.request.contextPath}/temporary-closure?action=list">
                         <i class="fas fa-door-closed"></i>
                         Temporary Closure
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link ${pageContext.request.requestURI.contains('storefront-customization') ? 'active' : ''}"
-                        href="${pageContext.request.contextPath}/storefront-customization">
-                        <i class="fas fa-paint-brush"></i>
-                        Storefront Setup
                     </a>
                 </li>
                 <c:if test="${sessionScope.user.roleID == 2}">
@@ -217,34 +210,6 @@
                         href="${pageContext.request.contextPath}/items?action=list">
                         <i class="fas fa-hamburger"></i>
                         Menu Items
-                    </a>
-                </li>
-
-                <!-- Analytics Section -->
-                <li class="nav-item mt-2">
-                    <div class="nav-section-title">
-                        <i class="fas fa-chart-pie"></i> Analytics & Reports
-                    </div>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link ${pageContext.request.requestURI.contains('restaurant-analytics-dashboard') ? 'active' : ''}"
-                        href="${pageContext.request.contextPath}/restaurant-analytics-dashboard">
-                        <i class="fas fa-chart-line"></i>
-                        Overview Dashboard
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link ${pageContext.request.requestURI.contains('top-dishes-report') ? 'active' : ''}"
-                        href="${pageContext.request.contextPath}/top-dishes-report">
-                        <i class="fas fa-award"></i>
-                        Top Dishes Report
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link ${pageContext.request.requestURI.contains('peak-hours-analysis') ? 'active' : ''}"
-                        href="${pageContext.request.contextPath}/peak-hours-analysis">
-                        <i class="fas fa-clock"></i>
-                        Peak Hours
                     </a>
                 </li>
 

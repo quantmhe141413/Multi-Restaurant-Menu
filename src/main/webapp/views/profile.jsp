@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/quan-tasks.css">
     <style>
         .profile-header {
-            background: linear-gradient(135deg, var(--primary) 0%, #ff6b81 100%);
+            background: var(--gradient-primary, linear-gradient(135deg, #ff4757 0%, #ff6b81 100%));
             color: white;
             padding: 3rem 2rem;
             border-radius: var(--radius);
@@ -18,49 +18,54 @@
             display: flex;
             align-items: center;
             gap: 2rem;
+            box-shadow: 0 10px 25px rgba(255, 71, 87, 0.2);
         }
         .avatar-circle {
             width: 100px;
             height: 100px;
-            background: rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.25);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 3rem;
-            font-weight: 700;
+            font-weight: 800;
             border: 4px solid rgba(255,255,255,0.4);
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         .profile-content {
             display: grid;
             grid-template-columns: 1fr 2fr;
             gap: 2rem;
         }
-        @media (max-width: 768px) {
+        @media (max-width: 992px) {
             .profile-content {
                 grid-template-columns: 1fr;
             }
         }
         .info-label {
             color: var(--text-muted);
-            font-size: 0.875rem;
-            font-weight: 600;
+            font-size: 0.8rem;
+            font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.025em;
-            margin-bottom: 0.25rem;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
         }
         .info-value {
             color: var(--text-main);
-            font-size: 1.125rem;
-            font-weight: 500;
+            font-size: 1.1rem;
+            font-weight: 600;
             margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border);
         }
         .badge-role {
-            background: rgba(255,255,255,0.2);
-            padding: 0.25rem 0.75rem;
-            border-radius: 20px;
-            font-size: 0.875rem;
-            font-weight: 600;
+            background: rgba(255,255,255,0.25);
+            padding: 0.4rem 1rem;
+            border-radius: 99px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         }
     </style>
 </head>
@@ -73,7 +78,7 @@
                 ${fn:substring(sessionScope.user.fullName, 0, 1)}
             </div>
             <div>
-                <h1 class="mb-1">${sessionScope.user.fullName}</h1>
+                <h1 class="mb-1">${sessionScope.user.fullName} (Red Theme)</h1>
                 <div class="d-flex align-items-center gap-2">
                     <span class="badge-role">
                         <c:choose>
@@ -93,6 +98,10 @@
             <div class="dashboard-card">
                 <h3 class="mb-4">Account Settings</h3>
                 <div class="form-group">
+                    <div class="info-label">Full Name</div>
+                    <div class="info-value">${sessionScope.user.fullName}</div>
+                </div>
+                <div class="form-group">
                     <div class="info-label">Email Address</div>
                     <div class="info-value">${sessionScope.user.email}</div>
                 </div>
@@ -101,7 +110,7 @@
                     <div class="info-value">${not empty sessionScope.user.phone ? sessionScope.user.phone : 'Not provided'}</div>
                 </div>
                 <hr class="my-4">
-                <a href="${pageContext.request.contextPath}/change-password" class="btn-submit text-center d-block text-white mb-2">
+                <a href="${pageContext.request.contextPath}/change-password" class="btn btn-outline-primary w-100 py-2 fw-bold mb-2">
                     <i class="fas fa-lock me-2"></i> Change Password
                 </a>
                 <a href="${pageContext.request.contextPath}/logout" class="btn btn-outline-danger w-100 py-2 fw-bold">
@@ -150,7 +159,7 @@
                             </div>
                             <div class="row g-4">
                                 <div class="col-md-6">
-                                    <a href="${pageContext.request.contextPath}/menu-management-dashboard" class="text-decoration-none">
+                                    <a href="${pageContext.request.contextPath}/categories?action=list" class="text-decoration-none">
                                         <div class="p-4 border rounded-3 bg-light text-center hover-shadow transition">
                                             <i class="fas fa-utensils fa-2x text-primary mb-3"></i>
                                             <h5 class="text-dark">Menu Management</h5>
@@ -174,7 +183,7 @@
                                 <i class="fas fa-store-slash fa-4x text-muted mb-3"></i>
                                 <h4>No restaurant found</h4>
                                 <p>Please complete your restaurant profile setup.</p>
-                                <a href="${pageContext.request.contextPath}/restaurant-profile-setup" class="btn btn-primary">Setup Profile</a>
+                                <a href="${pageContext.request.contextPath}/restaurant-profile-setup" class="btn btn-primary px-4 py-2 fw-bold"> <i class="fas fa-plus-circle me-1"></i> Setup Profile</a>
                             </div>
                         </c:if>
                     </c:when>

@@ -34,19 +34,7 @@ public class LoginController extends HttpServlet {
 
         // If session exists and user already logged in
         if (session != null && session.getAttribute("user") != null) {
-
-            User user = (User) session.getAttribute("user");
-
-            // Redirect user based on role
-            if (user.getRoleID() == 1) { // Admin
-                response.sendRedirect(request.getContextPath() + "/admin/dashboard");
-            } else if (user.getRoleID() == 2) { // Owner
-                response.sendRedirect(request.getContextPath() + "/owner/order-history");
-            } else if (user.getRoleID() == 3) { // Staff
-                response.sendRedirect(request.getContextPath() + "/staff/home");
-            } else { // Customer
-                response.sendRedirect("home");
-            }
+            response.sendRedirect("home");
             return;
         }
 
@@ -87,16 +75,8 @@ public class LoginController extends HttpServlet {
                 }
             }
 
-            // Redirect user based on role
-            if (u.getRoleID() == 1) { // Admin
-                response.sendRedirect(request.getContextPath() + "/admin/dashboard");
-            } else if (u.getRoleID() == 2) { // Owner
-                response.sendRedirect(request.getContextPath() + "/owner/order-history");
-            } else if (u.getRoleID() == 3) { // Staff
-                response.sendRedirect(request.getContextPath() + "/staff/home");
-            } else { // Customer
-                response.sendRedirect("home");
-            }
+            // Redirect all users to home
+            response.sendRedirect("home");
 
         } else {
             // Authentication failed → return to login page with error

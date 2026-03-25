@@ -800,6 +800,75 @@ public class OrderDAO extends DBContext {
     }
 
     /**
+     * Get order count grouped by hour of the day for peak hours analysis.
+     */
+    public java.util.Map<Integer, Integer> getPeakHoursStats(int restaurantId) {
+        java.util.Map<Integer, Integer> stats = new java.util.TreeMap<>();
+        // Initialize all 24 hours
+        for (int i = 0; i < 24; i++)
+            stats.put(i, 0);
+
+        String sql = "SELECT DATEPART(HOUR, CreatedAt) AS OrderHour, COUNT(*) AS OrderCount " +
+                "FROM Orders WHERE RestaurantID = ? AND (OrderStatus = 'Completed' OR OrderStatus = 'Preparing') " +
+                "GROUP BY DATEPART(HOUR, CreatedAt) ORDER BY OrderHour";
+        try {
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setInt(1, restaurantId);
+            ResultSet rs = st.executeQuery();
+            while (rs.next()) {
+                stats.put(rs.getInt("OrderHour"), rs.getInt("OrderCount"));
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(OrderDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return stats;
+    }
+
+    /**
+     * Get daily revenue and order volume for a restaurant.
+     */
+    public java.util.List<java.util.Map<String, Object>> getDailyRevenueStats(int restaurantId, String startDate,
+            String endDate) {
+        java.util.List<java.util.Map<String, Object>> list = new java.util.ArrayList<>();
+        StringBuilder sql = new StringBuilder();
+        sql.append("SELECT CAST(CreatedAt AS DATE) AS OrderDate, COUNT(*) AS OrderCount, SUM(FinalAmount) AS TotalRevenue ")
+                .append("FROM Orders WHERE RestaurantID = ? AND OrderStatus = 'Completed' ");
+
+        if (startDate != null && !startDate.trim().isEmpty()) {
+            sql.append(" AND CreatedAt >= ?");
+        }
+        if (endDate != null && !endDate.trim().isEmpty()) {
+            sql.append(" AND CreatedAt <= ?");
+        }
+
+        sql.append(" GROUP BY CAST(CreatedAt AS DATE) ORDER BY OrderDate DESC");
+
+        try {
+            PreparedStatement st = connection.prepareStatement(sql.toString());
+            int idx = 1;
+            st.setInt(idx++, restaurantId);
+            if (startDate != null && !startDate.trim().isEmpty()) {
+                st.setString(idx++, startDate + " 00:00:00");
+            }
+            if (endDate != null && !endDate.trim().isEmpty()) {
+                st.setString(idx++, endDate + " 23:59:59");
+            }
+
+            ResultSet rs = st.executeQuery();
+            while (rs.next()) {
+                java.util.Map<String, Object> map = new java.util.HashMap<>();
+                map.put("date", rs.getDate("OrderDate"));
+                map.put("count", rs.getInt("OrderCount"));
+                map.put("revenue", rs.getDouble("TotalRevenue"));
+                list.add(map);
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(OrderDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return list;
+    }
+
+    /**
      * Create an order for a walk-in customer (Staff POS).
      * Inserts a temporary customer record if needed, then creates the order.
      * Returns the generated OrderID, or -1 on failure.
