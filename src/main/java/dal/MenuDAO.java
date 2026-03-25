@@ -358,6 +358,18 @@ public class MenuDAO extends DBContext {
         return false;
     }
 
+    public boolean deleteMenuItem(int itemId) {
+        String sql = "DELETE FROM MenuItems WHERE ItemID = ?";
+        try {
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setInt(1, itemId);
+            return st.executeUpdate() > 0;
+        } catch (SQLException ex) {
+            Logger.getLogger(MenuDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return false;
+    }
+
     public List<models.MenuItemStat> getMenuItemStatsByRestaurant(int restaurantId) {
         List<models.MenuItemStat> stats = new ArrayList<>();
         String sql = "SELECT mi.ItemID, mi.ItemName, COALESCE(SUM(oi.Quantity),0) AS TotalSold, COALESCE(SUM(oi.Quantity * oi.UnitPrice),0) AS TotalRevenue "
