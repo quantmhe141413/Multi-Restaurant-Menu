@@ -59,11 +59,11 @@
                             </div>
                             <div class="col-md-3">
                                 <label class="form-label text-muted small mb-1"><i class="fas fa-calendar"></i> From</label>
-                                <input class="form-control" type="date" name="from" value="${param.from}">
+                                <input id="complaintFromDate" class="form-control" type="date" name="from" value="${param.from}">
                             </div>
                             <div class="col-md-3">
                                 <label class="form-label text-muted small mb-1"><i class="fas fa-calendar"></i> To</label>
-                                <input class="form-control" type="date" name="to" value="${param.to}">
+                                <input id="complaintToDate" class="form-control" type="date" name="to" value="${param.to}">
                             </div>
                             <div class="col-md-3">
                                 <label class="form-label text-muted small mb-1"><i class="fas fa-search"></i> Search</label>
@@ -77,6 +77,39 @@
                             </div>
                         </div>
                     </form>
+
+                    <script>
+                        (function () {
+                            const fromEl = document.getElementById('complaintFromDate');
+                            const toEl = document.getElementById('complaintToDate');
+                            if (!fromEl || !toEl) return;
+
+                            function parseDate(value) {
+                                // value format: yyyy-MM-dd (from input[type="date"])
+                                if (!value) return null;
+                                const d = new Date(value + 'T00:00:00');
+                                return isNaN(d.getTime()) ? null : d;
+                            }
+
+                            function swapIfNeeded() {
+                                const fromVal = fromEl.value;
+                                const toVal = toEl.value;
+
+                                const fromDate = parseDate(fromVal);
+                                const toDate = parseDate(toVal);
+                                if (!fromDate || !toDate) return;
+
+                                // If From > To then swap
+                                if (fromDate.getTime() > toDate.getTime()) {
+                                    fromEl.value = toVal;
+                                    toEl.value = fromVal;
+                                }
+                            }
+
+                            fromEl.addEventListener('change', swapIfNeeded);
+                            toEl.addEventListener('change', swapIfNeeded);
+                        })();
+                    </script>
                 </div>
             </div>
 

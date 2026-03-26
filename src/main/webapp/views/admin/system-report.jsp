@@ -35,11 +35,11 @@
                         <div class="row g-3 align-items-end">
                             <div class="col-md-3">
                                 <label class="form-label text-muted small mb-1"><i class="fas fa-calendar"></i> From</label>
-                                <input class="form-control" type="date" name="from" value="${from}">
+                                <input id="systemReportFromDate" class="form-control" type="date" name="from" value="${from}">
                             </div>
                             <div class="col-md-3">
                                 <label class="form-label text-muted small mb-1"><i class="fas fa-calendar"></i> To</label>
-                                <input class="form-control" type="date" name="to" value="${to}">
+                                <input id="systemReportToDate" class="form-control" type="date" name="to" value="${to}">
                             </div>
                             <div class="col-md-3">
                                 <button class="btn btn-primary w-100" type="submit">
@@ -60,6 +60,39 @@
                     </form>
                 </div>
             </div>
+
+            <script>
+                (function () {
+                    const fromEl = document.getElementById('systemReportFromDate');
+                    const toEl = document.getElementById('systemReportToDate');
+                    if (!fromEl || !toEl) return;
+
+                    function parseDate(value) {
+                        if (!value) return null;
+                        const d = new Date(value + 'T00:00:00');
+                        return isNaN(d.getTime()) ? null : d;
+                    }
+
+                    function swapIfNeeded() {
+                        const fromVal = fromEl.value;
+                        const toVal = toEl.value;
+                        const fromDate = parseDate(fromVal);
+                        const toDate = parseDate(toVal);
+                        if (!fromDate || !toDate) return;
+
+                        if (fromDate.getTime() > toDate.getTime()) {
+                            fromEl.value = toVal;
+                            toEl.value = fromVal;
+                        }
+                    }
+
+                    fromEl.addEventListener('change', swapIfNeeded);
+                    toEl.addEventListener('change', swapIfNeeded);
+
+                    // Handle case initial values already violate order.
+                    swapIfNeeded();
+                })();
+            </script>
 
             <div class="row g-3 mb-4">
                 <div class="col-md-3">
