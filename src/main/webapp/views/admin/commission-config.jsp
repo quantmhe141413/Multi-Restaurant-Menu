@@ -40,7 +40,7 @@
 
             <c:set var="paginationTotal" value="${totalRestaurants}" scope="request" />
             <c:set var="paginationLabel" value="restaurants" scope="request" />
-            <jsp:include page="/views/includes/common/pagination.jsp" />
+            <jsp:include page="/views/includes/admin-pagination.jsp" />
 
         </main>
     </div>

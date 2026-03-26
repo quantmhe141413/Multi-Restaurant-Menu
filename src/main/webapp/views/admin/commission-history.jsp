@@ -30,7 +30,7 @@
                 </div>
             </c:if>
 
-            <c:url value="/admin/commission-history" var="paginationUrl">
+            <c:url value="/admin/commission-history" var="paginationUrl" scope="request">
                 <c:param name="action" value="list" />
                 <c:if test="${not empty param.restaurant}">
                     <c:param name="restaurant" value="${param.restaurant}" />
@@ -124,7 +124,7 @@
             <%-- Pagination --%>
             <c:set var="paginationTotal" value="${totalHistory}" scope="request" />
             <c:set var="paginationLabel" value="changes" scope="request" />
-            <jsp:include page="/views/includes/common/pagination.jsp" />
+            <jsp:include page="/views/includes/admin-pagination.jsp" />
 
         </main>
     </div>
