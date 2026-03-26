@@ -5,7 +5,6 @@ import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,6 +22,16 @@ public class EmployeeShiftDAO extends DBContext {
         shift.setShiftDate(rs.getDate("ShiftDate"));
         shift.setCreatedAt(rs.getTimestamp("CreatedAt"));
         
+        // Try to get attendance fields if available
+        try {
+            shift.setAttendanceStatus(rs.getString("AttendanceStatus"));
+            shift.setMarkedBy(rs.getObject("MarkedBy") != null ? rs.getInt("MarkedBy") : null);
+            shift.setMarkedAt(rs.getTimestamp("MarkedAt"));
+            shift.setNote(rs.getString("Note"));
+        } catch (SQLException e) {
+            // Attendance fields not available
+        }
+        
         // Try to get staff name if available from JOIN
         try {
             String staffName = rs.getString("StaffName");
@@ -31,7 +40,14 @@ public class EmployeeShiftDAO extends DBContext {
             // StaffName column not available
             shift.setStaffName(null);
         }
-
+        
+        // Try to get MarkedByName if available from JOIN
+        try {
+            shift.setMarkedByName(rs.getString("MarkedByName"));
+        } catch (SQLException e) {
+            // MarkedByName not available
+        }
+        
         // Try to get shift template details if available from JOIN
         try {
             shift.setShiftName(rs.getString("ShiftName"));
@@ -41,26 +57,7 @@ public class EmployeeShiftDAO extends DBContext {
         } catch (SQLException e) {
             // Template details not available
         }
-
-        // Try to get attendance fields (nullable)
-        try {
-            shift.setAttendanceStatus(rs.getString("AttendanceStatus"));
-            shift.setCheckedInAt(rs.getTimestamp("CheckedInAt"));
-            shift.setCheckedOutAt(rs.getTimestamp("CheckedOutAt"));
-            shift.setMarkedBy(rs.getObject("MarkedBy") != null ? rs.getInt("MarkedBy") : null);
-            shift.setMarkedAt(rs.getTimestamp("MarkedAt"));
-            shift.setNote(rs.getString("Note"));
-        } catch (SQLException e) {
-            // Attendance columns not available in this query
-        }
-
-        // Try to get marker name from JOIN (optional)
-        try {
-            shift.setMarkedByName(rs.getString("MarkedByName"));
-        } catch (SQLException e) {
-            // Not joined
-        }
-
+        
         return shift;
     }
 
@@ -73,10 +70,12 @@ public class EmployeeShiftDAO extends DBContext {
         List<EmployeeShift> shifts = new ArrayList<>();
         StringBuilder sql = new StringBuilder();
         sql.append("SELECT es.*, u.FullName AS StaffName, ")
-           .append("st.ShiftName, st.StartTime, st.EndTime, st.Position ")
+           .append("st.ShiftName, st.StartTime, st.EndTime, st.Position, ")
+           .append("mb.FullName AS MarkedByName ")
            .append("FROM EmployeeShifts es ")
            .append("JOIN Users u ON es.StaffID = u.UserID ")
            .append("JOIN ShiftTemplates st ON es.TemplateID = st.TemplateID ")
+           .append("LEFT JOIN Users mb ON es.MarkedBy = mb.UserID ")
            .append("WHERE es.RestaurantID = ? ");
         
         // Only filter by date if shiftDate is provided
@@ -121,10 +120,12 @@ public class EmployeeShiftDAO extends DBContext {
     public List<EmployeeShift> findAll() {
         List<EmployeeShift> shifts = new ArrayList<>();
         String sql = "SELECT es.*, u.FullName AS StaffName, " +
-                     "st.ShiftName, st.StartTime, st.EndTime, st.Position " +
+                     "st.ShiftName, st.StartTime, st.EndTime, st.Position, " +
+                     "mb.FullName AS MarkedByName " +
                      "FROM EmployeeShifts es " +
                      "JOIN Users u ON es.StaffID = u.UserID " +
                      "JOIN ShiftTemplates st ON es.TemplateID = st.TemplateID " +
+                     "LEFT JOIN Users mb ON es.MarkedBy = mb.UserID " +
                      "ORDER BY es.ShiftDate DESC, es.RestaurantID, st.StartTime, u.FullName";
 
         try {
@@ -149,10 +150,12 @@ public class EmployeeShiftDAO extends DBContext {
     public List<EmployeeShift> findByDate(Date shiftDate) {
         List<EmployeeShift> shifts = new ArrayList<>();
         String sql = "SELECT es.*, u.FullName AS StaffName, " +
-                     "st.ShiftName, st.StartTime, st.EndTime, st.Position " +
+                     "st.ShiftName, st.StartTime, st.EndTime, st.Position, " +
+                     "mb.FullName AS MarkedByName " +
                      "FROM EmployeeShifts es " +
                      "JOIN Users u ON es.StaffID = u.UserID " +
                      "JOIN ShiftTemplates st ON es.TemplateID = st.TemplateID " +
+                     "LEFT JOIN Users mb ON es.MarkedBy = mb.UserID " +
                      "WHERE es.ShiftDate = ? " +
                      "ORDER BY es.RestaurantID, st.StartTime, u.FullName";
 
@@ -364,10 +367,12 @@ public class EmployeeShiftDAO extends DBContext {
      */
     public EmployeeShift findById(Integer shiftId) {
         String sql = "SELECT es.*, u.FullName AS StaffName, " +
-                     "st.ShiftName, st.StartTime, st.EndTime, st.Position " +
+                     "st.ShiftName, st.StartTime, st.EndTime, st.Position, " +
+                     "mb.FullName AS MarkedByName " +
                      "FROM EmployeeShifts es " +
                      "JOIN Users u ON es.StaffID = u.UserID " +
                      "JOIN ShiftTemplates st ON es.TemplateID = st.TemplateID " +
+                     "LEFT JOIN Users mb ON es.MarkedBy = mb.UserID " +
                      "WHERE es.ShiftID = ?";
 
         try {
@@ -421,64 +426,5 @@ public class EmployeeShiftDAO extends DBContext {
             closeResources();
         }
         return staffList;
-    }
-
-    /**
-     * Mark attendance for a shift (Owner action).
-     * Updates AttendanceStatus, Note, MarkedBy, MarkedAt.
-     */
-    public boolean markAttendance(Integer shiftId, String status, String note, Integer markedBy) {
-        String sql = "UPDATE EmployeeShifts SET AttendanceStatus = ?, Note = ?, " +
-                     "MarkedBy = ?, MarkedAt = SYSUTCDATETIME() " +
-                     "WHERE ShiftID = ?";
-        try {
-            connection = getConnection();
-            statement = connection.prepareStatement(sql);
-            statement.setString(1, status);
-            statement.setString(2, note);
-            if (markedBy != null) {
-                statement.setInt(3, markedBy);
-            } else {
-                statement.setNull(3, java.sql.Types.INTEGER);
-            }
-            statement.setInt(4, shiftId);
-            return statement.executeUpdate() > 0;
-        } catch (SQLException ex) {
-            System.out.println("Error marking attendance: " + ex.getMessage());
-            return false;
-        } finally {
-            closeResources();
-        }
-    }
-
-    /**
-     * Get work history for a specific staff member with full attendance info.
-     * Used by owner to view employee attendance history.
-     */
-    public List<EmployeeShift> findWorkHistoryByStaff(Integer staffId) {
-        List<EmployeeShift> shifts = new ArrayList<>();
-        String sql = "SELECT es.*, u.FullName AS StaffName, " +
-                     "st.ShiftName, st.StartTime, st.EndTime, st.Position, " +
-                     "m.FullName AS MarkedByName " +
-                     "FROM EmployeeShifts es " +
-                     "JOIN Users u ON es.StaffID = u.UserID " +
-                     "JOIN ShiftTemplates st ON es.TemplateID = st.TemplateID " +
-                     "LEFT JOIN Users m ON es.MarkedBy = m.UserID " +
-                     "WHERE es.StaffID = ? " +
-                     "ORDER BY es.ShiftDate DESC, st.StartTime";
-        try {
-            connection = getConnection();
-            statement = connection.prepareStatement(sql);
-            statement.setInt(1, staffId);
-            resultSet = statement.executeQuery();
-            while (resultSet.next()) {
-                shifts.add(getFromResultSet(resultSet));
-            }
-        } catch (SQLException ex) {
-            System.out.println("Error getting work history: " + ex.getMessage());
-        } finally {
-            closeResources();
-        }
-        return shifts;
     }
 }
