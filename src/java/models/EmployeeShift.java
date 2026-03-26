@@ -20,6 +20,13 @@ public class EmployeeShift {
     
     private Timestamp createdAt;
     
+    // Attendance fields
+    private String attendanceStatus;
+    private Integer markedBy;
+    private String markedByName;
+    private Timestamp markedAt;
+    private String note;
+    
     public EmployeeShift() {
     }
 
@@ -119,6 +126,46 @@ public class EmployeeShift {
 
     public void setCreatedAt(Timestamp createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public String getAttendanceStatus() {
+        return attendanceStatus;
+    }
+
+    public void setAttendanceStatus(String attendanceStatus) {
+        this.attendanceStatus = attendanceStatus;
+    }
+
+    public Integer getMarkedBy() {
+        return markedBy;
+    }
+
+    public void setMarkedBy(Integer markedBy) {
+        this.markedBy = markedBy;
+    }
+
+    public String getMarkedByName() {
+        return markedByName;
+    }
+
+    public void setMarkedByName(String markedByName) {
+        this.markedByName = markedByName;
+    }
+
+    public Timestamp getMarkedAt() {
+        return markedAt;
+    }
+
+    public void setMarkedAt(Timestamp markedAt) {
+        this.markedAt = markedAt;
+    }
+
+    public String getNote() {
+        return note;
+    }
+
+    public void setNote(String note) {
+        this.note = note;
     }
 
     @Override
