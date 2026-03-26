@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import constants.UserRole;
 import models.User;
 
 @WebServlet(name = "LoginController", urlPatterns = { "/login" })
@@ -18,7 +19,10 @@ public class LoginController extends HttpServlet {
             throws ServletException, IOException {
         HttpSession session = request.getSession(false);
         if (session != null && session.getAttribute("user") != null) {
-            response.sendRedirect("home");
+            // Redirect all users to home
+            // response.sendRedirect("home");
+            User currentUser = (User) session.getAttribute("user");
+            redirectByRole(currentUser, request, response);
             return;
         }
         request.getRequestDispatcher("views/login.jsp").forward(request, response);
@@ -44,11 +48,22 @@ public class LoginController extends HttpServlet {
             }
 
             // Redirect all users to home
-            response.sendRedirect("home");
+            //response.sendRedirect("home");
+            // Redirect by role after successful login
+            redirectByRole(u, request, response);
 
         } else {
             request.setAttribute("error", "Invalid email or password!");
             request.getRequestDispatcher("views/login.jsp").forward(request, response);
         }
+    }
+
+    private void redirectByRole(User user, HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+        if (user != null && user.getRoleID() == UserRole.SUPER_ADMIN) {
+            response.sendRedirect(request.getContextPath() + "/admin/dashboard");
+            return;
+        }
+        response.sendRedirect(request.getContextPath() + "/home");
     }
 }
