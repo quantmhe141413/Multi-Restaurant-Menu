@@ -19,18 +19,20 @@ public class EmployeeShift {
     private String position;
     
     private Timestamp createdAt;
-    
-    // Attendance fields
-    private String attendanceStatus;
-    private Integer markedBy;
-    private String markedByName;
+
+    // Attendance tracking fields (added migration)
+    private String attendanceStatus; // Present, Absent, Late, Excused
+    private Timestamp checkedInAt;
+    private Timestamp checkedOutAt;
+    private Integer markedBy;        // UserID of owner who marked
+    private String markedByName;     // Display name of marker (from JOIN)
     private Timestamp markedAt;
     private String note;
-    
+
     public EmployeeShift() {
     }
 
-    public EmployeeShift(Integer shiftId, Integer restaurantId, Integer staffId, 
+    public EmployeeShift(Integer shiftId, Integer restaurantId, Integer staffId,
                         Integer templateId, Date shiftDate, Timestamp createdAt) {
         this.shiftId = shiftId;
         this.restaurantId = restaurantId;
@@ -136,6 +138,22 @@ public class EmployeeShift {
         this.attendanceStatus = attendanceStatus;
     }
 
+    public Timestamp getCheckedInAt() {
+        return checkedInAt;
+    }
+
+    public void setCheckedInAt(Timestamp checkedInAt) {
+        this.checkedInAt = checkedInAt;
+    }
+
+    public Timestamp getCheckedOutAt() {
+        return checkedOutAt;
+    }
+
+    public void setCheckedOutAt(Timestamp checkedOutAt) {
+        this.checkedOutAt = checkedOutAt;
+    }
+
     public Integer getMarkedBy() {
         return markedBy;
     }
@@ -181,6 +199,8 @@ public class EmployeeShift {
                 ", startTime=" + startTime +
                 ", endTime=" + endTime +
                 ", position='" + position + '\'' +
+                ", attendanceStatus='" + attendanceStatus + '\'' +
+                ", markedBy=" + markedBy +
                 ", createdAt=" + createdAt +
                 '}';
     }

@@ -22,16 +22,6 @@ public class EmployeeShiftDAO extends DBContext {
         shift.setShiftDate(rs.getDate("ShiftDate"));
         shift.setCreatedAt(rs.getTimestamp("CreatedAt"));
         
-        // Try to get attendance fields if available
-        try {
-            shift.setAttendanceStatus(rs.getString("AttendanceStatus"));
-            shift.setMarkedBy(rs.getObject("MarkedBy") != null ? rs.getInt("MarkedBy") : null);
-            shift.setMarkedAt(rs.getTimestamp("MarkedAt"));
-            shift.setNote(rs.getString("Note"));
-        } catch (SQLException e) {
-            // Attendance fields not available
-        }
-        
         // Try to get staff name if available from JOIN
         try {
             String staffName = rs.getString("StaffName");
@@ -39,13 +29,6 @@ public class EmployeeShiftDAO extends DBContext {
         } catch (SQLException e) {
             // StaffName column not available
             shift.setStaffName(null);
-        }
-        
-        // Try to get MarkedByName if available from JOIN
-        try {
-            shift.setMarkedByName(rs.getString("MarkedByName"));
-        } catch (SQLException e) {
-            // MarkedByName not available
         }
         
         // Try to get shift template details if available from JOIN
@@ -70,12 +53,10 @@ public class EmployeeShiftDAO extends DBContext {
         List<EmployeeShift> shifts = new ArrayList<>();
         StringBuilder sql = new StringBuilder();
         sql.append("SELECT es.*, u.FullName AS StaffName, ")
-           .append("st.ShiftName, st.StartTime, st.EndTime, st.Position, ")
-           .append("mb.FullName AS MarkedByName ")
+           .append("st.ShiftName, st.StartTime, st.EndTime, st.Position ")
            .append("FROM EmployeeShifts es ")
            .append("JOIN Users u ON es.StaffID = u.UserID ")
            .append("JOIN ShiftTemplates st ON es.TemplateID = st.TemplateID ")
-           .append("LEFT JOIN Users mb ON es.MarkedBy = mb.UserID ")
            .append("WHERE es.RestaurantID = ? ");
         
         // Only filter by date if shiftDate is provided
@@ -120,12 +101,10 @@ public class EmployeeShiftDAO extends DBContext {
     public List<EmployeeShift> findAll() {
         List<EmployeeShift> shifts = new ArrayList<>();
         String sql = "SELECT es.*, u.FullName AS StaffName, " +
-                     "st.ShiftName, st.StartTime, st.EndTime, st.Position, " +
-                     "mb.FullName AS MarkedByName " +
+                     "st.ShiftName, st.StartTime, st.EndTime, st.Position " +
                      "FROM EmployeeShifts es " +
                      "JOIN Users u ON es.StaffID = u.UserID " +
                      "JOIN ShiftTemplates st ON es.TemplateID = st.TemplateID " +
-                     "LEFT JOIN Users mb ON es.MarkedBy = mb.UserID " +
                      "ORDER BY es.ShiftDate DESC, es.RestaurantID, st.StartTime, u.FullName";
 
         try {
@@ -150,12 +129,10 @@ public class EmployeeShiftDAO extends DBContext {
     public List<EmployeeShift> findByDate(Date shiftDate) {
         List<EmployeeShift> shifts = new ArrayList<>();
         String sql = "SELECT es.*, u.FullName AS StaffName, " +
-                     "st.ShiftName, st.StartTime, st.EndTime, st.Position, " +
-                     "mb.FullName AS MarkedByName " +
+                     "st.ShiftName, st.StartTime, st.EndTime, st.Position " +
                      "FROM EmployeeShifts es " +
                      "JOIN Users u ON es.StaffID = u.UserID " +
                      "JOIN ShiftTemplates st ON es.TemplateID = st.TemplateID " +
-                     "LEFT JOIN Users mb ON es.MarkedBy = mb.UserID " +
                      "WHERE es.ShiftDate = ? " +
                      "ORDER BY es.RestaurantID, st.StartTime, u.FullName";
 
@@ -247,7 +224,9 @@ public class EmployeeShiftDAO extends DBContext {
            .append("JOIN ShiftTemplates st1 ON es.TemplateID = st1.TemplateID ")
            .append("JOIN ShiftTemplates st2 ON st2.TemplateID = ? ")
            .append("WHERE es.StaffID = ? AND es.ShiftDate = ? ")
-           .append("AND (st1.StartTime < st2.EndTime AND st1.EndTime > st2.StartTime)");
+           .append("AND ((st1.StartTime < st2.EndTime AND st1.EndTime > st2.StartTime) OR ")
+           .append("(st1.StartTime < st2.EndTime AND st1.EndTime > st2.StartTime) OR ")
+           .append("(st1.StartTime >= st2.StartTime AND st1.EndTime <= st2.EndTime))");
         
         if (excludeShiftId != null) {
             sql.append(" AND es.ShiftID != ?");
@@ -365,12 +344,10 @@ public class EmployeeShiftDAO extends DBContext {
      */
     public EmployeeShift findById(Integer shiftId) {
         String sql = "SELECT es.*, u.FullName AS StaffName, " +
-                     "st.ShiftName, st.StartTime, st.EndTime, st.Position, " +
-                     "mb.FullName AS MarkedByName " +
+                     "st.ShiftName, st.StartTime, st.EndTime, st.Position " +
                      "FROM EmployeeShifts es " +
                      "JOIN Users u ON es.StaffID = u.UserID " +
                      "JOIN ShiftTemplates st ON es.TemplateID = st.TemplateID " +
-                     "LEFT JOIN Users mb ON es.MarkedBy = mb.UserID " +
                      "WHERE es.ShiftID = ?";
 
         try {
