@@ -173,4 +173,43 @@ public class ComplaintDAO extends DBContext {
             return false;
         } 
     }
+
+    public boolean hasOrderBeenComplained(int orderId) {
+        String sql = "SELECT COUNT(*) AS cnt FROM Complaints WHERE OrderID = ?";
+        try {
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setInt(1, orderId);
+            ResultSet rs = st.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("cnt") > 0;
+            }
+        } catch (SQLException ex) {
+            System.out.println("Error hasOrderBeenComplained: " + ex.getMessage());
+        }
+        return false;
+    }
+
+    /**
+     * New complaint with status Open (DB default).
+     */
+    public boolean insertComplaint(int orderId, int customerId, String description) {
+        if (description == null || description.trim().isEmpty()) {
+            return false;
+        }
+        String trimmed = description.trim();
+        if (trimmed.length() > 255) {
+            trimmed = trimmed.substring(0, 255);
+        }
+        String sql = "INSERT INTO Complaints (OrderID, CustomerID, Description) VALUES (?, ?, ?)";
+        try {
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setInt(1, orderId);
+            st.setInt(2, customerId);
+            st.setString(3, trimmed);
+            return st.executeUpdate() > 0;
+        } catch (SQLException ex) {
+            System.out.println("Error insertComplaint: " + ex.getMessage());
+            return false;
+        }
+    }
 }

@@ -1,5 +1,6 @@
 package controllers;
 
+import dal.ComplaintDAO;
 import dal.MenuDAO;
 import dal.OrderDAO;
 import dal.RestaurantDAO;
@@ -48,6 +49,7 @@ public class OrderHistoryController extends HttpServlet {
             MenuDAO menuDAO = new MenuDAO();
             RestaurantDAO restaurantDAO = new RestaurantDAO();
             ReviewDAO reviewDAO = new ReviewDAO();
+            ComplaintDAO complaintDAO = new ComplaintDAO();
             
             // Pagination parameters
             int page = 1;
@@ -80,6 +82,7 @@ public class OrderHistoryController extends HttpServlet {
             Map<Integer, Restaurant> restaurantMap = new HashMap<>();
             Map<Integer, MenuItem> menuItemMap = new HashMap<>();
             Map<Integer, Boolean> reviewedOrdersMap = new HashMap<>();
+            Map<Integer, Boolean> complainedOrdersMap = new HashMap<>();
             
             for (Order order : orders) {
                 // Lấy các items của đơn hàng
@@ -106,6 +109,7 @@ public class OrderHistoryController extends HttpServlet {
                 
                 // Kiểm tra đơn hàng đã được đánh giá chưa
                 reviewedOrdersMap.put(order.getOrderID(), reviewDAO.hasOrderBeenReviewed(order.getOrderID()));
+                complainedOrdersMap.put(order.getOrderID(), complaintDAO.hasOrderBeenComplained(order.getOrderID()));
             }
             
             request.setAttribute("orders", orders);
@@ -113,6 +117,7 @@ public class OrderHistoryController extends HttpServlet {
             request.setAttribute("restaurantMap", restaurantMap);
             request.setAttribute("menuItemMap", menuItemMap);
             request.setAttribute("reviewedOrdersMap", reviewedOrdersMap);
+            request.setAttribute("complainedOrdersMap", complainedOrdersMap);
             
             // Pagination attributes
             request.setAttribute("currentPage", page);

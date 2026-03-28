@@ -6,6 +6,7 @@ public class Review {
     private int reviewID;
     private int restaurantID;
     private int customerID;
+    private Integer orderID;
     private int rating;
     private String comment;
     private Timestamp createdAt;
@@ -35,6 +36,14 @@ public class Review {
 
     public void setCustomerID(int customerID) {
         this.customerID = customerID;
+    }
+
+    public Integer getOrderID() {
+        return orderID;
+    }
+
+    public void setOrderID(Integer orderID) {
+        this.orderID = orderID;
     }
 
     public int getRating() {
