@@ -92,8 +92,17 @@
                 .hero {
                     padding: 4rem 5%;
                     text-align: center;
-                    background: linear-gradient(135deg, var(--primary), #ff6b81);
+                    background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)),
+                        url('https://www.cukcuk.vn/wp-content/uploads/2023/04/nha-hang-5-sao-la-gi.jpeg');
+                    background-size: cover;
+                    background-position: center;
+                    background-repeat: no-repeat;
                     color: var(--white);
+                    min-height: 400px;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                    align-items: center;
                 }
 
                 .search-container {

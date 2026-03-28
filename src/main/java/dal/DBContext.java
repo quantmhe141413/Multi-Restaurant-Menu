@@ -18,13 +18,8 @@ public class DBContext {
         try {
             // Edit your connection details here
             String username = "sa";
-<<<<<<< Updated upstream
             String password = "123";
-            String url = "jdbc:sqlserver://localhost:1433;databaseName=MultiRestaurantOrderingDB;encrypt=true;trustServerCertificate=true";
-=======
-            String password = "sa";
             String url = "jdbc:sqlserver://localhost:1433;databaseName=MultiRestaurantOrderingDB_Merged;encrypt=true;trustServerCertificate=true";
->>>>>>> Stashed changes
             Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
             connection = DriverManager.getConnection(url, username, password);
         } catch (ClassNotFoundException | SQLException ex) {
