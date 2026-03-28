@@ -1203,7 +1203,53 @@
                                     const order = data.order;
                                     const items = data.items;
 
+                                    const statusLabel = {
+                                        'Pending':    'Chờ xử lý',
+                                        'Preparing':  'Đang chuẩn bị',
+                                        'Delivering': 'Đang giao',
+                                        'Completed':  'Hoàn thành',
+                                        'Cancelled':  'Đã hủy'
+                                    };
+                                    const statusColor = {
+                                        'Pending':    { bg: '#fef3c7', color: '#92400e' },
+                                        'Preparing':  { bg: '#fef3c7', color: '#92400e' },
+                                        'Delivering': { bg: '#ede9fe', color: '#5b21b6' },
+                                        'Completed':  { bg: '#d1fae5', color: '#065f46' },
+                                        'Cancelled':  { bg: '#fee2e2', color: '#991b1b' }
+                                    };
+                                    // next allowed statuses (chỉ dùng values DB cho phép)
+                                    const nextStatuses = {
+                                        'Pending':    ['Preparing', 'Cancelled'],
+                                        'Preparing':  ['Delivering', 'Completed', 'Cancelled'],
+                                        'Delivering': ['Completed', 'Cancelled'],
+                                        'Completed':  [],
+                                        'Cancelled':  []
+                                    };
+
+                                    const sc = statusColor[order.orderStatus] || { bg: '#f1f5f9', color: '#64748b' };
+                                    const nexts = nextStatuses[order.orderStatus] || [];
+
                                     let html = '<div style="padding: 0.5rem;">';
+
+                                    // Status bar
+                                    html += '<div style="display:flex;align-items:center;justify-content:space-between;background:#f8fafc;padding:0.875rem 1rem;border-radius:8px;margin-bottom:1rem;">';
+                                    html += '<div style="display:flex;align-items:center;gap:0.75rem;">';
+                                    html += '<span style="font-size:0.8125rem;color:#64748b;">Trạng thái:</span>';
+                                    html += '<span style="padding:0.3rem 0.8rem;border-radius:999px;font-size:0.8125rem;font-weight:600;background:' + sc.bg + ';color:' + sc.color + ';">' + (statusLabel[order.orderStatus] || order.orderStatus) + '</span>';
+                                    html += '</div>';
+                                    if (nexts.length > 0) {
+                                        html += '<div style="display:flex;gap:0.5rem;" id="statusActionBtns">';
+                                        nexts.forEach(function(s) {
+                                            const isCancell = s === 'Cancelled';
+                                            const btnStyle = isCancell
+                                                ? 'padding:0.4rem 0.9rem;border-radius:6px;border:1px solid #fca5a5;background:#fff;color:#dc2626;font-size:0.8125rem;font-weight:600;cursor:pointer;'
+                                                : 'padding:0.4rem 0.9rem;border-radius:6px;border:none;background:#4a90e2;color:#fff;font-size:0.8125rem;font-weight:600;cursor:pointer;';
+                                            const btnLabel = isCancell ? 'Hủy đơn' : (s === 'Preparing' ? 'Xác nhận chuẩn bị' : s === 'Delivering' ? 'Bắt đầu giao' : 'Hoàn thành');
+                                            html += '<button style="' + btnStyle + '" onclick="updateOrderStatus(' + order.orderID + ',\'' + s + '\')">' + btnLabel + '</button>';
+                                        });
+                                        html += '</div>';
+                                    }
+                                    html += '</div>';
 
                                     // Order info
                                     html += '<div style="background: #f8fafc; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">';
@@ -1277,6 +1323,40 @@
                             toast.textContent = message;
                             toast.className = 'toast toast-' + type + ' show';
                             setTimeout(() => toast.classList.remove('show'), 3000);
+                        }
+
+                        function updateOrderStatus(orderId, newStatus) {
+                            const btns = document.querySelectorAll('#statusActionBtns button');
+                            btns.forEach(b => { b.disabled = true; b.style.opacity = '0.6'; });
+
+                            fetch(ctx + '/update-order-status', {
+                                method: 'POST',
+                                credentials: 'same-origin',
+                                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                                body: 'orderId=' + encodeURIComponent(orderId) + '&status=' + encodeURIComponent(newStatus)
+                            })
+                            .then(r => r.json())
+                            .then(data => {
+                                if (data.success) {
+                                    showToast('Cập nhật trạng thái thành công', 'success');
+                                    // Reload modal with updated data
+                                    viewOrderDetail(orderId);
+                                    // Refresh order list if visible
+                                    if (window.ordersLoaded) {
+                                        const fromDate = document.getElementById('fromDateFilter').value;
+                                        const toDate = document.getElementById('toDateFilter').value;
+                                        const orderType = document.getElementById('orderTypeFilter').value;
+                                        loadOrders(null, fromDate, toDate, orderType);
+                                    }
+                                } else {
+                                    showToast(data.message || 'Cập nhật thất bại', 'error');
+                                    btns.forEach(b => { b.disabled = false; b.style.opacity = '1'; });
+                                }
+                            })
+                            .catch(() => {
+                                showToast('Lỗi kết nối', 'error');
+                                btns.forEach(b => { b.disabled = false; b.style.opacity = '1'; });
+                            });
                         }
 
                         window.onclick = function (event) {

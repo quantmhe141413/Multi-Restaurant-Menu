@@ -59,9 +59,8 @@
                                                 <c:when test="${order.orderStatus == 'Preparing'}">
                                                     <span class="badge bg-warning">Đang chuẩn bị</span>
                                                 </c:when>
-                                                <c:when test="${order.orderStatus == 'Ready'}">
-                                                    <span class="badge" style="background: #dbeafe; color: #1e40af;">Sẵn
-                                                        sàng</span>
+                                                <c:when test="${order.orderStatus == 'Delivering'}">
+                                                    <span class="badge" style="background: #ede9fe; color: #5b21b6;">Đang giao</span>
                                                 </c:when>
                                                 <c:when test="${order.orderStatus == 'Completed'}">
                                                     <span class="badge bg-success">Hoàn thành</span>

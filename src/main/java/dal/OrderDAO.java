@@ -511,8 +511,25 @@ public class OrderDAO extends DBContext {
      * Update order status.
      */
     public boolean updateOrderStatus(int orderId, String newStatus) {
-        String sql = "UPDATE Orders SET OrderStatus = ? WHERE OrderID = ?";
         try {
+            String sql;
+            if ("Completed".equals(newStatus)) {
+                sql = "UPDATE Orders SET OrderStatus = ?, PaymentStatus = 'Success', PaidAt = GETUTCDATE() WHERE OrderID = ?";
+            } else if ("Cancelled".equals(newStatus)) {
+                // Nếu đã thanh toán thì hoàn tiền, chưa thì đánh dấu Failed
+                String currentPaymentStatus = null;
+                PreparedStatement check = connection.prepareStatement(
+                    "SELECT PaymentStatus FROM Orders WHERE OrderID = ?");
+                check.setInt(1, orderId);
+                ResultSet rs = check.executeQuery();
+                if (rs.next()) {
+                    currentPaymentStatus = rs.getString("PaymentStatus");
+                }
+                String cancelPaymentStatus = "Success".equals(currentPaymentStatus) ? "Refunded" : "Failed";
+                sql = "UPDATE Orders SET OrderStatus = ?, PaymentStatus = '" + cancelPaymentStatus + "' WHERE OrderID = ?";
+            } else {
+                sql = "UPDATE Orders SET OrderStatus = ? WHERE OrderID = ?";
+            }
             PreparedStatement st = connection.prepareStatement(sql);
             st.setString(1, newStatus);
             st.setInt(2, orderId);
