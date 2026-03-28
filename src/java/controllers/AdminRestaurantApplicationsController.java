@@ -80,6 +80,10 @@ public class AdminRestaurantApplicationsController extends HttpServlet {
 
         if (statusFilter == null || statusFilter.trim().isEmpty()) {
             statusFilter = "Pending";
+        } else if ("all".equalsIgnoreCase(statusFilter.trim())) {
+            statusFilter = "";
+        } else {
+            statusFilter = statusFilter.trim();
         }
 
         int page = 1;
@@ -105,6 +109,7 @@ public class AdminRestaurantApplicationsController extends HttpServlet {
         request.setAttribute("currentPage", page);
         request.setAttribute("totalPages", totalPages);
         request.setAttribute("totalRestaurants", totalRestaurants);
+        request.setAttribute("currentStatus", statusFilter);
 
         request.getRequestDispatcher("/views/admin/restaurant-application-list.jsp").forward(request, response);
     }
