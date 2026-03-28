@@ -1220,7 +1220,7 @@
                                     html += '</tr></thead><tbody>';
 
                                     items.forEach(item => {
-                                        const price = parseFloat(item.price) || 0;
+                                        const price = parseFloat(item.unitPrice) || 0;
                                         const quantity = parseInt(item.quantity) || 0;
                                         html += '<tr style="border-bottom: 1px solid #f1f5f9;">';
                                         html += '<td style="padding: 0.625rem; font-size: 0.875rem;">' + (item.itemName || 'N/A') + '</td>';
