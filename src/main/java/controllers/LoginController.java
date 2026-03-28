@@ -60,10 +60,40 @@ public class LoginController extends HttpServlet {
 
     private void redirectByRole(User user, HttpServletRequest request, HttpServletResponse response)
             throws IOException {
-        if (user != null && user.getRoleID() == UserRole.SUPER_ADMIN) {
+        if (user == null) {
+            response.sendRedirect(request.getContextPath() + "/home");
+            return;
+        }
+        
+        int roleId = user.getRoleID();
+        
+        // Role 1: Super Admin -> Admin Dashboard
+        if (roleId == UserRole.SUPER_ADMIN) {
             response.sendRedirect(request.getContextPath() + "/admin/dashboard");
             return;
         }
+        
+        // Role 2: Owner -> Owner Dashboard (có thể thêm sau)
+        if (roleId == UserRole.OWNER) {
+            // Có thể redirect đến owner dashboard nếu có
+            // response.sendRedirect(request.getContextPath() + "/owner/dashboard");
+            response.sendRedirect(request.getContextPath() + "/home");
+            return;
+        }
+        
+        // Role 3: Staff -> Staff Home (POS System)
+        if (roleId == UserRole.STAFF) {
+            response.sendRedirect(request.getContextPath() + "/staff/home");
+            return;
+        }
+        
+        // Role 4: Customer -> Home
+        if (roleId == UserRole.CUSTOMER) {
+            response.sendRedirect(request.getContextPath() + "/home");
+            return;
+        }
+        
+        // Default: Home
         response.sendRedirect(request.getContextPath() + "/home");
     }
 }
