@@ -125,35 +125,6 @@
                 <div class="card-body p-4">
                     <form method="GET" action="${pageContext.request.contextPath}/owner/order-history" id="filterForm">
                         <div class="row g-3 align-items-center">
-                            <c:choose>
-                                <c:when test="${sessionScope.user.roleID == 2}">
-                                    <div class="col-md-3">
-                                        <div class="input-group">
-                                            <span class="input-group-text bg-white border-end-0">
-                                                <i class="fas fa-store text-muted"></i>
-                                            </span>
-                                            <select name="restaurantId" class="form-select border-start-0 ps-0">
-                                                <option value="All" ${isAllRestaurants ? 'selected' : ''}>All Restaurants</option>
-                                                <c:forEach var="r" items="${restaurants}">
-                                                    <option value="${r.restaurantId}" ${!isAllRestaurants && selectedRestaurantId == r.restaurantId ? 'selected' : ''}>
-                                                        ${r.name}
-                                                    </option>
-                                                </c:forEach>
-                                            </select>
-                                        </div>
-                                    </div>
-                                </c:when>
-                                <c:otherwise>
-                                    <input type="hidden" name="restaurantId" value="${selectedRestaurantId}" />
-                                    <div class="col-md-3">
-                                        <div class="d-flex align-items-center gap-2">
-                                            <span class="badge bg-soft-secondary text-secondary">
-                                                <i class="fas fa-store me-1"></i> Your restaurant only
-                                            </span>
-                                        </div>
-                                    </div>
-                                </c:otherwise>
-                            </c:choose>
                             <div class="col-md-3">
                                 <div class="input-group">
                                     <span class="input-group-text bg-white border-end-0">
@@ -304,16 +275,6 @@
             <!-- Pagination -->
             <c:if test="${totalPages > 1}">
                 <c:url value="/owner/order-history" var="paginationUrl">
-                    <c:choose>
-                        <c:when test="${sessionScope.user.roleID == 2}">
-                            <c:param name="restaurantId" value="${isAllRestaurants ? 'All' : selectedRestaurantId}" />
-                        </c:when>
-                        <c:otherwise>
-                            <c:if test="${not empty selectedRestaurantId}">
-                                <c:param name="restaurantId" value="${selectedRestaurantId}" />
-                            </c:if>
-                        </c:otherwise>
-                    </c:choose>
                     <c:if test="${not empty fromDate}"><c:param name="fromDate" value="${fromDate}" /></c:if>
                     <c:if test="${not empty toDate}"><c:param name="toDate" value="${toDate}" /></c:if>
                     <c:if test="${not empty selectedStatus}"><c:param name="status" value="${selectedStatus}" /></c:if>
