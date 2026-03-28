@@ -1,6 +1,8 @@
 package controllers;
 
 import dal.MenuDAO;
+import dal.ReviewDAO;
+import dal.UserDAO;
 import java.io.IOException;
 import java.util.List;
 import java.util.HashMap;
@@ -13,6 +15,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import models.MenuCategory;
 import models.MenuItem;
 import models.Restaurant;
+import models.Review;
 
 @WebServlet(name = "MenuController", urlPatterns = { "/menu" })
 public class MenuController extends HttpServlet {
@@ -31,6 +34,8 @@ public class MenuController extends HttpServlet {
         try {
             int restaurantId = Integer.parseInt(restaurantIdParam);
             MenuDAO dao = new MenuDAO();
+            ReviewDAO reviewDAO = new ReviewDAO();
+            UserDAO userDAO = new UserDAO();
 
             // Lấy thông tin nhà hàng
             Restaurant restaurant = dao.getRestaurantById(restaurantId);
@@ -42,6 +47,14 @@ public class MenuController extends HttpServlet {
             // Lấy danh mục và món ăn
             List<MenuCategory> categories = dao.getCategoriesByRestaurant(restaurantId);
             List<MenuItem> menuItems = dao.getMenuItemsByRestaurant(restaurantId);
+
+            // Lấy reviews và rating
+            List<Review> reviews = reviewDAO.getReviewsByRestaurantId(restaurantId);
+            Double averageRating = reviewDAO.getAverageRating(restaurantId);
+            int reviewCount = reviewDAO.getReviewCount(restaurantId);
+            
+            // Lấy tên khách hàng cho reviews
+            Map<Integer, String> customerNames = reviewDAO.getCustomerNamesForReviews(reviews);
 
             // Debug logging
             System.out.println("===== MENU DEBUG =====");
@@ -56,6 +69,8 @@ public class MenuController extends HttpServlet {
                 System.out.println("  - Item " + item.getItemID() + ": " + item.getItemName() + " (CategoryID: "
                         + item.getCategoryID() + ")");
             }
+            System.out.println("Reviews found: " + reviews.size());
+            System.out.println("Average Rating: " + averageRating);
 
             // Nhóm món ăn theo danh mục
             Map<Integer, List<MenuItem>> itemsByCategory = new HashMap<>();
@@ -75,6 +90,10 @@ public class MenuController extends HttpServlet {
             request.setAttribute("restaurant", restaurant);
             request.setAttribute("categories", categories);
             request.setAttribute("itemsByCategory", itemsByCategory);
+            request.setAttribute("reviews", reviews);
+            request.setAttribute("averageRating", averageRating);
+            request.setAttribute("reviewCount", reviewCount);
+            request.setAttribute("customerNames", customerNames);
 
             request.getRequestDispatcher("views/menu.jsp").forward(request, response);
 

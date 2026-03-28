@@ -9,7 +9,8 @@
             <title>Home - Multi-Restaurant Menu</title>
             <link rel="preconnect" href="https://fonts.googleapis.com">
             <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-            <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+            <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+                rel="stylesheet">
             <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
             <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
             <style>
@@ -91,8 +92,17 @@
                 .hero {
                     padding: 4rem 5%;
                     text-align: center;
-                    background: linear-gradient(135deg, var(--primary), #ff6b81);
+                    background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)),
+                        url('https://www.cukcuk.vn/wp-content/uploads/2023/04/nha-hang-5-sao-la-gi.jpeg');
+                    background-size: cover;
+                    background-position: center;
+                    background-repeat: no-repeat;
                     color: var(--white);
+                    min-height: 400px;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                    align-items: center;
                 }
 
                 .search-container {
@@ -195,6 +205,7 @@
                 .btn-view:hover {
                     opacity: 0.9;
                 }
+
                 .site-footer {
                     background-color: #2f3542;
                     color: white;
@@ -211,7 +222,6 @@
                 .site-footer p {
                     margin: 0;
                 }
-
             </style>
         </head>
 
@@ -251,6 +261,33 @@
                         <p>No restaurants found.</p>
                     </c:if>
                 </div>
+
+                <!-- Pagination -->
+                <c:if test="${totalPages > 1}">
+                    <div
+                        style="display: flex; justify-content: center; gap: 0.5rem; margin-top: 2rem; flex-wrap: wrap;">
+                        <c:if test="${currentPage > 1}">
+                            <a href="home?page=${currentPage - 1}&search=${currentSearch}&zone=${selectedZone}"
+                                style="padding: 0.5rem 1rem; background: white; color: #2f3542; border: 1px solid #ddd; border-radius: 6px; text-decoration: none; transition: all 0.3s;">
+                                ← Previous
+                            </a>
+                        </c:if>
+
+                        <c:forEach begin="1" end="${totalPages}" var="i">
+                            <a href="home?page=${i}&search=${currentSearch}&zone=${selectedZone}"
+                                style="padding: 0.5rem 1rem; background: ${i == currentPage ? '#ff4757' : 'white'}; color: ${i == currentPage ? 'white' : '#2f3542'}; border: 1px solid ${i == currentPage ? '#ff4757' : '#ddd'}; border-radius: 6px; text-decoration: none; font-weight: ${i == currentPage ? '600' : '400'}; transition: all 0.3s;">
+                                ${i}
+                            </a>
+                        </c:forEach>
+
+                        <c:if test="${currentPage < totalPages}">
+                            <a href="home?page=${currentPage + 1}&search=${currentSearch}&zone=${selectedZone}"
+                                style="padding: 0.5rem 1rem; background: white; color: #2f3542; border: 1px solid #ddd; border-radius: 6px; text-decoration: none; transition: all 0.3s;">
+                                Next →
+                            </a>
+                        </c:if>
+                    </div>
+                </c:if>
             </div>
 
             <jsp:include page="includes/footer.jsp" />

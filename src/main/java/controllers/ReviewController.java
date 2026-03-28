@@ -30,10 +30,25 @@ public class ReviewController extends HttpServlet {
         }
 
         try {
-            int orderId = Integer.parseInt(request.getParameter("orderId"));
-            int restaurantId = Integer.parseInt(request.getParameter("restaurantId"));
-            int rating = Integer.parseInt(request.getParameter("rating"));
+            // Get parameters
+            String orderIdStr = request.getParameter("orderId");
+            String restaurantIdStr = request.getParameter("restaurantId");
+            String ratingStr = request.getParameter("rating");
             String comment = request.getParameter("comment");
+
+            // Debug logging
+            System.out.println("Review submission - orderId: " + orderIdStr + ", restaurantId: " + restaurantIdStr + ", rating: " + ratingStr);
+
+            // Validate parameters - OrderID is required
+            if (orderIdStr == null || restaurantIdStr == null || ratingStr == null) {
+                session.setAttribute("error", "Thiếu thông tin đánh giá!");
+                response.sendRedirect("order-history");
+                return;
+            }
+
+            int orderId = Integer.parseInt(orderIdStr);
+            int restaurantId = Integer.parseInt(restaurantIdStr);
+            int rating = Integer.parseInt(ratingStr);
 
             // Validate rating 1-5
             if (rating < 1 || rating > 5) {
@@ -42,14 +57,29 @@ public class ReviewController extends HttpServlet {
                 return;
             }
 
-            // Kiểm tra đơn hàng thuộc về customer này và đã Completed
-            OrderDAO orderDAO = new OrderDAO();
-            Order order = orderDAO.getOrderById(orderId);
-            if (order == null || order.getCustomerID() != user.getUserID()) {
-                session.setAttribute("error", "Đơn hàng không hợp lệ!");
+            // Validate comment
+            if (comment == null || comment.trim().isEmpty()) {
+                session.setAttribute("error", "Vui lòng nhập nhận xét của bạn!");
                 response.sendRedirect("order-history");
                 return;
             }
+
+            // Kiểm tra đơn hàng thuộc về customer này và đã Completed
+            OrderDAO orderDAO = new OrderDAO();
+            Order order = orderDAO.getOrderById(orderId);
+            
+            if (order == null) {
+                session.setAttribute("error", "Không tìm thấy đơn hàng!");
+                response.sendRedirect("order-history");
+                return;
+            }
+            
+            if (order.getCustomerID() != user.getUserID()) {
+                session.setAttribute("error", "Đơn hàng không thuộc về bạn!");
+                response.sendRedirect("order-history");
+                return;
+            }
+            
             if (!"Completed".equals(order.getOrderStatus())) {
                 session.setAttribute("error", "Chỉ có thể đánh giá đơn hàng đã hoàn thành!");
                 response.sendRedirect("order-history");
@@ -65,7 +95,10 @@ public class ReviewController extends HttpServlet {
             }
 
             // Lưu đánh giá
+            System.out.println("Attempting to insert review...");
             boolean success = reviewDAO.insertReview(restaurantId, user.getUserID(), orderId, rating, comment);
+            System.out.println("Insert review result: " + success);
+            
             if (success) {
                 session.setAttribute("success", "Cảm ơn bạn đã đánh giá! Đánh giá của bạn đã được ghi nhận.");
             } else {
@@ -73,7 +106,11 @@ public class ReviewController extends HttpServlet {
             }
 
         } catch (NumberFormatException e) {
-            session.setAttribute("error", "Dữ liệu không hợp lệ!");
+            e.printStackTrace();
+            session.setAttribute("error", "Dữ liệu không hợp lệ: " + e.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
+            session.setAttribute("error", "Có lỗi xảy ra: " + e.getMessage());
         }
 
         response.sendRedirect("order-history");

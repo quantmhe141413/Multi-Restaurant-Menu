@@ -3,6 +3,7 @@ package controllers;
 import dal.MenuDAO;
 import dal.OrderDAO;
 import dal.RestaurantDAO;
+import dal.ReviewDAO;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
@@ -46,14 +47,39 @@ public class OrderHistoryController extends HttpServlet {
             OrderDAO orderDAO = new OrderDAO();
             MenuDAO menuDAO = new MenuDAO();
             RestaurantDAO restaurantDAO = new RestaurantDAO();
+            ReviewDAO reviewDAO = new ReviewDAO();
             
-            // Lấy danh sách đơn hàng của customer
-            List<Order> orders = orderDAO.getOrdersByCustomer(user.getUserID());
+            // Pagination parameters
+            int page = 1;
+            int ordersPerPage = 5; // Số đơn hàng mỗi trang
+            
+            String pageParam = request.getParameter("page");
+            if (pageParam != null && !pageParam.isEmpty()) {
+                try {
+                    page = Integer.parseInt(pageParam);
+                    if (page < 1) page = 1;
+                } catch (NumberFormatException e) {
+                    page = 1;
+                }
+            }
+            
+            // Lấy tất cả đơn hàng của customer
+            List<Order> allOrders = orderDAO.getOrdersByCustomer(user.getUserID());
+            int totalOrders = allOrders.size();
+            int totalPages = (int) Math.ceil((double) totalOrders / ordersPerPage);
+            
+            // Tính toán index cho pagination
+            int startIndex = (page - 1) * ordersPerPage;
+            int endIndex = Math.min(startIndex + ordersPerPage, totalOrders);
+            
+            // Lấy đơn hàng cho trang hiện tại
+            List<Order> orders = allOrders.subList(startIndex, endIndex);
             
             // Tạo map để lưu thông tin chi tiết cho mỗi đơn hàng
             Map<Integer, List<OrderItem>> orderItemsMap = new HashMap<>();
             Map<Integer, Restaurant> restaurantMap = new HashMap<>();
             Map<Integer, MenuItem> menuItemMap = new HashMap<>();
+            Map<Integer, Boolean> reviewedOrdersMap = new HashMap<>();
             
             for (Order order : orders) {
                 // Lấy các items của đơn hàng
@@ -77,12 +103,21 @@ public class OrderHistoryController extends HttpServlet {
                         }
                     }
                 }
+                
+                // Kiểm tra đơn hàng đã được đánh giá chưa
+                reviewedOrdersMap.put(order.getOrderID(), reviewDAO.hasOrderBeenReviewed(order.getOrderID()));
             }
             
             request.setAttribute("orders", orders);
             request.setAttribute("orderItemsMap", orderItemsMap);
             request.setAttribute("restaurantMap", restaurantMap);
             request.setAttribute("menuItemMap", menuItemMap);
+            request.setAttribute("reviewedOrdersMap", reviewedOrdersMap);
+            
+            // Pagination attributes
+            request.setAttribute("currentPage", page);
+            request.setAttribute("totalPages", totalPages);
+            request.setAttribute("totalOrders", totalOrders);
             
             request.getRequestDispatcher("views/order-history.jsp").forward(request, response);
             
