@@ -73,11 +73,9 @@ public class LoginController extends HttpServlet {
             return;
         }
         
-        // Role 2: Owner -> Owner Dashboard (có thể thêm sau)
+        // Role 2: Owner -> Management Dashboard
         if (roleId == UserRole.OWNER) {
-            // Có thể redirect đến owner dashboard nếu có
-            // response.sendRedirect(request.getContextPath() + "/owner/dashboard");
-            response.sendRedirect(request.getContextPath() + "/home");
+            response.sendRedirect(request.getContextPath() + "/restaurant-analytics-dashboard");
             return;
         }
         

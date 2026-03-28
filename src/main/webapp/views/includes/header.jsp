@@ -18,7 +18,7 @@
                     </c:if>
 
                     <c:if test="${sessionScope.user.roleID == 2}">
-                        <a href="${pageContext.request.contextPath}/categories?action=list" class="btn btn-danger rounded-pill px-4 py-2 ms-2 fw-bold text-white shadow-sm" style="font-size: 0.85rem; border: none; min-width: 130px;">
+                        <a href="${pageContext.request.contextPath}/restaurant-analytics-dashboard" class="btn btn-danger rounded-pill px-4 py-2 ms-2 fw-bold text-white shadow-sm" style="font-size: 0.85rem; border: none; min-width: 130px;">
                             <i class="fas fa-tasks me-1"></i> Management
                         </a>
                     </c:if>

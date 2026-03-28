@@ -69,6 +69,21 @@
                                 <div class="col-md-8">${restaurant.licenseNumber}</div>
                             </div>
                             <div class="row mb-3">
+                                <div class="col-md-4 text-muted">Business License File</div>
+                                <div class="col-md-8">
+                                    <c:choose>
+                                        <c:when test="${not empty restaurant.licenseFileUrl}">
+                                            <a href="${restaurant.licenseFileUrl}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-file-pdf me-1"></i> View License
+                                            </a>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <span class="text-danger small"><i class="fas fa-times-circle me-1"></i> Not Uploaded</span>
+                                        </c:otherwise>
+                                    </c:choose>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
                                 <div class="col-md-4 text-muted">Commission Rate</div>
                                 <div class="col-md-8">${restaurant.commissionRate}</div>
                             </div>
@@ -133,6 +148,38 @@
                             </c:if>
 
                             <c:if test="${restaurant.status == 'Pending'}">
+                                <%-- Compute readiness flags --%>
+                                <c:set var="hasLicense" value="${not empty restaurant.licenseFileUrl}" />
+                                <c:set var="hasName" value="${not empty restaurant.name}" />
+                                <c:set var="hasAddress" value="${not empty restaurant.address}" />
+                                <c:set var="hasLicenseNumber" value="${not empty restaurant.licenseNumber}" />
+                                <c:set var="canApprove" value="${hasLicense and hasName and hasAddress and hasLicenseNumber}" />
+
+                                <c:if test="${not canApprove}">
+                                    <div class="alert alert-warning mb-3">
+                                        <strong><i class="fas fa-exclamation-triangle me-1"></i> Cannot approve yet.</strong>
+                                        The following requirements must be met:
+                                        <ul class="mb-0 mt-2">
+                                            <li class="${hasName ? 'text-success' : 'text-danger'}">
+                                                <i class="fas ${hasName ? 'fa-check-circle' : 'fa-times-circle'} me-1"></i>
+                                                Restaurant Name
+                                            </li>
+                                            <li class="${hasAddress ? 'text-success' : 'text-danger'}">
+                                                <i class="fas ${hasAddress ? 'fa-check-circle' : 'fa-times-circle'} me-1"></i>
+                                                Address
+                                            </li>
+                                            <li class="${hasLicenseNumber ? 'text-success' : 'text-danger'}">
+                                                <i class="fas ${hasLicenseNumber ? 'fa-check-circle' : 'fa-times-circle'} me-1"></i>
+                                                License Number
+                                            </li>
+                                            <li class="${hasLicense ? 'text-success' : 'text-danger'}">
+                                                <i class="fas ${hasLicense ? 'fa-check-circle' : 'fa-times-circle'} me-1"></i>
+                                                Business License Document (uploaded by owner)
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </c:if>
+
                                 <form action="${pageContext.request.contextPath}/admin/restaurant-applications" method="POST">
                                     <input type="hidden" name="id" value="${restaurant.restaurantId}">
                                     <input type="hidden" name="returnTo" value="detail">
@@ -153,7 +200,9 @@
                                     </div>
 
                                     <div class="d-flex gap-2">
-                                        <button type="submit" name="action" value="approve" class="btn btn-success flex-fill">
+                                        <button type="submit" name="action" value="approve"
+                                                class="btn btn-success flex-fill"
+                                                ${not canApprove ? 'disabled title="Upload business license first"' : ''}>
                                             <i class="fas fa-check"></i> Approve
                                         </button>
                                         <button type="submit" name="action" value="reject" class="btn btn-danger flex-fill">

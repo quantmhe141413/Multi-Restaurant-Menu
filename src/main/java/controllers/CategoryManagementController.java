@@ -238,6 +238,16 @@ public class CategoryManagementController extends HttpServlet {
         }
         User user = (User) session.getAttribute("user");
         RestaurantDAO restaurantDAO = new RestaurantDAO();
-        return restaurantDAO.getRestaurantByOwnerId(user.getUserID());
+        // Try owner lookup first
+        Restaurant restaurant = restaurantDAO.getRestaurantByOwnerId(user.getUserID());
+        if (restaurant == null) {
+            // Fall back to searching RestaurantUsers (for managers/staff)
+            dal.UserDAO userDAO = new dal.UserDAO();
+            Integer restaurantId = userDAO.getRestaurantIdByUserId(user.getUserID());
+            if (restaurantId != null) {
+                restaurant = restaurantDAO.getRestaurantById(restaurantId);
+            }
+        }
+        return restaurant;
     }
 }

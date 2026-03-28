@@ -176,10 +176,15 @@ body {
 
 /* User Dropdown items (standard Bootstrap menu items) */
 .dropdown-item {
+    color: var(--text-main) !important;
     transition: all 0.2s;
 }
 
 .dropdown-item:hover {
-    background: #f8fafc !important;
-    color: var(--primary) !important;
+    background: var(--gradient-primary) !important;
+    color: white !important;
+}
+
+.dropdown-item:hover i {
+    color: white !important;
 }
