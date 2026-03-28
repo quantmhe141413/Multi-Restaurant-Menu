@@ -80,7 +80,7 @@ public class BusinessLicenseUploadController extends HttpServlet {
 
         dao.updateLicenseFile(restaurantId, publicPath);
 
-        request.setAttribute("success", "Upload thành công.");
-        request.getRequestDispatcher("views/business-license-upload.jsp").forward(request, response);
+        // Redirect back to Edit Profile page with success indication
+        response.sendRedirect(request.getContextPath() + "/edit-restaurant-profile?licenseUploaded=1");
     }
 }

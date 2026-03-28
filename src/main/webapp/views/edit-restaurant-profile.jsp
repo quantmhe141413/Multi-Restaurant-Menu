@@ -48,16 +48,61 @@
 
                 <div class="mt-4 pt-2">
                     <button type="submit" class="btn-submit">Save Changes</button>
-                    <div class="d-flex justify-content-between align-items-center mt-4">
-                        <a href="business-license-upload" class="text-decoration-none text-primary fw-bold">
-                            <i class="fas fa-file-upload me-1"></i> Business License
-                        </a>
+                    <div class="d-flex justify-content-end mt-3">
                         <a href="profile" class="text-decoration-none text-muted fw-bold">
                             <i class="fas fa-arrow-left me-1"></i> Back to Profile
                         </a>
                     </div>
                 </div>
             </form>
+
+            <%-- Business License Upload Section --%>
+            <div class="mt-4 pt-2" style="border-top: 2px solid #f1f5f9;">
+                <h5 style="font-weight:700; color:#1e293b; margin-bottom:0.5rem;">
+                    <i class="fas fa-file-certificate me-2 text-danger"></i>Giấy phép kinh doanh
+                </h5>
+                <p class="text-muted small mb-3">Bắt buộc để admin có thể phê duyệt nhà hàng của bạn.</p>
+
+                <c:choose>
+                    <c:when test="${not empty restaurant.licenseFileUrl}">
+                        <div class="alert alert-success d-flex align-items-center gap-3 mb-3">
+                            <i class="fas fa-check-circle fs-5"></i>
+                            <div>
+                                <strong>Đã upload</strong><br>
+                                <a href="${restaurant.licenseFileUrl}" target="_blank" class="text-success small">
+                                    <i class="fas fa-external-link-alt me-1"></i>Xem file giấy phép
+                                </a>
+                            </div>
+                        </div>
+                    </c:when>
+                    <c:otherwise>
+                        <div class="alert alert-warning d-flex align-items-center gap-3 mb-3">
+                            <i class="fas fa-exclamation-triangle fs-5"></i>
+                            <div><strong>Chưa upload</strong> — Cần upload để được phê duyệt.</div>
+                        </div>
+                    </c:otherwise>
+                </c:choose>
+
+                <form method="post" action="${pageContext.request.contextPath}/business-license-upload"
+                      enctype="multipart/form-data">
+                    <div class="form-group mb-3">
+                        <label><i class="fas fa-file-alt me-1"></i> Chọn file (PDF/JPG/PNG, tối đa 10MB)</label>
+                        <input type="file" name="licenseFile" accept="application/pdf,image/*" required
+                               style="margin-top:0.4rem;">
+                    </div>
+                    <button type="submit" class="btn-submit" style="background: linear-gradient(135deg,#e31837,#c0392b);">
+                        <i class="fas fa-upload me-1"></i> Upload Giấy phép
+                    </button>
+                </form>
+
+                <c:if test="${not empty licenseError}">
+                    <div class="alert alert-danger mt-3"><i class="fas fa-exclamation-triangle me-2"></i>${licenseError}</div>
+                </c:if>
+                <c:if test="${not empty licenseSuccess}">
+                    <div class="alert alert-success mt-3"><i class="fas fa-check-circle me-2"></i>${licenseSuccess}</div>
+                </c:if>
+            </div>
+
 
             <c:if test="${not empty success}">
                 <script>
