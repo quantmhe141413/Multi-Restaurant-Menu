@@ -1,9 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
-    <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
-        <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
-            <%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
-
-                <c:choose>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %><%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %><%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %><%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %><c:choose>
                     <c:when test="${empty orders}">
                         <div class="empty-state">
                             <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor"
