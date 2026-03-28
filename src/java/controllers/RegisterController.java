@@ -91,7 +91,25 @@ public class RegisterController extends HttpServlet {
                 rest.setStatus("Approved"); // Auto-approving for now, or could set to "Pending"
 
                 rdao.insertRestaurant(rest);
+
+                // Tự động đăng nhập và chuyển hướng dashboard chủ nhà hàng
+                User owner = udao.login(email, password); // Đảm bảo login trả về user vừa tạo
+                if (owner != null) {
+                    HttpSession session = request.getSession();
+                    session.setAttribute("user", owner);
+                    // Lấy restaurantId vừa tạo
+                    Restaurant createdRest = rdao.getRestaurantByOwnerId(owner.getUserID());
+                    if (createdRest != null) {
+                        session.setAttribute("restaurantId", createdRest.getRestaurantId());
+                        java.util.List<Integer> rList = new java.util.ArrayList<>();
+                        rList.add(createdRest.getRestaurantId());
+                        session.setAttribute("restaurantIds", rList);
+                    }
+                    response.sendRedirect("restaurant-analytics-dashboard");
+                    return;
+                }
             }
+            // Nếu là customer hoặc có lỗi khi tự động login owner
             response.sendRedirect("login?registered=1");
         } else {
             request.setAttribute("error", "Registration failed! Please try again.");
