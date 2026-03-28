@@ -185,6 +185,7 @@ public class ItemManagementController extends HttpServlet {
         String sku = request.getParameter("sku");
         String name = request.getParameter("itemName");
         String description = request.getParameter("description");
+        String imageUrl = request.getParameter("imageUrl");
         double price = Double.parseDouble(request.getParameter("price"));
         int categoryId = Integer.parseInt(request.getParameter("categoryId"));
         boolean isAvailable = request.getParameter("isAvailable") != null;
@@ -195,6 +196,7 @@ public class ItemManagementController extends HttpServlet {
         item.setSku(sku);
         item.setItemName(name);
         item.setDescription(description);
+        item.setImageUrl(imageUrl);
         item.setPrice(price);
         item.setIsAvailable(isAvailable);
 
@@ -221,6 +223,7 @@ public class ItemManagementController extends HttpServlet {
         String sku = request.getParameter("sku");
         String name = request.getParameter("itemName");
         String description = request.getParameter("description");
+        String imageUrl = request.getParameter("imageUrl");
         double price = Double.parseDouble(request.getParameter("price"));
         int categoryId = Integer.parseInt(request.getParameter("categoryId"));
         boolean isAvailable = request.getParameter("isAvailable") != null;
@@ -233,6 +236,7 @@ public class ItemManagementController extends HttpServlet {
             item.setSku(sku);
             item.setItemName(name);
             item.setDescription(description);
+            item.setImageUrl(imageUrl);
             item.setPrice(price);
             item.setIsAvailable(isAvailable);
 
@@ -284,6 +288,16 @@ public class ItemManagementController extends HttpServlet {
         }
         User user = (User) session.getAttribute("user");
         RestaurantDAO restaurantDAO = new RestaurantDAO();
-        return restaurantDAO.getRestaurantByOwnerId(user.getUserID());
+        // Try owner lookup first
+        Restaurant restaurant = restaurantDAO.getRestaurantByOwnerId(user.getUserID());
+        if (restaurant == null) {
+            // Fall back to searching RestaurantUsers (for managers/staff)
+            dal.UserDAO userDAO = new dal.UserDAO();
+            Integer restaurantId = userDAO.getRestaurantIdByUserId(user.getUserID());
+            if (restaurantId != null) {
+                restaurant = restaurantDAO.getRestaurantById(restaurantId);
+            }
+        }
+        return restaurant;
     }
 }

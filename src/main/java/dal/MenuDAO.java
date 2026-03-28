@@ -231,6 +231,7 @@ public class MenuDAO extends DBContext {
         item.setDescription(rs.getString("Description"));
         item.setPrice(rs.getDouble("Price"));
         item.setIsAvailable(rs.getBoolean("IsAvailable"));
+        item.setImageUrl(rs.getString("ImageUrl"));
         item.setAverageRating((Double) rs.getObject("AverageRating"));
         item.setCreatedAt(rs.getTimestamp("CreatedAt"));
         return item;
@@ -323,7 +324,7 @@ public class MenuDAO extends DBContext {
     // --- MenuItem Management Methods ---
 
     public boolean insertMenuItem(MenuItem item) {
-        String sql = "INSERT INTO MenuItems (RestaurantID, CategoryID, SKU, ItemName, Description, Price, IsAvailable) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO MenuItems (RestaurantID, CategoryID, SKU, ItemName, Description, Price, ImageUrl, IsAvailable) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         try {
             PreparedStatement st = connection.prepareStatement(sql);
             st.setInt(1, item.getRestaurantID());
@@ -332,7 +333,8 @@ public class MenuDAO extends DBContext {
             st.setString(4, item.getItemName());
             st.setString(5, item.getDescription());
             st.setDouble(6, item.getPrice());
-            st.setBoolean(7, item.isIsAvailable());
+            st.setString(7, item.getImageUrl());
+            st.setBoolean(8, item.isIsAvailable());
             return st.executeUpdate() > 0;
         } catch (SQLException ex) {
             Logger.getLogger(MenuDAO.class.getName()).log(Level.SEVERE, null, ex);
@@ -341,7 +343,7 @@ public class MenuDAO extends DBContext {
     }
 
     public boolean updateMenuItem(MenuItem item) {
-        String sql = "UPDATE MenuItems SET CategoryID = ?, SKU = ?, ItemName = ?, Description = ?, Price = ?, IsAvailable = ? WHERE ItemID = ?";
+        String sql = "UPDATE MenuItems SET CategoryID = ?, SKU = ?, ItemName = ?, Description = ?, Price = ?, ImageUrl = ?, IsAvailable = ? WHERE ItemID = ?";
         try {
             PreparedStatement st = connection.prepareStatement(sql);
             st.setInt(1, item.getCategoryID());
@@ -349,8 +351,9 @@ public class MenuDAO extends DBContext {
             st.setString(3, item.getItemName());
             st.setString(4, item.getDescription());
             st.setDouble(5, item.getPrice());
-            st.setBoolean(6, item.isIsAvailable());
-            st.setInt(7, item.getItemID());
+            st.setString(6, item.getImageUrl());
+            st.setBoolean(7, item.isIsAvailable());
+            st.setInt(8, item.getItemID());
             return st.executeUpdate() > 0;
         } catch (SQLException ex) {
             Logger.getLogger(MenuDAO.class.getName()).log(Level.SEVERE, null, ex);

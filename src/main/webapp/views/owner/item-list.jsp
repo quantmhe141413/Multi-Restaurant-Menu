@@ -152,6 +152,7 @@
                                             <thead class="table-light py-3">
                                                 <tr>
                                                     <th class="ps-4">ID</th>
+                                                    <th>Image</th>
                                                     <th>SKU</th>
                                                     <th>Item Details</th>
                                                     <th>Category</th>
@@ -175,6 +176,21 @@
                                                         <c:forEach var="item" items="${items}">
                                                             <tr>
                                                                 <td class="ps-4"><strong>#${item.itemID}</strong></td>
+                                                                <td>
+                                                                    <c:choose>
+                                                                        <c:when test="${not empty item.imageUrl}">
+                                                                            <img src="${item.imageUrl}" alt="${item.itemName}" 
+                                                                                 class="rounded-circle shadow-sm" 
+                                                                                 style="width: 45px; height: 45px; object-fit: cover; border: 2px solid #fff;">
+                                                                        </c:when>
+                                                                        <c:otherwise>
+                                                                            <div class="rounded-circle bg-light d-flex align-items-center justify-content-center shadow-sm"
+                                                                                 style="width: 45px; height: 45px; border: 2px solid #fff;">
+                                                                                <i class="fas fa-image text-muted"></i>
+                                                                            </div>
+                                                                        </c:otherwise>
+                                                                    </c:choose>
+                                                                </td>
                                                                 <td><span
                                                                         class="badge bg-light text-dark border">${item.sku}</span>
                                                                 </td>
