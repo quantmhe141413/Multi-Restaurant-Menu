@@ -11,6 +11,9 @@ import models.MenuCategory;
 import models.MenuItem;
 import models.Restaurant;
 
+import models.TopDish;
+import models.MenuItemStat;
+
 public class MenuDAO extends DBContext {
 
     public Restaurant getRestaurantById(int restaurantId) {
@@ -365,5 +368,98 @@ public class MenuDAO extends DBContext {
             Logger.getLogger(MenuDAO.class.getName()).log(Level.SEVERE, null, ex);
         }
         return false;
+    }
+
+    public List<models.MenuItemStat> getMenuItemStatsByRestaurant(int restaurantId) {
+        List<models.MenuItemStat> stats = new ArrayList<>();
+        String sql = "SELECT mi.ItemID, mi.ItemName, COALESCE(SUM(oi.Quantity),0) AS TotalSold, COALESCE(SUM(oi.Quantity * oi.UnitPrice),0) AS TotalRevenue "
+                + "FROM MenuItems mi LEFT JOIN OrderItems oi ON mi.ItemID = oi.ItemID "
+                + "LEFT JOIN Orders o ON oi.OrderID = o.OrderID AND o.OrderStatus = 'Completed' "
+                + "WHERE mi.RestaurantID = ? GROUP BY mi.ItemID, mi.ItemName ORDER BY TotalSold DESC";
+        try (PreparedStatement st = connection.prepareStatement(sql)) {
+            st.setInt(1, restaurantId);
+            ResultSet rs = st.executeQuery();
+            while (rs.next()) {
+                stats.add(new models.MenuItemStat(
+                        rs.getInt("ItemID"),
+                        rs.getString("ItemName"),
+                        rs.getInt("TotalSold"),
+                        rs.getBigDecimal("TotalRevenue")));
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(MenuDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return stats;
+    }
+
+    // Overloaded: supports optional date range and category filter
+    public List<models.MenuItemStat> getMenuItemStatsByRestaurant(int restaurantId, String startDate, String endDate,
+            Integer categoryId) {
+        List<models.MenuItemStat> stats = new ArrayList<>();
+        StringBuilder sql = new StringBuilder();
+        sql.append(
+                "SELECT mi.ItemID, mi.ItemName, COALESCE(SUM(oi.Quantity),0) AS TotalSold, COALESCE(SUM(oi.Quantity * oi.UnitPrice),0) AS TotalRevenue ")
+                .append("FROM MenuItems mi LEFT JOIN OrderItems oi ON mi.ItemID = oi.ItemID ")
+                .append("LEFT JOIN Orders o ON oi.OrderID = o.OrderID AND o.OrderStatus = 'Completed' ")
+                .append("WHERE mi.RestaurantID = ? ");
+
+        if (categoryId != null && categoryId > 0) {
+            sql.append(" AND mi.CategoryID = ?");
+        }
+        if (startDate != null && !startDate.trim().isEmpty()) {
+            sql.append(" AND o.CreatedAt >= ?");
+        }
+        if (endDate != null && !endDate.trim().isEmpty()) {
+            sql.append(" AND o.CreatedAt <= ?");
+        }
+
+        sql.append(" GROUP BY mi.ItemID, mi.ItemName ORDER BY TotalSold DESC");
+
+        try (PreparedStatement st = connection.prepareStatement(sql.toString())) {
+            int idx = 1;
+            st.setInt(idx++, restaurantId);
+            if (categoryId != null && categoryId > 0) {
+                st.setInt(idx++, categoryId);
+            }
+            if (startDate != null && !startDate.trim().isEmpty()) {
+                st.setString(idx++, startDate + " 00:00:00");
+            }
+            if (endDate != null && !endDate.trim().isEmpty()) {
+                st.setString(idx++, endDate + " 23:59:59");
+            }
+
+            ResultSet rs = st.executeQuery();
+            while (rs.next()) {
+                stats.add(new models.MenuItemStat(
+                        rs.getInt("ItemID"),
+                        rs.getString("ItemName"),
+                        rs.getInt("TotalSold"),
+                        rs.getBigDecimal("TotalRevenue")));
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(MenuDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return stats;
+    }
+
+    public List<TopDish> getTopDishesByRestaurant(int restaurantId) {
+        List<TopDish> topDishes = new ArrayList<>();
+        String sql = "SELECT RestaurantID, ItemID, ItemName, TotalSold FROM vw_TopDishes WHERE RestaurantID = ? ORDER BY TotalSold DESC";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, restaurantId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    TopDish dish = new TopDish(
+                            rs.getInt("RestaurantID"),
+                            rs.getInt("ItemID"),
+                            rs.getString("ItemName"),
+                            rs.getInt("TotalSold"));
+                    topDishes.add(dish);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return topDishes;
     }
 }

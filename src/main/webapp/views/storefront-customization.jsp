@@ -4,7 +4,7 @@
 <html lang="en">
 <head>
     <jsp:include page="includes/std_head.jsp" />
-    <title>Storefront Customization - FoodieExpress</title>
+    <title>Restaurant Branding - FoodieExpress</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/quan-tasks.css">
     <style>
         .preview-box {
@@ -27,27 +27,34 @@
 
     <div class="container-fluid">
         <div class="row">
-            <jsp:include page="includes/restaurant-sidebar.jsp" />
+            <c:choose>
+                <c:when test="${sessionScope.user.roleID == 1}">
+                    <jsp:include page="includes/admin-sidebar.jsp" />
+                </c:when>
+                <c:otherwise>
+                    <jsp:include page="includes/restaurant-sidebar.jsp" />
+                </c:otherwise>
+            </c:choose>
             
             <main class="col-md-9 col-lg-10 main-content p-4" style="background-color: #f8fafc; min-height: 100vh;">
                 <div class="row justify-content-center">
                     <div class="col-md-10">
                         <div class="dashboard-card shadow-sm border-0 p-4 bg-white rounded-3">
-                    <h1 class="mb-4">Storefront Customization</h1>
+                    <h1 class="mb-4">Restaurant Branding</h1>
                     
                     <c:if test="${not empty currentLogo || not empty currentTheme}">
                         <div class="preview-box">
-                            <h4 class="mb-3">Current Appearance</h4>
+                            <h4 class="mb-3">Brand Appearance</h4>
                             <div class="d-flex align-items-center gap-4">
                                 <c:if test="${not empty currentLogo}">
                                     <div class="text-center">
-                                        <div class="small text-muted mb-1">Logo</div>
+                                        <div class="small text-muted mb-1">Current Logo</div>
                                         <img src="${pageContext.request.contextPath}${currentLogo}" alt="current logo" 
                                              class="img-thumbnail" style="max-height: 80px; transition: transform 0.3s;">
                                     </div>
                                 </c:if>
                                 <div>
-                                    <div class="small text-muted mb-1">Theme Color</div>
+                                    <div class="small text-muted mb-1">Brand Color</div>
                                     <div class="color-bubble" style="background-color: ${currentTheme};"></div>
                                 </div>
                             </div>
@@ -55,29 +62,30 @@
                     </c:if>
 
                     <form method="post" action="storefront-customization" enctype="multipart/form-data">
+                        <input type="hidden" name="restaurantId" value="${restaurantId}">
                         <div class="row g-4">
                             <div class="col-md-12">
                                 <div class="form-group">
-                                    <label class="fw-bold"><i class="fas fa-image me-2"></i> Update Logo</label>
+                                    <label class="fw-bold"><i class="fas fa-image me-2"></i> Restaurant Logo</label>
                                     <input type="file" name="logoFile" accept="image/*" class="form-control">
-                                    <small class="text-muted">High resolution PNG or JPG recommended (max 5MB).</small>
+                                    <small class="text-muted">Recommended: Square image, PNG or JPG (max 5MB).</small>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label class="fw-bold"><i class="fas fa-palette me-2"></i> Theme Color</label>
+                                    <label class="fw-bold"><i class="fas fa-palette me-2"></i> Brand Theme Color</label>
                                     <div class="d-flex align-items-center gap-2">
                                         <input type="color" name="themeColor" value="${not empty currentTheme ? currentTheme : '#ff4757'}" 
                                                style="width: 60px; height: 45px; cursor: pointer; border: none; padding: 0;">
-                                        <span class="text-muted">Choose your brand color</span>
+                                        <span class="text-muted">Pick a color for your store</span>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="mt-4 pt-3 border-top">
+                        <div class="mt-4 pt-3 border-top text-end">
                             <button type="submit" class="btn-submit" style="width: auto; padding-left: 3rem; padding-right: 3rem;">
-                                Apply Changes
+                                Save Branding
                             </button>
                         </div>
                     </form>

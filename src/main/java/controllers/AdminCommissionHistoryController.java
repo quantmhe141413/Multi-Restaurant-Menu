@@ -1,72 +1,83 @@
 package controllers;
 
-// DAO classes for database interaction
 import dal.CommissionHistoryDAO;
 import dal.RestaurantDAO;
-
-// Servlet libraries
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-
 import java.io.IOException;
 import java.util.List;
-
-// Model classes
 import models.CommissionHistory;
 import models.Restaurant;
 import models.User;
 
-// Map URL: /admin/commission-history
+/**
+ * AdminCommissionHistoryController
+ * 
+ * This servlet handles viewing commission history records.
+ * Only ADMIN users (roleID = 1) are allowed to access this controller.
+ * 
+ * Main responsibilities:
+ * - Display commission change history
+ * - Filter by restaurant and search keyword
+ * - Support pagination
+ */
 @WebServlet(name = "AdminCommissionHistoryController", urlPatterns = {"/admin/commission-history"})
 public class AdminCommissionHistoryController extends HttpServlet {
 
     /**
-     * Handle GET requests (view commission history list)
+     * Handle GET request
+     * 
+     * Only supports "list" action (view history)
      */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        // Get existing session (do not create new)
+        // Get current session (do not create new session if none exists)
         HttpSession session = request.getSession(false);
 
         // Get logged-in user
         User currentUser = session == null ? null : (User) session.getAttribute("user");
 
-        // Authorization: only admin (roleID = 1)
+        // Authorization check (only admin allowed)
         if (currentUser == null || currentUser.getRoleID() != 1) {
             response.sendRedirect(request.getContextPath() + "/login");
             return;
         }
 
-        // Get action parameter
+        // Get action parameter (default = list)
         String action = request.getParameter("action");
-
-        // Default action = list
         if (action == null || action.trim().isEmpty()) {
             action = "list";
         }
 
-        // Route action
+        // Currently only supports "list"
         switch (action) {
             case "list":
             default:
-                handleList(request, response); // Show history list
+                handleList(request, response);
                 break;
         }
     }
 
     /**
-     * Handle displaying commission history with filters + pagination
+     * Handle displaying commission history list
+     * 
+     * Features:
+     * - Filter by restaurant
+     * - Search keyword
+     * - Pagination
      */
     private void handleList(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        // Get restaurant filter (optional)
+        /**
+         * 1. Get filter: restaurant ID
+         */
         String restaurantStr = request.getParameter("restaurant");
         Integer restaurantId = null;
 
@@ -79,10 +90,14 @@ public class AdminCommissionHistoryController extends HttpServlet {
             }
         }
 
-        // Search keyword filter
+        /**
+         * 2. Get search keyword (e.g., reason, admin name, etc.)
+         */
         String searchFilter = request.getParameter("search");
 
-        // Pagination setup
+        /**
+         * 3. Pagination setup
+         */
         int page = 1;
         int pageSize = 10;
 
@@ -96,26 +111,33 @@ public class AdminCommissionHistoryController extends HttpServlet {
             }
         }
 
+        /**
+         * 4. Fetch commission history data from DAO
+         */
         CommissionHistoryDAO historyDAO = new CommissionHistoryDAO();
 
         // Check if history table exists (useful for first-time setup)
         boolean historyTableExists = historyDAO.historyTableExists();
 
         // Get filtered history list
-        List<CommissionHistory> history = historyDAO
-                .findHistoryWithFilters(restaurantId, searchFilter, page, pageSize);
+        List<CommissionHistory> history =
+                historyDAO.findHistoryWithFilters(restaurantId, searchFilter, page, pageSize);
 
-        // Get total records count
+        // Get total number of filtered records
         int total = historyDAO.getTotalFilteredHistory(restaurantId, searchFilter);
 
         // Calculate total pages
         int totalPages = (int) Math.ceil((double) total / pageSize);
 
-        // Get all restaurants for dropdown filter
+        /**
+         * 5. Load restaurant list for dropdown filter
+         */
         RestaurantDAO restaurantDAO = new RestaurantDAO();
         List<Restaurant> restaurants = restaurantDAO.getAllRestaurantsForDropdown();
 
-        // Set attributes for JSP
+        /**
+         * 6. Set attributes for JSP view
+         */
         request.setAttribute("historyTableExists", historyTableExists);
         request.setAttribute("history", history);
         request.setAttribute("restaurants", restaurants);
@@ -123,8 +145,10 @@ public class AdminCommissionHistoryController extends HttpServlet {
         request.setAttribute("totalPages", totalPages);
         request.setAttribute("totalHistory", total);
 
-        // Forward to JSP view
+        /**
+         * 7. Forward to JSP view
+         */
         request.getRequestDispatcher("/views/admin/commission-history.jsp")
-                .forward(request, response);
+               .forward(request, response);
     }
 }

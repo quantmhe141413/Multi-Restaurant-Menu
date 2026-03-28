@@ -26,7 +26,7 @@
                 </div>
             </div>
 
-            <c:url value="/admin/complaints" var="paginationUrl">
+            <c:url value="/admin/complaints" var="paginationUrl" scope="request">
                 <c:param name="action" value="list" />
                 <c:if test="${not empty param.status}">
                     <c:param name="status" value="${param.status}" />
@@ -59,11 +59,11 @@
                             </div>
                             <div class="col-md-3">
                                 <label class="form-label text-muted small mb-1"><i class="fas fa-calendar"></i> From</label>
-                                <input class="form-control" type="date" name="from" value="${param.from}">
+                                <input id="complaintFromDate" class="form-control" type="date" name="from" value="${param.from}">
                             </div>
                             <div class="col-md-3">
                                 <label class="form-label text-muted small mb-1"><i class="fas fa-calendar"></i> To</label>
-                                <input class="form-control" type="date" name="to" value="${param.to}">
+                                <input id="complaintToDate" class="form-control" type="date" name="to" value="${param.to}">
                             </div>
                             <div class="col-md-3">
                                 <label class="form-label text-muted small mb-1"><i class="fas fa-search"></i> Search</label>
@@ -77,6 +77,39 @@
                             </div>
                         </div>
                     </form>
+
+                    <script>
+                        (function () {
+                            const fromEl = document.getElementById('complaintFromDate');
+                            const toEl = document.getElementById('complaintToDate');
+                            if (!fromEl || !toEl) return;
+
+                            function parseDate(value) {
+                                // value format: yyyy-MM-dd (from input[type="date"])
+                                if (!value) return null;
+                                const d = new Date(value + 'T00:00:00');
+                                return isNaN(d.getTime()) ? null : d;
+                            }
+
+                            function swapIfNeeded() {
+                                const fromVal = fromEl.value;
+                                const toVal = toEl.value;
+
+                                const fromDate = parseDate(fromVal);
+                                const toDate = parseDate(toVal);
+                                if (!fromDate || !toDate) return;
+
+                                // If From > To then swap
+                                if (fromDate.getTime() > toDate.getTime()) {
+                                    fromEl.value = toVal;
+                                    toEl.value = fromVal;
+                                }
+                            }
+
+                            fromEl.addEventListener('change', swapIfNeeded);
+                            toEl.addEventListener('change', swapIfNeeded);
+                        })();
+                    </script>
                 </div>
             </div>
 
@@ -150,81 +183,9 @@
                 </div>
             </div>
 
-            <c:if test="${totalPages > 1}">
-                <nav aria-label="Page navigation" class="mt-4">
-                    <ul class="pagination justify-content-center">
-                        <c:if test="${currentPage > 1}">
-                            <li class="page-item">
-                                <a class="page-link" href="${paginationUrl}&page=1" title="First Page">
-                                    <i class="fas fa-angle-double-left"></i>
-                                </a>
-                            </li>
-                            <li class="page-item">
-                                <a class="page-link" href="${paginationUrl}&page=${currentPage - 1}" title="Previous">
-                                    <i class="fas fa-chevron-left"></i>
-                                </a>
-                            </li>
-                        </c:if>
-
-                        <c:choose>
-                            <c:when test="${totalPages <= 7}">
-                                <c:forEach begin="1" end="${totalPages}" var="i">
-                                    <li class="page-item ${currentPage == i ? 'active' : ''}">
-                                        <a class="page-link" href="${paginationUrl}&page=${i}">${i}</a>
-                                    </li>
-                                </c:forEach>
-                            </c:when>
-                            <c:otherwise>
-                                <c:if test="${currentPage > 3}">
-                                    <li class="page-item">
-                                        <a class="page-link" href="${paginationUrl}&page=1">1</a>
-                                    </li>
-                                    <c:if test="${currentPage > 4}">
-                                        <li class="page-item disabled">
-                                            <span class="page-link">...</span>
-                                        </li>
-                                    </c:if>
-                                </c:if>
-
-                                <c:forEach begin="${currentPage - 2 < 1 ? 1 : currentPage - 2}"
-                                           end="${currentPage + 2 > totalPages ? totalPages : currentPage + 2}"
-                                           var="i">
-                                    <li class="page-item ${currentPage == i ? 'active' : ''}">
-                                        <a class="page-link" href="${paginationUrl}&page=${i}">${i}</a>
-                                    </li>
-                                </c:forEach>
-
-                                <c:if test="${currentPage < totalPages - 2}">
-                                    <c:if test="${currentPage < totalPages - 3}">
-                                        <li class="page-item disabled">
-                                            <span class="page-link">...</span>
-                                        </li>
-                                    </c:if>
-                                    <li class="page-item">
-                                        <a class="page-link" href="${paginationUrl}&page=${totalPages}">${totalPages}</a>
-                                    </li>
-                                </c:if>
-                            </c:otherwise>
-                        </c:choose>
-
-                        <c:if test="${currentPage < totalPages}">
-                            <li class="page-item">
-                                <a class="page-link" href="${paginationUrl}&page=${currentPage + 1}" title="Next">
-                                    <i class="fas fa-chevron-right"></i>
-                                </a>
-                            </li>
-                            <li class="page-item">
-                                <a class="page-link" href="${paginationUrl}&page=${totalPages}" title="Last Page">
-                                    <i class="fas fa-angle-double-right"></i>
-                                </a>
-                            </li>
-                        </c:if>
-                    </ul>
-                    <div class="text-center text-muted mt-2">
-                        <small>Page ${currentPage} of ${totalPages} (Total: ${totalComplaints} complaints)</small>
-                    </div>
-                </nav>
-            </c:if>
+            <c:set var="paginationTotal" value="${totalComplaints}" scope="request" />
+            <c:set var="paginationLabel" value="complaints" scope="request" />
+            <jsp:include page="/views/includes/admin-pagination.jsp" />
 
         </main>
     </div>

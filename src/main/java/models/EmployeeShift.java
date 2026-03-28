@@ -19,11 +19,20 @@ public class EmployeeShift {
     private String position;
     
     private Timestamp createdAt;
-    
+
+    // Attendance tracking fields (added migration)
+    private String attendanceStatus; // Present, Absent, Late, Excused
+    private Timestamp checkedInAt;
+    private Timestamp checkedOutAt;
+    private Integer markedBy;        // UserID of owner who marked
+    private String markedByName;     // Display name of marker (from JOIN)
+    private Timestamp markedAt;
+    private String note;
+
     public EmployeeShift() {
     }
 
-    public EmployeeShift(Integer shiftId, Integer restaurantId, Integer staffId, 
+    public EmployeeShift(Integer shiftId, Integer restaurantId, Integer staffId,
                         Integer templateId, Date shiftDate, Timestamp createdAt) {
         this.shiftId = shiftId;
         this.restaurantId = restaurantId;
@@ -121,6 +130,62 @@ public class EmployeeShift {
         this.createdAt = createdAt;
     }
 
+    public String getAttendanceStatus() {
+        return attendanceStatus;
+    }
+
+    public void setAttendanceStatus(String attendanceStatus) {
+        this.attendanceStatus = attendanceStatus;
+    }
+
+    public Timestamp getCheckedInAt() {
+        return checkedInAt;
+    }
+
+    public void setCheckedInAt(Timestamp checkedInAt) {
+        this.checkedInAt = checkedInAt;
+    }
+
+    public Timestamp getCheckedOutAt() {
+        return checkedOutAt;
+    }
+
+    public void setCheckedOutAt(Timestamp checkedOutAt) {
+        this.checkedOutAt = checkedOutAt;
+    }
+
+    public Integer getMarkedBy() {
+        return markedBy;
+    }
+
+    public void setMarkedBy(Integer markedBy) {
+        this.markedBy = markedBy;
+    }
+
+    public String getMarkedByName() {
+        return markedByName;
+    }
+
+    public void setMarkedByName(String markedByName) {
+        this.markedByName = markedByName;
+    }
+
+    public Timestamp getMarkedAt() {
+        return markedAt;
+    }
+
+    public void setMarkedAt(Timestamp markedAt) {
+        this.markedAt = markedAt;
+    }
+
+    public String getNote() {
+        return note;
+    }
+
+    public void setNote(String note) {
+        this.note = note;
+    }
+
     @Override
     public String toString() {
         return "EmployeeShift{" +
@@ -134,6 +199,8 @@ public class EmployeeShift {
                 ", startTime=" + startTime +
                 ", endTime=" + endTime +
                 ", position='" + position + '\'' +
+                ", attendanceStatus='" + attendanceStatus + '\'' +
+                ", markedBy=" + markedBy +
                 ", createdAt=" + createdAt +
                 '}';
     }
