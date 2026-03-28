@@ -103,20 +103,23 @@ public class OrderDAO extends DBContext {
     }
 
     public Order getOrderById(int orderID) {
-        String sql = "SELECT * FROM Orders WHERE OrderID = ?";
-        
+        String sql = "SELECT o.*, u.FullName AS CustomerName FROM Orders o "
+                + "JOIN Users u ON o.CustomerID = u.UserID WHERE o.OrderID = ?";
+
         try {
             PreparedStatement st = connection.prepareStatement(sql);
             st.setInt(1, orderID);
             ResultSet rs = st.executeQuery();
-            
+
             if (rs.next()) {
-                return mapOrder(rs);
+                Order order = mapOrder(rs);
+                order.setCustomerName(rs.getString("CustomerName"));
+                return order;
             }
         } catch (SQLException ex) {
             Logger.getLogger(OrderDAO.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
+
         return null;
     }
 
@@ -278,7 +281,7 @@ public class OrderDAO extends DBContext {
         List<Order> list = new ArrayList<>();
         String sql = "SELECT o.*, u.FullName AS CustomerName "
                 + "FROM Orders o "
-                + "JOIN Users u ON o.CustomerID = u.UserID "
+                + "LEFT JOIN Users u ON o.CustomerID = u.UserID "
                 + "WHERE o.RestaurantID = ? "
                 + "ORDER BY o.CreatedAt DESC "
                 + "OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
@@ -585,9 +588,9 @@ public class OrderDAO extends DBContext {
         StringBuilder sql = new StringBuilder();
         sql.append("SELECT o.*, u.FullName AS CustomerName ")
            .append("FROM Orders o ")
-           .append("JOIN Users u ON o.CustomerID = u.UserID ")
+           .append("LEFT JOIN Users u ON o.CustomerID = u.UserID ")
            .append("WHERE o.RestaurantID = ? ");
-        
+
         if (fromDate != null && !fromDate.trim().isEmpty()) {
             sql.append("AND CAST(o.CreatedAt AS DATE) >= ? ");
         }

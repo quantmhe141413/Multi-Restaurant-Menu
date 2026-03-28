@@ -79,15 +79,19 @@ public class StaffOrdersAPIController extends HttpServlet {
 
         // Get orders with filters
         OrderDAO orderDAO = new OrderDAO();
-        
+
+        int totalCheck = orderDAO.countOrdersWithFilters(restaurantId, fromDate, toDate, null);
+        System.out.println("[StaffOrders] restaurantId=" + restaurantId + " fromDate=" + fromDate + " toDate=" + toDate + " totalCount=" + totalCheck);
+
         List<Order> orders = orderDAO.getOrdersWithFilters(
-            restaurantId, 
+            restaurantId,
             fromDate,
             toDate,
             null, // status - không filter theo status nữa
-            currentPage, 
+            currentPage,
             PAGE_SIZE
         );
+        System.out.println("[StaffOrders] orders returned=" + orders.size());
 
         // Apply orderType filter manually if needed
         if (orderTypeForQuery != null) {
