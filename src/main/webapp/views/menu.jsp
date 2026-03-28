@@ -502,8 +502,7 @@
                                             </c:otherwise>
                                         </c:choose>
                                         <span class="badge bg-light text-dark badge-status ms-2">
-                                            <i class="fas fa-shipping-fast"></i> Phí giao hàng:
-                                            <fmt:formatNumber value="${restaurant.deliveryFee}" pattern="#,###" /> VND
+                                            <i class="fas fa-shipping-fast"></i> Phí giao hàng theo khu vực
                                         </span>
                                     </div>
                                 </div>
