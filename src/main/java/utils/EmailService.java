@@ -201,6 +201,20 @@ public class EmailService {
         return sendEmailCustom(ownerEmail.trim(), subject, message);
     }
 
+    public static boolean sendComplaintStatusEmail(String ownerEmail, String ownerName, String restaurantName,
+            int complaintId, String status, String adminNote) {
+        if (ownerEmail == null || ownerEmail.trim().isEmpty()
+                || restaurantName == null || restaurantName.trim().isEmpty()
+                || status == null || status.trim().isEmpty()) {
+            return false;
+        }
+        String safeOwnerName = (ownerName == null || ownerName.trim().isEmpty()) ? "Restaurant Owner" : ownerName.trim();
+        String safeNote = adminNote == null ? "" : adminNote.trim();
+        String subject = "Complaint #" + complaintId + " Status Updated - " + restaurantName;
+        String message = buildComplaintStatusEmail(safeOwnerName, restaurantName, complaintId, status.trim(), safeNote);
+        return sendEmailCustom(ownerEmail.trim(), subject, message);
+    }
+
     private static boolean sendEmailCustom(String toEmail, String subject, String messageContent) {
         if (!isValidEmail(toEmail)) {
             System.out.println("[EmailService] Invalid email: " + toEmail);
@@ -341,6 +355,42 @@ public class EmailService {
                 + "<p>We encourage you to address the issues mentioned and reapply. Our goal is to help you successfully join our platform.</p>"
                 + "<p>If you have any questions about the rejection or need clarification on the feedback, please feel free to contact our support team.</p>"
                 + "<p>Thank you for your interest in Multi Restaurant Menu platform.</p>"
+                + "</div>"
+                + "<div class='footer'>"
+                + "<p>Best regards,<br>The Multi Restaurant Menu Team</p>"
+                + "<p><small>This is an automated message. Please do not reply to this email.</small></p>"
+                + "</div>"
+                + "</div>"
+                + "</body>"
+                + "</html>";
+    }
+
+    private static String buildComplaintStatusEmail(String ownerName, String restaurantName,
+            int complaintId, String status, String adminNote) {
+        return "<!DOCTYPE html>"
+                + "<html>"
+                + "<head>"
+                + "<meta charset='UTF-8'>"
+                + "<style>"
+                + "body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f4f4f4; }"
+                + ".container { max-width: 600px; margin: 0 auto; background-color: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }"
+                + ".title { font-size: 22px; font-weight: bold; color: #333; margin-bottom: 20px; }"
+                + ".content { line-height: 1.6; color: #555; }"
+                + ".status { display: inline-block; padding: 6px 12px; border-radius: 6px; background-color: #eef2ff; color: #1e3a8a; font-weight: bold; }"
+                + ".note-box { background-color: #f8fafc; padding: 15px; border: 1px solid #e2e8f0; border-radius: 8px; margin-top: 10px; white-space: pre-wrap; }"
+                + ".footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; text-align: center; color: #777; font-size: 14px; }"
+                + "</style>"
+                + "</head>"
+                + "<body>"
+                + "<div class='container'>"
+                + "<div class='title'>Complaint Status Update</div>"
+                + "<div class='content'>"
+                + "<p>Dear <strong>" + escapeHtml(ownerName) + "</strong>,</p>"
+                + "<p>The complaint related to your restaurant <strong>" + escapeHtml(restaurantName) + "</strong> has been updated by admin.</p>"
+                + "<p>Complaint ID: <strong>#" + complaintId + "</strong></p>"
+                + "<p>New status: <span class='status'>" + escapeHtml(status) + "</span></p>"
+                + "<p>Admin note:</p>"
+                + "<div class='note-box'>" + escapeHtml(adminNote) + "</div>"
                 + "</div>"
                 + "<div class='footer'>"
                 + "<p>Best regards,<br>The Multi Restaurant Menu Team</p>"
