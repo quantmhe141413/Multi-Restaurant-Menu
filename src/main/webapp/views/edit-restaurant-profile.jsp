@@ -36,6 +36,16 @@
                     <textarea name="description" rows="4" placeholder="Tell customers about your restaurant...">${restaurant.description}</textarea>
                 </div>
 
+                <div class="form-group">
+                    <label>Restaurant Image URL <small class="text-muted">(for display on home page)</small></label>
+                    <input type="url" name="logoUrl" id="logoUrlInput" value="${restaurant.logoUrl}"
+                           placeholder="https://example.com/image.jpg">
+                    <div class="mt-2" id="logoPreviewWrap" style="${empty restaurant.logoUrl ? 'display:none' : ''}">
+                        <img id="logoPreview" src="${restaurant.logoUrl}" alt="Logo Preview"
+                             style="width:100%;max-height:200px;object-fit:cover;border-radius:8px;border:1px solid #eee;">
+                    </div>
+                </div>
+
                 <div class="mt-4 pt-2">
                     <button type="submit" class="btn-submit">Save Changes</button>
                     <div class="d-flex justify-content-between align-items-center mt-4">
@@ -66,5 +76,26 @@
 
     <jsp:include page="includes/footer.jsp" />
     <jsp:include page="includes/std_scripts.jsp" />
+    <script>
+        (function() {
+            var input = document.getElementById('logoUrlInput');
+            var preview = document.getElementById('logoPreview');
+            var wrap = document.getElementById('logoPreviewWrap');
+            if (input && preview && wrap) {
+                input.addEventListener('input', function() {
+                    var url = input.value.trim();
+                    if (url) {
+                        preview.src = url;
+                        wrap.style.display = '';
+                    } else {
+                        wrap.style.display = 'none';
+                    }
+                });
+                preview.addEventListener('error', function() {
+                    wrap.style.display = 'none';
+                });
+            }
+        })();
+    </script>
 </body>
 </html>

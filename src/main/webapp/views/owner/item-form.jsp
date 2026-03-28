@@ -70,6 +70,13 @@
                                                             name="description" rows="5"
                                                             placeholder="Describe the ingredients, taste, and size...">${item.description}</textarea>
                                                     </div>
+
+                                                    <div class="mb-4">
+                                                        <label for="imageUrl" class="form-label">Image URL</label>
+                                                        <input type="text" class="form-control" id="imageUrl" name="imageUrl"
+                                                            value="${item.imageUrl}" placeholder="e.g. https://example.com/image.png">
+                                                        <small class="text-muted">Enter a direct link to the dish image.</small>
+                                                    </div>
                                                 </div>
 
                                                 <div class="col-md-5">
