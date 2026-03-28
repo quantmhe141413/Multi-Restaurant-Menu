@@ -75,7 +75,19 @@ public class LoginController extends HttpServlet {
         
         // Role 2: Owner -> Management Dashboard
         if (roleId == UserRole.OWNER) {
-            response.sendRedirect(request.getContextPath() + "/restaurant-analytics-dashboard");
+            Integer restaurantId = (Integer) request.getSession().getAttribute("restaurantId");
+            if (restaurantId == null) {
+                dal.UserDAO udao = new dal.UserDAO();
+                restaurantId = udao.getRestaurantIdByUserId(user.getUserID());
+                if (restaurantId != null) {
+                    request.getSession().setAttribute("restaurantId", restaurantId);
+                }
+            }
+            if (restaurantId == null) {
+                response.sendRedirect(request.getContextPath() + "/restaurant-profile-setup");
+            } else {
+                response.sendRedirect(request.getContextPath() + "/restaurant-analytics-dashboard");
+            }
             return;
         }
         
