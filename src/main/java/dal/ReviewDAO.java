@@ -59,6 +59,34 @@ public class ReviewDAO extends DBContext {
     }
 
     /**
+     * Latest review for an order (if any). Used for admin complaint context.
+     */
+    public Review getReviewByOrderId(int orderId) {
+        String sql = "SELECT TOP 1 ReviewID, RestaurantID, CustomerID, OrderID, Rating, Comment, CreatedAt "
+                + "FROM Reviews WHERE OrderID = ? ORDER BY CreatedAt DESC";
+        try {
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setInt(1, orderId);
+            ResultSet rs = st.executeQuery();
+            if (rs.next()) {
+                Review review = new Review();
+                review.setReviewID(rs.getInt("ReviewID"));
+                review.setRestaurantID(rs.getInt("RestaurantID"));
+                review.setCustomerID(rs.getInt("CustomerID"));
+                int oid = rs.getInt("OrderID");
+                review.setOrderID(rs.wasNull() ? null : oid);
+                review.setRating(rs.getInt("Rating"));
+                review.setComment(rs.getString("Comment"));
+                review.setCreatedAt(rs.getTimestamp("CreatedAt"));
+                return review;
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(ReviewDAO.class.getName()).log(Level.SEVERE, "Error getReviewByOrderId", ex);
+        }
+        return null;
+    }
+
+    /**
      * Get all reviews for a restaurant, joined with User to get customer name.
      * Sorted by newest first.
      */

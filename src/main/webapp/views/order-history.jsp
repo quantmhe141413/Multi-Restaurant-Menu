@@ -542,19 +542,32 @@
                                         </div>
                                     </div>
 
-                                    <!-- Review Button for Completed Orders -->
+                                    <!-- Review & complaint for completed orders -->
                                     <c:if test="${order.orderStatus == 'Completed'}">
-                                        <div class="mt-3 text-end">
+                                        <div class="mt-3 d-flex flex-wrap justify-content-end gap-2">
                                             <c:choose>
                                                 <c:when test="${reviewedOrdersMap[order.orderID]}">
-                                                    <button class="btn btn-secondary" disabled>
+                                                    <button type="button" class="btn btn-secondary" disabled>
                                                         <i class="fas fa-check"></i> Đã đánh giá
                                                     </button>
                                                 </c:when>
                                                 <c:otherwise>
-                                                    <button class="btn btn-warning"
+                                                    <button type="button" class="btn btn-warning"
                                                         onclick="openReviewModal(${order.orderID}, ${order.restaurantID}, '${restaurantMap[order.restaurantID].name}')">
                                                         <i class="fas fa-star"></i> Đánh giá đơn hàng
+                                                    </button>
+                                                </c:otherwise>
+                                            </c:choose>
+                                            <c:choose>
+                                                <c:when test="${complainedOrdersMap[order.orderID]}">
+                                                    <button type="button" class="btn btn-secondary" disabled>
+                                                        <i class="fas fa-check"></i> Đã gửi khiếu nại
+                                                    </button>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <button type="button" class="btn btn-outline-danger"
+                                                        onclick="openComplaintModal(${order.orderID}, '${restaurantMap[order.restaurantID].name}')">
+                                                        <i class="fas fa-triangle-exclamation"></i> Khiếu nại
                                                     </button>
                                                 </c:otherwise>
                                             </c:choose>
@@ -662,11 +675,64 @@
                     </div>
                 </div>
 
+                <!-- Complaint modal (styled like review) -->
+                <div class="modal fade" id="complaintModal" tabindex="-1" aria-labelledby="complaintModalLabel"
+                    aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header border-danger">
+                                <h5 class="modal-title text-danger" id="complaintModalLabel">
+                                    <i class="fas fa-triangle-exclamation"></i> Khiếu nại đơn hàng
+                                </h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                    aria-label="Close"></button>
+                            </div>
+                            <form id="complaintForm" action="${pageContext.request.contextPath}/submit-complaint" method="POST">
+                                <div class="modal-body">
+                                    <input type="hidden" name="orderId" id="complaintOrderId">
+                                    <div class="mb-3">
+                                        <h6 class="text-center mb-2">Nhà hàng: <span id="complaintRestaurantName"
+                                                class="text-primary"></span></h6>
+                                        <p class="text-muted small text-center mb-0">Mô tả vấn đề (tối đa 255 ký tự). Khiếu nại
+                                            được gửi riêng cho admin, khác với đánh giá công khai.</p>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="complaintDescription" class="form-label">Nội dung khiếu nại <span
+                                                class="text-danger">*</span></label>
+                                        <textarea class="review-textarea" id="complaintDescription" name="description"
+                                            maxlength="255" rows="4"
+                                            placeholder="Mô tả chi tiết vấn đề với đơn hàng này..." required></textarea>
+                                        <div class="form-text text-end"><span id="complaintCharCount">0</span>/255</div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                        <i class="fas fa-times"></i> Hủy
+                                    </button>
+                                    <button type="submit" class="btn btn-danger">
+                                        <i class="fas fa-paper-plane"></i> Gửi khiếu nại
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
                 <jsp:include page="includes/footer.jsp" />
 
                 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
                 <script>
                     let selectedRating = 5;
+
+                    function openComplaintModal(orderId, restaurantName) {
+                        document.getElementById('complaintOrderId').value = orderId;
+                        document.getElementById('complaintRestaurantName').textContent = restaurantName;
+                        const ta = document.getElementById('complaintDescription');
+                        ta.value = '';
+                        document.getElementById('complaintCharCount').textContent = '0';
+                        const modal = new bootstrap.Modal(document.getElementById('complaintModal'));
+                        modal.show();
+                    }
 
                     function openReviewModal(orderId, restaurantId, restaurantName) {
                         document.getElementById('reviewOrderId').value = orderId;
@@ -717,6 +783,14 @@
 
                         // Initialize all stars as active (5 stars)
                         updateStars(5);
+
+                        const complaintTa = document.getElementById('complaintDescription');
+                        const complaintCnt = document.getElementById('complaintCharCount');
+                        if (complaintTa && complaintCnt) {
+                            complaintTa.addEventListener('input', function () {
+                                complaintCnt.textContent = String(complaintTa.value.length);
+                            });
+                        }
                     });
                 </script>
             </body>

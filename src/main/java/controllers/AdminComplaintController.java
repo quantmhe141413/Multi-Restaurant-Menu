@@ -1,6 +1,7 @@
 package controllers;
 
 import dal.ComplaintDAO;
+import dal.ReviewDAO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -17,6 +18,7 @@ import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Set;
 import models.ComplaintView;
+import models.Review;
 import models.User;
 import utils.EmailService;
 
@@ -33,7 +35,7 @@ import utils.EmailService;
  */
 @WebServlet(name = "AdminComplaintController", urlPatterns = {"/admin/complaints"})
 public class AdminComplaintController extends HttpServlet {
-    private static final Set<String> ALLOWED_STATUSES = Set.of("InProgress", "Completed");
+    private static final Set<String> ALLOWED_STATUSES = Set.of("InProgress", "Resolved", "Rejected");
 
     /**
      * Handle GET requests
@@ -233,6 +235,13 @@ public class AdminComplaintController extends HttpServlet {
 
             // Pass data to view
             request.setAttribute("complaint", complaint);
+
+            Review orderReview = null;
+            Integer oid = complaint.getOrderID();
+            if (oid != null && oid > 0) {
+                orderReview = new ReviewDAO().getReviewByOrderId(oid);
+            }
+            request.setAttribute("orderReview", orderReview);
 
             // Forward to detail page
             request.getRequestDispatcher("/views/admin/complaint-detail.jsp")

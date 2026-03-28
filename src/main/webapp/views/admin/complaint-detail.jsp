@@ -69,7 +69,7 @@
                         </div>
                     </div>
                 </div>
-
+             
                 <div class="card mb-4">
                     <div class="card-header">
                         <h4 class="mb-0"><i class="fas fa-pen-to-square"></i> Update Complaint</h4>
@@ -83,8 +83,9 @@
                                 <div class="col-md-4">
                                     <label class="form-label text-muted small mb-1">Status <span class="text-danger">*</span></label>
                                     <select class="form-select" id="statusSelect" name="status" required>
-                                        <option value="InProgress" ${complaint.status == 'InProgress' ? 'selected' : ''}>In Progress</option>
-                                        <option value="Completed" ${complaint.status == 'Completed' ? 'selected' : ''}>Completed</option>
+                                        <option value="InProgress" ${complaint.status == 'Open' || complaint.status == 'InProgress' ? 'selected' : ''}>In Progress</option>
+                                        <option value="Resolved" ${complaint.status == 'Resolved' ? 'selected' : ''}>Resolved</option>
+                                        <option value="Rejected" ${complaint.status == 'Rejected' ? 'selected' : ''}>Rejected</option>
                                     </select>
                                 </div>
 
