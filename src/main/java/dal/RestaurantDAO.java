@@ -354,14 +354,12 @@ public class RestaurantDAO extends DBContext {
     }
 
     public void insertRestaurant(Restaurant restaurant) {
-        String sql = "INSERT INTO Restaurants (OwnerID, Name, Address, Phone, Description, Status, CreatedAt) " +
-                     "VALUES (?, ?, ?, ?, ?, 'Pending', GETDATE())";
+        String sql = "INSERT INTO Restaurants (OwnerID, Name, Address, Status, CreatedAt) " +
+                     "VALUES (?, ?, ?, 'Pending', GETDATE())";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, restaurant.getOwnerId());
             ps.setString(2, restaurant.getName());
             ps.setString(3, restaurant.getAddress());
-            ps.setString(4, restaurant.getPhone());
-            ps.setString(5, restaurant.getDescription());
             ps.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();

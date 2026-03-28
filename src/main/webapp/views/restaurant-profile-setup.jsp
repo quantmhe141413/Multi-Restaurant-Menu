@@ -17,7 +17,7 @@
                     <h1>Restaurant Profile Setup</h1>
                     <p class="text-center text-muted mb-4">Hãy cho chúng tôi biết về nhà hàng của bạn để bắt đầu.</p>
 
-                    <form method="post" action="restaurant-profile-setup">
+                    <form method="post" action="restaurant-profile-setup" enctype="multipart/form-data">
                         <div class="form-group">
                             <label><i class="fas fa-store me-2"></i> Tên nhà hàng</label>
                             <input type="text" name="name" placeholder="Nhập tên nhà hàng của bạn" required>
@@ -29,26 +29,26 @@
                                 placeholder="Số nhà, Tên đường, Quận/Huyện, Tỉnh/Thành phố" required>
                         </div>
 
-                        <div class="form-group">
-                            <label><i class="fas fa-phone me-2"></i> Số điện thoại</label>
-                            <input type="text" name="phone" placeholder="098XXXXXXXX" required>
-                        </div>
 
-                        <div class="form-group">
-                            <label><i class="fas fa-align-left me-2"></i> Mô tả</label>
-                            <textarea name="description" rows="4"
-                                placeholder="Mô tả ngắn gọn về nhà hàng của bạn..."></textarea>
+
+
+
+                        <div class="form-group mb-4">
+                            <label><i class="fas fa-file-upload me-2"></i> Giấy phép kinh doanh (Bắt buộc)</label>
+                            <input type="file" name="licenseFile" class="form-control mt-2" accept=".jpg,.jpeg,.png,.pdf" required>
+                            <small class="text-muted d-block mt-1">Vui lòng tải lên ảnh hoặc PDF giấy phép kinh doanh của bạn.</small>
                         </div>
 
                         <div class="mt-4">
                             <button type="submit" class="btn-submit">Lưu hồ sơ</button>
-                            <div class="text-center mt-3">
-                                <a href="business-license-upload" class="text-decoration-none text-primary fw-bold">
-                                    <i class="fas fa-file-upload me-1"></i> Tải lên giấy phép kinh doanh
-                                </a>
-                            </div>
                         </div>
                     </form>
+
+                    <c:if test="${not empty error}">
+                        <div class="alert alert-danger mt-3" style="color:#842029;background:#f8d7da;border:1px solid #f5c2c7;padding:12px;border-radius:8px;">
+                            <i class="fas fa-exclamation-triangle me-2"></i> ${error}
+                        </div>
+                    </c:if>
 
                     <c:if test="${not empty success}">
                         <script>
