@@ -44,6 +44,7 @@
                             <div class="col-md-3">
                                 <label class="form-label text-muted small mb-1"><i class="fas fa-toggle-on"></i> Status</label>
                                 <select class="form-select" name="status">
+                                    <option value="all" ${param.status == 'all' ? 'selected' : ''}>All</option>
                                     <option value="Pending" ${empty param.status || param.status == 'Pending' ? 'selected' : ''}>Pending</option>
                                     <option value="Approved" ${param.status == 'Approved' ? 'selected' : ''}>Approved</option>
                                     <option value="Rejected" ${param.status == 'Rejected' ? 'selected' : ''}>Rejected</option>
