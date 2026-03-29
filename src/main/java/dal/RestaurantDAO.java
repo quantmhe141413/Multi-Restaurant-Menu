@@ -389,11 +389,38 @@ public class RestaurantDAO extends DBContext {
         } catch (Exception ignored) {
         }
         try {
-            r.setLicenseFileUrl(rs.getString("LicenseFileUrl"));
+            r.setLicenseFileUrl(canonicalLicenseFileReference(rs.getString("LicenseFileUrl")));
         } catch (Exception ignored) {
         }
 
         return r;
+    }
+
+    /**
+     * Normalizes license paths from DB: absolute filesystem paths, duplicated context paths,
+     * or backslashes become a single web path {@code /uploads/licenses/...} (or unchanged http(s) URLs).
+     */
+    private static String canonicalLicenseFileReference(String raw) {
+        if (raw == null) {
+            return null;
+        }
+        String s = raw.trim();
+        if (s.isEmpty()) {
+            return null;
+        }
+        if (s.regionMatches(true, 0, "http://", 0, 7) || s.regionMatches(true, 0, "https://", 0, 8)) {
+            return s;
+        }
+        s = s.replace('\\', '/');
+        int idx = s.indexOf("/uploads/licenses/");
+        if (idx >= 0) {
+            return s.substring(idx);
+        }
+        idx = s.indexOf("uploads/licenses/");
+        if (idx >= 0) {
+            return "/" + s.substring(idx);
+        }
+        return s;
     }
 
     public void updateRestaurantCoreInfo(Restaurant restaurant) {
@@ -414,7 +441,7 @@ public class RestaurantDAO extends DBContext {
     public void updateLicenseFile(int restaurantId, String licenseFileUrl) {
         String sql = "UPDATE Restaurants SET LicenseFileUrl = ? WHERE RestaurantID = ?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setString(1, licenseFileUrl);
+            ps.setString(1, canonicalLicenseFileReference(licenseFileUrl));
             ps.setInt(2, restaurantId);
             ps.executeUpdate();
         } catch (SQLException e) {
