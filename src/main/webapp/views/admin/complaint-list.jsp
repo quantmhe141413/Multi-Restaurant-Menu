@@ -50,11 +50,8 @@
                             <div class="col-md-3">
                                 <label class="form-label text-muted small mb-1"><i class="fas fa-toggle-on"></i> Status</label>
                                 <select class="form-select" name="status">
-                                    <option value="" ${empty param.status ? 'selected' : ''}>All</option>
-                                    <option value="Open" ${param.status == 'Open' ? 'selected' : ''}>Open</option>
                                     <option value="InProgress" ${param.status == 'InProgress' ? 'selected' : ''}>InProgress</option>
                                     <option value="Resolved" ${param.status == 'Resolved' ? 'selected' : ''}>Resolved</option>
-                                    <option value="Rejected" ${param.status == 'Rejected' ? 'selected' : ''}>Rejected</option>
                                 </select>
                             </div>
                             <div class="col-md-3">

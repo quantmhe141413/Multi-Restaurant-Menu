@@ -19,7 +19,7 @@ public class DBContext {
             // Edit your connection details here
             String username = "sa";
             String password = "123456";
-            String url = "jdbc:sqlserver://localhost:1433;databaseName=MultiRestaurantOrderingDB_Merged;encrypt=true;trustServerCertificate=true";
+            String url = "jdbc:sqlserver://localhost:1433;databaseName=MultiRestaurantOrderingDB;encrypt=true;trustServerCertificate=true";
 
 
             Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
