@@ -102,7 +102,7 @@ public class RestaurantProfileSetupController extends HttpServlet {
                 String fullPath = uploadPath + File.separator + savedFileName;
                 filePart.write(fullPath);
 
-                String publicPath = request.getContextPath() + "/" + UPLOAD_DIR + "/" + savedFileName;
+                String publicPath = "/" + UPLOAD_DIR + "/" + savedFileName;
                 restaurantDAO.updateLicenseFile(restaurantId, publicPath);
             }
         } catch (Exception e) {

@@ -1,5 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -65,11 +66,20 @@
 
                 <c:choose>
                     <c:when test="${not empty restaurant.licenseFileUrl}">
+                        <c:set var="licHref" value="${restaurant.licenseFileUrl}" />
+                        <c:choose>
+                            <c:when test="${fn:startsWith(licHref, 'http://') || fn:startsWith(licHref, 'https://')}">
+                                <c:set var="licResolved" value="${licHref}" />
+                            </c:when>
+                            <c:otherwise>
+                                <c:set var="licResolved" value="${pageContext.request.contextPath}${licHref}" />
+                            </c:otherwise>
+                        </c:choose>
                         <div class="alert alert-success d-flex align-items-center gap-3 mb-3">
                             <i class="fas fa-check-circle fs-5"></i>
                             <div>
                                 <strong>Đã upload</strong><br>
-                                <a href="${restaurant.licenseFileUrl}" target="_blank" class="text-success small">
+                                <a href="${licResolved}" target="_blank" rel="noopener noreferrer" class="text-success small">
                                     <i class="fas fa-external-link-alt me-1"></i>Xem file giấy phép
                                 </a>
                             </div>

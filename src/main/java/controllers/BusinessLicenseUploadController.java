@@ -76,7 +76,8 @@ public class BusinessLicenseUploadController extends HttpServlet {
         String fullPath = uploadPath + File.separator + savedFileName;
         filePart.write(fullPath);
 
-        String publicPath = request.getContextPath() + "/" + UPLOAD_DIR + "/" + savedFileName;
+        // Store only context-relative web path so URLs work on any deployment (avoid machine-specific or duplicated context).
+        String publicPath = "/" + UPLOAD_DIR + "/" + savedFileName;
 
         dao.updateLicenseFile(restaurantId, publicPath);
 
