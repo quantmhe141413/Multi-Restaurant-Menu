@@ -1,0 +1,23 @@
+@startuml
+' =============================================================================
+' Complaint — máy trạng thái (không vẽ Rejected; trong code admin vẫn có option Rejected)
+'
+' Web: https://www.plantuml.com/plantuml/uml/ — dán TOÀN BỘ file
+' =============================================================================
+
+title Complaint — vòng đời khiếu nại (Open → InProgress → Resolved)
+
+skinparam state {
+  BackgroundColor White
+  BorderColor Black
+}
+
+[*] --> Open : Khách gửi khiếu nại (POST /submit-complaint)\n/ ComplaintDAO.insertComplaint
+
+Open --> InProgress : Admin tiếp nhận (POST /admin/complaints)\n/ status InProgress + email chủ nhà hàng
+
+InProgress --> Resolved : Admin đóng vụ (POST /admin/complaints)\n/ status Resolved + email chủ nhà hàng
+
+Resolved --> [*]
+
+@enduml
