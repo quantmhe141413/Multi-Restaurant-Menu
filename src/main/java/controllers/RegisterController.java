@@ -31,29 +31,51 @@ public class RegisterController extends HttpServlet {
         String fullName = request.getParameter("fullName");
         String email = request.getParameter("email");
         String password = request.getParameter("password");
+        String confirmPassword = request.getParameter("confirmPassword");
         String phone = request.getParameter("phone");
         String roleIDParam = request.getParameter("roleID");
+
+        // Server-side validation
+        String errorMsg = null;
+        if (fullName == null || fullName.trim().length() < 3) {
+            errorMsg = "Full name must be at least 3 characters.";
+        } else if (email == null || !email.matches("^[A-Za-z0-9+_.-]+@(.+)$")) {
+            errorMsg = "Invalid email format.";
+        } else if (password == null || password.length() < 6) {
+            errorMsg = "Password must be at least 6 characters.";
+        } else if (!password.equals(confirmPassword)) {
+            errorMsg = "Passwords do not match.";
+        } else if (phone == null || !phone.matches("^\\d{8,}$")) {
+            errorMsg = "Invalid phone number (minimum 8 digits).";
+        }
 
         // Validate roleID: only allow 2 (Owner) or 4 (Customer) to prevent manipulation
         int roleID = 4; // default to Customer
         if ("2".equals(roleIDParam)) {
             roleID = 2; // Restaurant Owner
+            // Additional validation for Owners could go here (e.g. restaurant info)
+        }
+
+        if (errorMsg != null) {
+            request.setAttribute("error", errorMsg);
+            request.setAttribute("initialRole", roleID == 2 ? "owner" : "customer");
+            request.getRequestDispatcher("views/register.jsp").forward(request, response);
+            return;
         }
 
         UserDAO udao = new UserDAO();
-        if (udao.checkEmailExists(email)) {
+        if (udao.checkEmailExists(email.trim())) {
             request.setAttribute("error", "Email already exists!");
-            // Preserve the role so the form re-renders correctly
             request.setAttribute("initialRole", roleID == 2 ? "owner" : "customer");
             request.getRequestDispatcher("views/register.jsp").forward(request, response);
             return;
         }
 
         User u = new User();
-        u.setFullName(fullName);
-        u.setEmail(email);
+        u.setFullName(fullName.trim());
+        u.setEmail(email.trim());
         u.setPasswordHash(password); // TODO: hash before storing
-        u.setPhone(phone);
+        u.setPhone(phone.trim());
         u.setRoleID(roleID);
 
         if (udao.register(u)) {

@@ -58,11 +58,18 @@ public class RestaurantProfileSetupController extends HttpServlet {
         }
         String name = request.getParameter("name");
         String address = request.getParameter("address");
-        String phone = request.getParameter("phone");
-        String description = request.getParameter("description");
 
-        if (name == null || name.trim().isEmpty() || address == null || address.trim().isEmpty()) {
-            request.setAttribute("error", "Vui lòng điền đầy đủ tên nhà hàng và địa chỉ.");
+        Part filePart = request.getPart("licenseFile");
+        if (name == null || name.trim().isEmpty() || address == null || address.trim().isEmpty() || filePart == null || filePart.getSize() == 0) {
+            request.setAttribute("error", "Vui lòng điền đầy đủ thông tin và tải lên giấy đăng ký kinh doanh.");
+            request.getRequestDispatcher("views/restaurant-profile-setup.jsp").forward(request, response);
+            return;
+        }
+
+        // Validate file type
+        String contentType = filePart.getContentType();
+        if (contentType == null || (!contentType.startsWith("image/") && !contentType.equals("application/pdf"))) {
+            request.setAttribute("error", "Chỉ chấp nhận file ảnh hoặc PDF cho giấy phép kinh doanh.");
             request.getRequestDispatcher("views/restaurant-profile-setup.jsp").forward(request, response);
             return;
         }
@@ -71,8 +78,7 @@ public class RestaurantProfileSetupController extends HttpServlet {
         restaurant.setOwnerId(ownerId);
         restaurant.setName(name.trim());
         restaurant.setAddress(address.trim());
-        restaurant.setPhone(phone != null ? phone.trim() : "");
-        restaurant.setDescription(description != null ? description.trim() : "");
+        // Phone and Description are not in the current DB schema for Restaurants table
         restaurantDAO.insertRestaurant(restaurant);
 
         // Fetch newly created restaurant.
@@ -87,24 +93,21 @@ public class RestaurantProfileSetupController extends HttpServlet {
         int restaurantId = created.getRestaurantId();
 
         try {
-            Part filePart = request.getPart("licenseFile");
-            if (filePart != null && filePart.getSize() > 0) {
-                String applicationPath = request.getServletContext().getRealPath("");
-                String uploadPath = applicationPath + File.separator + UPLOAD_DIR;
-                File uploadDir = new File(uploadPath);
-                if (!uploadDir.exists()) uploadDir.mkdirs();
+            String applicationPath = request.getServletContext().getRealPath("");
+            String uploadPath = applicationPath + File.separator + UPLOAD_DIR;
+            File uploadDir = new File(uploadPath);
+            if (!uploadDir.exists()) uploadDir.mkdirs();
 
-                String submittedFileName = filePart.getSubmittedFileName();
-                String ext = "";
-                int idx = submittedFileName.lastIndexOf('.');
-                if (idx > 0) ext = submittedFileName.substring(idx);
-                String savedFileName = "license_" + restaurantId + "_" + UUID.randomUUID() + ext;
-                String fullPath = uploadPath + File.separator + savedFileName;
-                filePart.write(fullPath);
+            String submittedFileName = filePart.getSubmittedFileName();
+            String ext = "";
+            int idx = submittedFileName.lastIndexOf('.');
+            if (idx > 0) ext = submittedFileName.substring(idx);
+            String savedFileName = "license_" + restaurantId + "_" + UUID.randomUUID() + ext;
+            String fullPath = uploadPath + File.separator + savedFileName;
+            filePart.write(fullPath);
 
-                String publicPath = request.getContextPath() + "/" + UPLOAD_DIR + "/" + savedFileName;
-                restaurantDAO.updateLicenseFile(restaurantId, publicPath);
-            }
+            String publicPath = request.getContextPath() + "/" + UPLOAD_DIR + "/" + savedFileName;
+            restaurantDAO.updateLicenseFile(restaurantId, publicPath);
         } catch (Exception e) {
             e.printStackTrace();
         }

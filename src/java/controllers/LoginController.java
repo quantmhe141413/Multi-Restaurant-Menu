@@ -2,13 +2,13 @@ package controllers;
 
 import dal.UserDAO;
 import java.io.IOException;
-import java.util.List;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import constants.UserRole;
 import models.User;
 
 @WebServlet(name = "LoginController", urlPatterns = { "/login" })
@@ -19,12 +19,10 @@ public class LoginController extends HttpServlet {
             throws ServletException, IOException {
         HttpSession session = request.getSession(false);
         if (session != null && session.getAttribute("user") != null) {
-            User user = (User) session.getAttribute("user");
-            if (user.getRoleID() == 1) { // SuperAdmin
-                response.sendRedirect(request.getContextPath() + "/admin/dashboard");
-            } else {
-                response.sendRedirect("home");
-            }
+            // Redirect all users to home
+            // response.sendRedirect("home");
+            User currentUser = (User) session.getAttribute("user");
+            redirectByRole(currentUser, request, response);
             return;
         }
         request.getRequestDispatcher("views/login.jsp").forward(request, response);
@@ -36,47 +34,80 @@ public class LoginController extends HttpServlet {
         String email = request.getParameter("email");
         String password = request.getParameter("password");
 
+        if (email == null || email.trim().isEmpty() || password == null || password.trim().isEmpty()) {
+            request.setAttribute("error", "Email and password are required!");
+            request.getRequestDispatcher("views/login.jsp").forward(request, response);
+            return;
+        }
+
         UserDAO udao = new UserDAO();
-        User u = udao.login(email, password);
+        User u = udao.login(email.trim(), password);
 
         if (u != null) {
             HttpSession session = request.getSession();
             session.setAttribute("user", u);
-            // Handle Restaurant IDs for session
-            if (u.getRoleID() == 2) {
-                // Owner
-                dal.RestaurantDAO rdao = new dal.RestaurantDAO();
-                models.Restaurant r = rdao.getRestaurantByOwnerId(u.getUserID());
-                List<Integer> rList = new java.util.ArrayList<>();
-                if (r != null) {
-                    session.setAttribute("restaurantId", r.getRestaurantId());
-                    rList.add(r.getRestaurantId());
-                } else {
-                    Integer restaurantId = udao.getRestaurantIdByUserId(u.getUserID());
-                    if (restaurantId != null) {
-                        session.setAttribute("restaurantId", restaurantId);
-                        rList.add(restaurantId);
-                    }
-                }
-                session.setAttribute("restaurantIds", rList);
-            } else if (u.getRoleID() == 3) {
-                // Staff
-                List<Integer> restaurantIds = udao.getRestaurantIdsByUserId(u.getUserID());
-                if (!restaurantIds.isEmpty()) {
-                    session.setAttribute("restaurantId", restaurantIds.get(0));
-                    session.setAttribute("restaurantIds", restaurantIds);
+            if (u.getRoleID() == 2 || u.getRoleID() == 3) {
+                Integer restaurantId = udao.getRestaurantIdByUserId(u.getUserID());
+                if (restaurantId != null) {
+                    session.setAttribute("restaurantId", restaurantId);
                 }
             }
 
-            // Redirect based on role
-            if (u.getRoleID() == 1) { // SuperAdmin
-                response.sendRedirect(request.getContextPath() + "/admin/dashboard");
-            } else {
-                response.sendRedirect("home");
-            }
+            // Redirect by role after successful login
+            redirectByRole(u, request, response);
+
         } else {
             request.setAttribute("error", "Invalid email or password!");
             request.getRequestDispatcher("views/login.jsp").forward(request, response);
         }
+    }
+
+    private void redirectByRole(User user, HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+        if (user == null) {
+            response.sendRedirect(request.getContextPath() + "/home");
+            return;
+        }
+        
+        int roleId = user.getRoleID();
+        
+        // Role 1: Super Admin -> Admin Dashboard
+        if (roleId == UserRole.SUPER_ADMIN) {
+            response.sendRedirect(request.getContextPath() + "/admin/dashboard");
+            return;
+        }
+        
+        // Role 2: Owner -> Management Dashboard
+        if (roleId == UserRole.OWNER) {
+            Integer restaurantId = (Integer) request.getSession().getAttribute("restaurantId");
+            if (restaurantId == null) {
+                dal.UserDAO udao = new dal.UserDAO();
+                restaurantId = udao.getRestaurantIdByUserId(user.getUserID());
+                if (restaurantId != null) {
+                    request.getSession().setAttribute("restaurantId", restaurantId);
+                }
+            }
+            if (restaurantId == null) {
+                response.sendRedirect(request.getContextPath() + "/restaurant-profile-setup");
+            } else {
+                response.sendRedirect(request.getContextPath() + "/restaurant-analytics-dashboard");
+            }
+            return;
+        }
+        
+        // Role 3: Staff -> Staff Home (POS System)
+        if (roleId == UserRole.STAFF) {
+            response.sendRedirect(request.getContextPath() + "/staff/home");
+            return;
+        }
+        
+        // Role 4: Customer -> Home
+        if (roleId == UserRole.CUSTOMER) {
+            response.sendRedirect(request.getContextPath() + "/home");
+            return;
+        }
+        
+        // Default: Home
+        response.sendRedirect(request.getContextPath() + "/home");
     }
 }
