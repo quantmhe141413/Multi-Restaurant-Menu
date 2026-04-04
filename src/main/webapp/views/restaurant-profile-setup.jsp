@@ -20,13 +20,14 @@
                     <form method="post" action="restaurant-profile-setup" enctype="multipart/form-data">
                         <div class="form-group">
                             <label><i class="fas fa-store me-2"></i> Tên nhà hàng</label>
-                            <input type="text" name="name" placeholder="Nhập tên nhà hàng của bạn" required>
+                            <input type="text" name="name" placeholder="Nhập tên nhà hàng của bạn" 
+                                   value="${not empty restaurant ? restaurant.name : ''}" required>
                         </div>
-
                         <div class="form-group">
                             <label><i class="fas fa-map-marker-alt me-2"></i> Địa chỉ</label>
                             <input type="text" name="address"
-                                placeholder="Số nhà, Tên đường, Quận/Huyện, Tỉnh/Thành phố" required>
+                                placeholder="Số nhà, Tên đường, Quận/Huyện, Tỉnh/Thành phố" 
+                                value="${not empty restaurant ? restaurant.address : ''}" required>
                         </div>
 
 

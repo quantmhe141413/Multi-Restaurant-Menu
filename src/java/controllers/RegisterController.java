@@ -1,6 +1,7 @@
 package controllers;
 
 import dal.UserDAO;
+import dal.RestaurantDAO;
 import java.io.IOException;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -78,7 +79,25 @@ public class RegisterController extends HttpServlet {
         u.setPhone(phone.trim());
         u.setRoleID(roleID);
 
-        if (udao.register(u)) {
+        int newUserId = udao.register(u);
+        if (newUserId > 0) {
+            if (roleID == 2) {
+                // Also create the restaurant record
+                String rName = request.getParameter("restaurantName");
+                String rAddress = request.getParameter("restaurantAddress");
+                String rPhone = request.getParameter("restaurantPhone");
+                String rDescription = request.getParameter("restaurantDescription");
+
+                models.Restaurant restaurant = new models.Restaurant();
+                restaurant.setOwnerId(newUserId);
+                restaurant.setName(rName != null ? rName.trim() : "");
+                restaurant.setAddress(rAddress != null ? rAddress.trim() : "");
+                restaurant.setPhone(rPhone != null ? rPhone.trim() : "");
+                restaurant.setDescription(rDescription != null ? rDescription.trim() : "");
+                
+                RestaurantDAO rdao = new RestaurantDAO();
+                rdao.insertRestaurant(restaurant);
+            }
             response.sendRedirect("login?registered=1");
         } else {
             request.setAttribute("error", "Registration failed! Please try again.");

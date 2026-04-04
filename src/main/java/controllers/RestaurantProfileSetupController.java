@@ -134,4 +134,4 @@ public class RestaurantProfileSetupController extends HttpServlet {
         // Redirect to dashboard after successful setup
         response.sendRedirect(request.getContextPath() + "/restaurant-analytics-dashboard");
     }
-}}
+}
