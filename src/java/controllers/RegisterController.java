@@ -1,8 +1,6 @@
 package controllers;
 
 import dal.UserDAO;
-import dal.RestaurantDAO;
-import models.Restaurant;
 import java.io.IOException;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -15,6 +13,7 @@ import models.User;
 @WebServlet(name = "RegisterController", urlPatterns = { "/register" })
 public class RegisterController extends HttpServlet {
 
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -23,8 +22,6 @@ public class RegisterController extends HttpServlet {
             response.sendRedirect("home");
             return;
         }
-        String role = request.getParameter("role");
-        request.setAttribute("initialRole", role);
         request.getRequestDispatcher("views/register.jsp").forward(request, response);
     }
 
@@ -34,31 +31,40 @@ public class RegisterController extends HttpServlet {
         String fullName = request.getParameter("fullName");
         String email = request.getParameter("email");
         String password = request.getParameter("password");
+        String confirmPassword = request.getParameter("confirmPassword");
         String phone = request.getParameter("phone");
-        String roleIDStr = request.getParameter("roleID");
-        String roleQueryParam = request.getParameter("role"); // Also check URL parameter
-        int roleID = 4; // Default to Customer
+        String roleIDParam = request.getParameter("roleID");
 
-        // First check the URL parameter (most reliable)
-        if ("owner".equals(roleQueryParam)) {
-            roleID = 2;
-        } else {
-            // Fall back to the hidden field value
-            try {
-                if (roleIDStr != null) {
-                    int selectedRole = Integer.parseInt(roleIDStr);
-                    // Security check: Only allow Customer (4) and Owner (2)
-                    if (selectedRole == 2 || selectedRole == 4) {
-                        roleID = selectedRole;
-                    }
-                }
-            } catch (NumberFormatException e) {
-                // Keep default roleID if parsing fails
-            }
+        // Server-side validation
+        String errorMsg = null;
+        if (fullName == null || fullName.trim().length() < 3) {
+            errorMsg = "Full name must be at least 3 characters.";
+        } else if (email == null || !email.matches("^[A-Za-z0-9+_.-]+@(.+)$")) {
+            errorMsg = "Invalid email format.";
+        } else if (password == null || password.length() < 6) {
+            errorMsg = "Password must be at least 6 characters.";
+        } else if (!password.equals(confirmPassword)) {
+            errorMsg = "Passwords do not match.";
+        } else if (phone == null || !phone.matches("^\\d{8,}$")) {
+            errorMsg = "Invalid phone number (minimum 8 digits).";
+        }
+
+        // Validate roleID: only allow 2 (Owner) or 4 (Customer) to prevent manipulation
+        int roleID = 4; // default to Customer
+        if ("2".equals(roleIDParam)) {
+            roleID = 2; // Restaurant Owner
+            // Additional validation for Owners could go here (e.g. restaurant info)
+        }
+
+        if (errorMsg != null) {
+            request.setAttribute("error", errorMsg);
+            request.setAttribute("initialRole", roleID == 2 ? "owner" : "customer");
+            request.getRequestDispatcher("views/register.jsp").forward(request, response);
+            return;
         }
 
         UserDAO udao = new UserDAO();
-        if (udao.checkEmailExists(email)) {
+        if (udao.checkEmailExists(email.trim())) {
             request.setAttribute("error", "Email already exists!");
             request.setAttribute("initialRole", roleID == 2 ? "owner" : "customer");
             request.getRequestDispatcher("views/register.jsp").forward(request, response);
@@ -66,50 +72,13 @@ public class RegisterController extends HttpServlet {
         }
 
         User u = new User();
-        u.setFullName(fullName);
-        u.setEmail(email);
+        u.setFullName(fullName.trim());
+        u.setEmail(email.trim());
         u.setPasswordHash(password); // TODO: hash before storing
-        u.setPhone(phone);
+        u.setPhone(phone.trim());
         u.setRoleID(roleID);
 
-        int generatedId = udao.register(u);
-        if (generatedId > 0) {
-            if (roleID == 2) { // Restaurant Owner
-                String rName = request.getParameter("restaurantName");
-                String rAddress = request.getParameter("restaurantAddress");
-                String rPhone = request.getParameter("restaurantPhone");
-                String rDescription = request.getParameter("restaurantDescription");
-
-                RestaurantDAO rdao = new RestaurantDAO();
-                Restaurant rest = new Restaurant();
-                rest.setOwnerId(generatedId);
-                rest.setName(rName);
-                rest.setAddress(rAddress);
-                rest.setPhone(rPhone != null && !rPhone.isEmpty() ? rPhone : phone);
-                rest.setDescription(rDescription);
-                rest.setIsOpen(true);
-                rest.setStatus("Approved"); // Auto-approving for now, or could set to "Pending"
-
-                rdao.insertRestaurant(rest);
-
-                // Tự động đăng nhập và chuyển hướng dashboard chủ nhà hàng
-                User owner = udao.login(email, password); // Đảm bảo login trả về user vừa tạo
-                if (owner != null) {
-                    HttpSession session = request.getSession();
-                    session.setAttribute("user", owner);
-                    // Lấy restaurantId vừa tạo
-                    Restaurant createdRest = rdao.getRestaurantByOwnerId(owner.getUserID());
-                    if (createdRest != null) {
-                        session.setAttribute("restaurantId", createdRest.getRestaurantId());
-                        java.util.List<Integer> rList = new java.util.ArrayList<>();
-                        rList.add(createdRest.getRestaurantId());
-                        session.setAttribute("restaurantIds", rList);
-                    }
-                    response.sendRedirect("restaurant-analytics-dashboard");
-                    return;
-                }
-            }
-            // Nếu là customer hoặc có lỗi khi tự động login owner
+        if (udao.register(u)) {
             response.sendRedirect("login?registered=1");
         } else {
             request.setAttribute("error", "Registration failed! Please try again.");

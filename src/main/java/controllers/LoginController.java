@@ -34,8 +34,14 @@ public class LoginController extends HttpServlet {
         String email = request.getParameter("email");
         String password = request.getParameter("password");
 
+        if (email == null || email.trim().isEmpty() || password == null || password.trim().isEmpty()) {
+            request.setAttribute("error", "Email and password are required!");
+            request.getRequestDispatcher("views/login.jsp").forward(request, response);
+            return;
+        }
+
         UserDAO udao = new UserDAO();
-        User u = udao.login(email, password);
+        User u = udao.login(email.trim(), password);
 
         if (u != null) {
             HttpSession session = request.getSession();
@@ -47,8 +53,6 @@ public class LoginController extends HttpServlet {
                 }
             }
 
-            // Redirect all users to home
-            //response.sendRedirect("home");
             // Redirect by role after successful login
             redirectByRole(u, request, response);
 

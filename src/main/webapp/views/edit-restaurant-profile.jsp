@@ -40,7 +40,7 @@
                 <div class="form-group">
                     <label>Restaurant Image URL <small class="text-muted">(for display on home page)</small></label>
                     <input type="url" name="logoUrl" id="logoUrlInput" value="${restaurant.logoUrl}"
-                           placeholder="https://example.com/image.jpg">
+                           placeholder="https://example.com/image.jpg" required>
                     <div class="mt-2" id="logoPreviewWrap" style="${empty restaurant.logoUrl ? 'display:none' : ''}">
                         <img id="logoPreview" src="${restaurant.logoUrl}" alt="Logo Preview"
                              style="width:100%;max-height:200px;object-fit:cover;border-radius:8px;border:1px solid #eee;">
@@ -114,6 +114,9 @@
             </div>
 
 
+            <c:if test="${not empty error}">
+                <div class="alert alert-danger mt-3"><i class="fas fa-exclamation-triangle me-2"></i>${error}</div>
+            </c:if>
             <c:if test="${not empty success}">
                 <script>
                     document.addEventListener('DOMContentLoaded', function() {
@@ -150,6 +153,55 @@
                     wrap.style.display = 'none';
                 });
             }
+
+            // Validation logic
+            const form = document.querySelector('form[action="edit-restaurant-profile"]');
+            const phoneInput = document.querySelector('input[name="phone"]');
+            const nameInput = document.querySelector('input[name="name"]');
+            const addressInput = document.querySelector('input[name="address"]');
+            const descInput = document.querySelector('textarea[name="description"]');
+            const logoInput = document.getElementById('logoUrlInput');
+
+            form.addEventListener('submit', function(event) {
+                const phonePattern = /^0[0-9]{9}$/;
+                const urlPattern = /^(https?|ftp):\/\/[^\s\/$.?#].[^\s]*$/;
+
+                if (nameInput.value.trim() === '') {
+                    event.preventDefault();
+                    Swal.fire('Lỗi', 'Tên nhà hàng không được để trống.', 'warning');
+                    return;
+                }
+
+                if (addressInput.value.trim() === '') {
+                    event.preventDefault();
+                    Swal.fire('Lỗi', 'Địa chỉ không được để trống.', 'warning');
+                    return;
+                }
+
+                if (!phonePattern.test(phoneInput.value.trim())) {
+                    event.preventDefault();
+                    Swal.fire('Lỗi', 'Số điện thoại Việt Nam không hợp lệ (phải bắt đầu bằng 0 và có 10 chữ số).', 'warning');
+                    return;
+                }
+
+                if (descInput.value.length > 500) {
+                    event.preventDefault();
+                    Swal.fire('Lỗi', 'Mô tả không được vượt quá 500 ký tự.', 'warning');
+                    return;
+                }
+
+                if (logoInput.value.trim() === '') {
+                    event.preventDefault();
+                    Swal.fire('Lỗi', 'Vui lòng cung cấp URL ảnh nhà hàng.', 'warning');
+                    return;
+                }
+
+                if (!urlPattern.test(logoInput.value.trim())) {
+                    event.preventDefault();
+                    Swal.fire('Lỗi', 'Định dạng URL ảnh không hợp lệ.', 'warning');
+                    return;
+                }
+            });
         })();
     </script>
 </body>

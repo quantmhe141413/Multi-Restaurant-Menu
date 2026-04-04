@@ -129,6 +129,30 @@
 
             <jsp:include page="/views/includes/footer.jsp" />
             <jsp:include page="/views/includes/std_scripts.jsp" />
+
+            <script>
+                document.addEventListener('DOMContentLoaded', function () {
+                    const form = document.getElementById('categoryForm');
+                    const categoryNameInput = document.getElementById('categoryName');
+                    const displayOrderInput = document.getElementById('displayOrder');
+
+                    form.addEventListener('submit', function (event) {
+                        const categoryName = categoryNameInput.value.trim();
+                        const displayOrder = parseInt(displayOrderInput.value);
+
+                        if (categoryName === '') {
+                            event.preventDefault();
+                            Swal.fire('Validation Error', 'Category name is required.', 'warning');
+                            return;
+                        }
+
+                        if (!isNaN(displayOrder) && displayOrder < 0) {
+                            event.preventDefault();
+                            Swal.fire('Validation Error', 'Display order cannot be negative.', 'warning');
+                        }
+                    });
+                });
+            </script>
         </body>
 
         </html>

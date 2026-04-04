@@ -75,17 +75,36 @@ public class EditRestaurantProfileController extends HttpServlet {
         String description = request.getParameter("description");
         String logoUrl = request.getParameter("logoUrl");
 
-        existing.setName(name);
-        existing.setAddress(address);
-        existing.setPhone(phone);
-        existing.setDescription(description);
-        existing.setLogoUrl(logoUrl);
+        // Server-side validation
+        String errorMsg = null;
+        if (name == null || name.trim().isEmpty()) {
+            errorMsg = "Tên nhà hàng không được để trống.";
+        } else if (address == null || address.trim().isEmpty()) {
+            errorMsg = "Địa chỉ không được để trống.";
+        } else if (phone != null && !phone.matches("^0[0-9]{9}$")) {
+            errorMsg = "Số điện thoại không hợp lệ (phải bắt đầu bằng 0 và có 10 chữ số).";
+        } else if (description != null && description.length() > 500) {
+            errorMsg = "Mô tả không được vượt quá 500 ký tự.";
+        } else if (logoUrl != null && !logoUrl.isEmpty() && !logoUrl.matches("^(https?|ftp)://[^\\s/$.?#].[^\\s]*$")) {
+            errorMsg = "URL ảnh không hợp lệ.";
+        }
+
+        if (errorMsg != null) {
+            request.setAttribute("error", errorMsg);
+            request.setAttribute("restaurant", existing);
+            request.getRequestDispatcher("views/edit-restaurant-profile.jsp").forward(request, response);
+            return;
+        }
+
+        existing.setName(name.trim());
+        existing.setAddress(address.trim());
+        existing.setPhone(phone != null ? phone.trim() : "");
+        existing.setDescription(description != null ? description.trim() : "");
+        existing.setLogoUrl(logoUrl != null ? logoUrl.trim() : "");
 
         restaurantDAO.updateRestaurantCoreInfo(existing);
-        // Save logo URL separately
-        if (logoUrl != null) {
-            restaurantDAO.updateLogoAndTheme(existing.getRestaurantId(), logoUrl.trim(), existing.getThemeColor());
-        }
+        // Save logo URL separately if using updateLogoAndTheme
+        restaurantDAO.updateLogoAndTheme(existing.getRestaurantId(), existing.getLogoUrl(), existing.getThemeColor());
 
         request.setAttribute("restaurant", existing);
         request.setAttribute("success", "Cập nhật hồ sơ nhà hàng thành công.");

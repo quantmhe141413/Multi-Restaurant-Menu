@@ -140,15 +140,36 @@ public class CategoryManagementController extends HttpServlet {
 
         String name = request.getParameter("categoryName");
         String displayOrderStr = request.getParameter("displayOrder");
+        
+        if (name == null || name.trim().isEmpty()) {
+            request.getSession().setAttribute("message", "Category name is required!");
+            request.getSession().setAttribute("messageType", "error");
+            showAddForm(request, response);
+            return;
+        }
+
         Integer displayOrder = null;
         if (displayOrderStr != null && !displayOrderStr.isEmpty()) {
-            displayOrder = Integer.parseInt(displayOrderStr);
+            try {
+                displayOrder = Integer.parseInt(displayOrderStr);
+                if (displayOrder < 0) {
+                    request.getSession().setAttribute("message", "Display order cannot be negative.");
+                    request.getSession().setAttribute("messageType", "error");
+                    showAddForm(request, response);
+                    return;
+                }
+            } catch (NumberFormatException e) {
+                request.getSession().setAttribute("message", "Invalid display order.");
+                request.getSession().setAttribute("messageType", "error");
+                showAddForm(request, response);
+                return;
+            }
         }
         boolean isActive = request.getParameter("isActive") != null;
 
         MenuCategory category = new MenuCategory();
         category.setRestaurantID(restaurant.getRestaurantId());
-        category.setCategoryName(name);
+        category.setCategoryName(name.trim());
         category.setDisplayOrder(displayOrder);
         category.setIsActive(isActive);
 
@@ -171,31 +192,51 @@ public class CategoryManagementController extends HttpServlet {
             return;
         }
 
-        int categoryId = Integer.parseInt(request.getParameter("categoryId"));
+        String categoryIdStr = request.getParameter("categoryId");
         String name = request.getParameter("categoryName");
         String displayOrderStr = request.getParameter("displayOrder");
-        Integer displayOrder = null;
-        if (displayOrderStr != null && !displayOrderStr.isEmpty()) {
-            displayOrder = Integer.parseInt(displayOrderStr);
+        
+        if (categoryIdStr == null || name == null || name.trim().isEmpty()) {
+            request.getSession().setAttribute("message", "Category name is required!");
+            request.getSession().setAttribute("messageType", "error");
+            response.sendRedirect(request.getContextPath() + "/categories");
+            return;
         }
-        boolean isActive = request.getParameter("isActive") != null;
 
-        MenuDAO menuDAO = new MenuDAO();
-        MenuCategory category = menuDAO.getCategoryById(categoryId);
+        try {
+            int categoryId = Integer.parseInt(categoryIdStr);
+            Integer displayOrder = null;
+            if (displayOrderStr != null && !displayOrderStr.isEmpty()) {
+                displayOrder = Integer.parseInt(displayOrderStr);
+                if (displayOrder < 0) {
+                    request.getSession().setAttribute("message", "Display order cannot be negative.");
+                    request.getSession().setAttribute("messageType", "error");
+                    response.sendRedirect(request.getContextPath() + "/categories?action=edit&id=" + categoryId);
+                    return;
+                }
+            }
+            boolean isActive = request.getParameter("isActive") != null;
 
-        if (category != null && category.getRestaurantID() == restaurant.getRestaurantId()) {
-            category.setCategoryName(name);
-            category.setDisplayOrder(displayOrder);
-            category.setIsActive(isActive);
-            if (menuDAO.updateCategory(category)) {
-                request.getSession().setAttribute("message", "Category updated successfully!");
-                request.getSession().setAttribute("messageType", "success");
+            MenuDAO menuDAO = new MenuDAO();
+            MenuCategory category = menuDAO.getCategoryById(categoryId);
+
+            if (category != null && category.getRestaurantID() == restaurant.getRestaurantId()) {
+                category.setCategoryName(name.trim());
+                category.setDisplayOrder(displayOrder);
+                category.setIsActive(isActive);
+                if (menuDAO.updateCategory(category)) {
+                    request.getSession().setAttribute("message", "Category updated successfully!");
+                    request.getSession().setAttribute("messageType", "success");
+                } else {
+                    request.getSession().setAttribute("message", "Failed to update category.");
+                    request.getSession().setAttribute("messageType", "error");
+                }
             } else {
-                request.getSession().setAttribute("message", "Failed to update category.");
+                request.getSession().setAttribute("message", "Unauthorized to edit this category.");
                 request.getSession().setAttribute("messageType", "error");
             }
-        } else {
-            request.getSession().setAttribute("message", "Unauthorized to edit this category.");
+        } catch (NumberFormatException e) {
+            request.getSession().setAttribute("message", "Invalid numeric data provided.");
             request.getSession().setAttribute("messageType", "error");
         }
         response.sendRedirect(request.getContextPath() + "/categories");

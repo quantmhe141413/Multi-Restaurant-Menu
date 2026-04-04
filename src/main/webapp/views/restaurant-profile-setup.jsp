@@ -67,6 +67,41 @@
 
             <jsp:include page="includes/footer.jsp" />
             <jsp:include page="includes/std_scripts.jsp" />
+
+            <script>
+                document.addEventListener('DOMContentLoaded', function () {
+                    const form = document.querySelector('form');
+                    const nameInput = document.querySelector('input[name="name"]');
+                    const addressInput = document.querySelector('input[name="address"]');
+                    const fileInput = document.querySelector('input[name="licenseFile"]');
+
+                    form.addEventListener('submit', function (event) {
+                        if (nameInput.value.trim() === '') {
+                            event.preventDefault();
+                            Swal.fire('Thiếu thông tin', 'Vui lòng nhập tên nhà hàng.', 'warning');
+                            return;
+                        }
+                        if (addressInput.value.trim() === '') {
+                            event.preventDefault();
+                            Swal.fire('Thiếu thông tin', 'Vui lòng nhập địa chỉ nhà hàng.', 'warning');
+                            return;
+                        }
+                        if (fileInput.files.length === 0) {
+                            event.preventDefault();
+                            Swal.fire('Thiếu hồ sơ', 'Vui lòng tải lên giấy phép kinh doanh.', 'warning');
+                            return;
+                        }
+
+                        // Optional: Validate file extension client-side
+                        const fileName = fileInput.files[0].name;
+                        const ext = fileName.split('.').pop().toLowerCase();
+                        if (!['jpg', 'jpeg', 'png', 'pdf'].includes(ext)) {
+                            event.preventDefault();
+                            Swal.fire('Định dạng không hỗ trợ', 'Chỉ chấp nhận file .jpg, .png hoặc .pdf', 'error');
+                        }
+                    });
+                });
+            </script>
         </body>
 
         </html>
