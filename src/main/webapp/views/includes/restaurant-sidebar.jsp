@@ -216,28 +216,28 @@
                 <!-- Analytics Section -->
                 <li class="nav-item mt-2">
                     <div class="nav-section-title">
-                        <i class="fas fa-chart-pie"></i> Phân tích & Báo cáo
+                        <i class="fas fa-chart-pie"></i> Analytics & Reports
                     </div>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link ${pageContext.request.requestURI.contains('restaurant-analytics-dashboard') ? 'active' : ''}"
                         href="${pageContext.request.contextPath}/restaurant-analytics-dashboard">
                         <i class="fas fa-chart-line"></i>
-                        Bảng điều khiển tổng quan
+                        Overview Dashboard
                     </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link ${pageContext.request.requestURI.contains('top-dishes-report') ? 'active' : ''}"
                         href="${pageContext.request.contextPath}/top-dishes-report">
                         <i class="fas fa-award"></i>
-                        Báo cáo món ăn bán chạy
+                        Top Selling Dishes
                     </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link ${pageContext.request.requestURI.contains('peak-hours-analysis') ? 'active' : ''}"
                         href="${pageContext.request.contextPath}/peak-hours-analysis">
                         <i class="fas fa-clock"></i>
-                        Giờ cao điểm
+                        Peak Hours
                     </a>
                 </li>
 
