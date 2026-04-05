@@ -111,17 +111,26 @@ public class ItemManagementController extends HttpServlet {
         }
 
         // Sorting
-        String sortBy = request.getParameter("sortBy");
-        if (sortBy == null || sortBy.isEmpty())
-            sortBy = "ItemName";
-
-        String sortOrder = request.getParameter("sortOrder");
-        if (sortOrder == null || sortOrder.isEmpty())
-            sortOrder = "ASC";
+        int page = 1;
+        int pageSize = 10; // Default page size for items
+        try {
+            if (request.getParameter("page") != null) {
+                page = Integer.parseInt(request.getParameter("page"));
+            }
+        } catch (NumberFormatException e) {
+            page = 1;
+        }
 
         MenuDAO menuDAO = new MenuDAO();
         List<MenuItem> items = menuDAO.getMenuItemsByRestaurant(restaurant.getRestaurantId(), search, categoryId,
-                isAvailable, minPrice, maxPrice, sortBy, sortOrder);
+                isAvailable, minPrice, maxPrice, sortBy, sortOrder, page, pageSize);
+        int totalItems = menuDAO.countMenuItemsByRestaurant(restaurant.getRestaurantId(), search, categoryId, isAvailable, minPrice, maxPrice);
+        int totalPages = (int) Math.ceil((double) totalItems / pageSize);
+
+        request.setAttribute("items", items);
+        request.setAttribute("currentPage", page);
+        request.setAttribute("totalPages", totalPages);
+        request.setAttribute("pageSize", pageSize);
         List<MenuCategory> categories = menuDAO.getCategoriesByRestaurant(restaurant.getRestaurantId());
 
         request.setAttribute("items", items);

@@ -203,10 +203,6 @@
                         <label for="confirmPassword">Confirm Password</label>
                         <input type="password" id="confirmPassword" name="confirmPassword" required>
                     </div>
-                    <div class="form-group">
-                        <label for="phone">Phone Number</label>
-                        <input type="tel" id="phone" name="phone" required>
-                    </div>
 
                     <!-- Restaurant Details Section -->
                     <div id="restaurantDetails" style="display: none; border: 1px solid #ddd; padding: 15px; border-radius: 8px; margin-bottom: 20px; background-color: #f9f9f9;">
@@ -220,14 +216,6 @@
                         <div class="form-group">
                             <label for="restaurantAddress">Restaurant Address</label>
                             <input type="text" id="restaurantAddress" name="restaurantAddress">
-                        </div>
-                        <div class="form-group">
-                            <label for="restaurantPhone">Restaurant Business Phone</label>
-                            <input type="tel" id="restaurantPhone" name="restaurantPhone">
-                        </div>
-                        <div class="form-group">
-                            <label for="restaurantDescription">Description</label>
-                            <textarea id="restaurantDescription" name="restaurantDescription" rows="3" style="width: 100%; padding: 0.8rem; border: 1px solid #ced4da; border-radius: 8px; box-sizing: border-box; outline: none; transition: border-color 0.3s;"></textarea>
                         </div>
                     </div>
                     <button type="submit" class="btn-submit">Register</button>
@@ -248,9 +236,7 @@
             const emailInput = document.getElementById('email');
             const passwordInput = document.getElementById('password');
             const confirmPasswordInput = document.getElementById('confirmPassword');
-            const phoneInput = document.getElementById('phone');
             const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            const phonePattern = /^\d{8,}$/;
 
             const restaurantDetails = document.getElementById('restaurantDetails');
             const roleIDInput = document.getElementById('roleIDHidden');
@@ -279,7 +265,6 @@
                 const email = emailInput.value.trim();
                 const password = passwordInput.value.trim();
                 const confirmPassword = confirmPasswordInput.value.trim();
-                const phone = phoneInput.value.trim();
 
                 const isOwner = roleIDInput.value === '2';
 
@@ -307,11 +292,6 @@
                     return;
                 }
 
-                if (!phonePattern.test(phone)) {
-                    event.preventDefault();
-                    Swal.fire('Invalid phone', 'Phone number must contain at least 8 digits.', 'warning');
-                    return;
-                }
 
                 if (isOwner) {
                     const rName = restaurantNameInput.value.trim();

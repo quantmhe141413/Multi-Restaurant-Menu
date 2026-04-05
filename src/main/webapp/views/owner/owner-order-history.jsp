@@ -1,5 +1,6 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<fmt:setLocale value="vi_VN" />
 <c:set var="pageTitle" value="Order History" scope="request" />
 <!DOCTYPE html>
 <html lang="en">
@@ -36,7 +37,7 @@
                             <div class="d-flex justify-content-between align-items-start">
                                 <div>
                                     <p class="text-muted small mb-1">Total Revenue</p>
-                                    <h3 class="mb-0 fw-bold">$<fmt:formatNumber value="${stats.totalRevenue}" pattern="#,##0.00" /></h3>
+                                    <h3 class="mb-0 fw-bold"><fmt:formatNumber value="${stats.totalRevenue}" pattern="#,##0" /> VNĐ</h3>
                                 </div>
                                 <div class="stat-icon stat-icon-primary">
                                     <i class="fas fa-dollar-sign"></i>
@@ -81,7 +82,7 @@
                             <div class="d-flex justify-content-between align-items-start">
                                 <div>
                                     <p class="text-muted small mb-1">Avg Order Value</p>
-                                    <h3 class="mb-0 fw-bold">$<fmt:formatNumber value="${stats.avgOrderValue}" pattern="#,##0.00" /></h3>
+                                    <h3 class="mb-0 fw-bold"><fmt:formatNumber value="${stats.avgOrderValue}" pattern="#,##0" /> VNĐ</h3>
                                 </div>
                                 <div class="stat-icon stat-icon-info">
                                     <i class="fas fa-chart-line"></i>
@@ -254,7 +255,7 @@
                                                     <br><small class="text-muted">${order.paymentMethod}</small>
                                                 </td>
                                                 <td class="text-end">
-                                                    <strong class="text-success">$<fmt:formatNumber value="${order.finalAmount}" pattern="#,##0.00" /></strong>
+                                                    <strong class="text-success"><fmt:formatNumber value="${order.finalAmount}" pattern="#,##0" /></strong>
                                                 </td>
                                                 <td class="text-center pe-4">
                                                     <a href="${pageContext.request.contextPath}/order-detail?id=${order.orderID}" 

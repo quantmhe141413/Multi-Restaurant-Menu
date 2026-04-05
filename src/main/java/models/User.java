@@ -11,6 +11,8 @@ public class User {
     private int roleID;
     private boolean isActive;
     private Timestamp createdAt;
+    private String verificationToken;
+    private boolean isEmailVerified;
 
     public User() {
     }
@@ -77,5 +79,21 @@ public class User {
 
     public void setCreatedAt(Timestamp createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public String getVerificationToken() {
+        return verificationToken;
+    }
+
+    public void setVerificationToken(String verificationToken) {
+        this.verificationToken = verificationToken;
+    }
+
+    public boolean isIsEmailVerified() {
+        return isEmailVerified;
+    }
+
+    public void setIsEmailVerified(boolean isEmailVerified) {
+        this.isEmailVerified = isEmailVerified;
     }
 }

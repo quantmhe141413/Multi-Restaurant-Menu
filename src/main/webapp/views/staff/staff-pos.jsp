@@ -2,6 +2,7 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
+<fmt:setLocale value="vi_VN" />
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -624,7 +625,7 @@
                             <div class="item-content">
                                 <div class="item-name">${item.itemName}</div>
                                 <div class="item-price">
-                                    <fmt:formatNumber value="${item.price}" type="number" groupingUsed="true"/> đ
+                                    <fmt:formatNumber value="${item.price}" pattern="#,##0"/> đ
                                 </div>
                             </div>
                             <div class="item-add-btn">+</div>

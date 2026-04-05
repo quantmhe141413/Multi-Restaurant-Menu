@@ -91,14 +91,14 @@
         <!-- Sidebar -->
         <nav class="col-md-3 col-lg-2 sidebar">
             <div class="sidebar-header">
-                <h5><i class="fas fa-store"></i> Restaurant Management</h5>
+                <h5><i class="fas fa-store"></i> Quản lý Nhà hàng</h5>
             </div>
             <ul class="nav flex-column mt-2">
 
                 <!-- Operations Section -->
                 <li class="nav-item mt-2">
                     <div class="nav-section-title">
-                        <i class="fas fa-cog"></i> Operations
+                        <i class="fas fa-cog"></i> Hoạt động
                     </div>
                 </li>
                 <c:if test="${sessionScope.user.roleID == 3}">
@@ -106,7 +106,7 @@
                         <a class="nav-link ${pageContext.request.requestURI.contains('order-management') ? 'active' : ''}"
                             href="${pageContext.request.contextPath}/order-management">
                             <i class="fas fa-clipboard-list"></i>
-                            Orders
+                            Đơn hàng
                         </a>
                     </li>
                 </c:if>
@@ -115,7 +115,7 @@
                         <a class="nav-link ${pageContext.request.requestURI.contains('owner/order-history') ? 'active' : ''}"
                             href="${pageContext.request.contextPath}/owner/order-history">
                             <i class="fas fa-history"></i>
-                            Order History
+                            Lịch sử đơn hàng
                         </a>
                     </li>
                 </c:if>
@@ -123,14 +123,14 @@
                     <a class="nav-link ${pageContext.request.requestURI.contains('business-hours') ? 'active' : ''}"
                         href="${pageContext.request.contextPath}/business-hours?action=list">
                         <i class="fas fa-clock"></i>
-                        Business Hours
+                        Giờ hoạt động
                     </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link ${pageContext.request.requestURI.contains('temporary-closure') ? 'active' : ''}"
                         href="${pageContext.request.contextPath}/temporary-closure?action=list">
                         <i class="fas fa-door-closed"></i>
-                        Temporary Closure
+                        Đóng cửa tạm thời
                     </a>
                 </li>
                 <c:if test="${sessionScope.user.roleID == 2}">
@@ -138,7 +138,7 @@
                         <a class="nav-link ${pageContext.request.requestURI.contains('owner/tables') ? 'active' : ''}"
                             href="${pageContext.request.contextPath}/owner/tables">
                             <i class="fas fa-chair"></i>
-                            Restaurant Tables
+                            Bàn nhà hàng
                         </a>
                     </li>
                 </c:if>
@@ -146,70 +146,70 @@
                 <!-- Workforce Section -->
                 <li class="nav-item mt-2">
                     <div class="nav-section-title">
-                        <i class="fas fa-users"></i> Workforce
+                        <i class="fas fa-users"></i> Nhân sự
                     </div>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link ${pageContext.request.requestURI.contains('shift-management') && param.action == 'templates' ? 'active' : ''}"
                         href="${pageContext.request.contextPath}/shift-management?action=templates">
                         <i class="fas fa-calendar-alt"></i>
-                        Shift Templates
+                        Mẫu ca làm việc
                     </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link ${pageContext.request.requestURI.contains('shift-management') && param.action == 'assignments' ? 'active' : ''}"
                         href="${pageContext.request.contextPath}/shift-management?action=assignments">
                         <i class="fas fa-user-clock"></i>
-                        Shift Assignments
+                        Phân công ca
                     </a>
                 </li>
 
                 <!-- Delivery Section -->
                 <li class="nav-item mt-2">
                     <div class="nav-section-title">
-                        <i class="fas fa-truck-fast"></i> Delivery
+                        <i class="fas fa-truck-fast"></i> Giao hàng
                     </div>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link ${pageContext.request.requestURI.contains('coverage-zone') ? 'active' : ''}"
                         href="${pageContext.request.contextPath}/coverage-zone?action=list">
                         <i class="fas fa-map-marked-alt"></i>
-                        Coverage Zones &amp; Fees
+                        Khu vực &amp; Phí giao hàng
                     </a>
                 </li>
 
                 <!-- Financial Section -->
                 <li class="nav-item mt-2">
                     <div class="nav-section-title">
-                        <i class="fas fa-money-bill-wave"></i> Financial
+                        <i class="fas fa-money-bill-wave"></i> Tài chính
                     </div>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link ${pageContext.request.requestURI.contains('invoice') ? 'active' : ''}"
                         href="${pageContext.request.contextPath}/invoice?action=list">
                         <i class="fas fa-file-invoice"></i>
-                        Invoices
+                        Hóa đơn
                     </a>
                 </li>
 
                 <!-- Menu Section -->
                 <li class="nav-item mt-2">
                     <div class="nav-section-title">
-                        <i class="fas fa-utensils"></i> Menu
+                        <i class="fas fa-utensils"></i> Thực đơn
                     </div>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link ${pageContext.request.requestURI.contains('categor') ? 'active' : ''}"
                         href="${pageContext.request.contextPath}/categories?action=list">
                         <i class="fas fa-list"></i>
-                        Menu Categories
+                        Danh mục món ăn
                     </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link ${pageContext.request.requestURI.contains('items') ? 'active' : ''}"
                         href="${pageContext.request.contextPath}/items?action=list">
                         <i class="fas fa-hamburger"></i>
-                        Menu Items
+                        Món ăn
                     </a>
                 </li>
 
@@ -230,7 +230,7 @@
                     <a class="nav-link ${pageContext.request.requestURI.contains('top-dishes-report') ? 'active' : ''}"
                         href="${pageContext.request.contextPath}/top-dishes-report">
                         <i class="fas fa-award"></i>
-                        Top Dishes Report
+                        Top Selling Dishes
                     </a>
                 </li>
                 <li class="nav-item">

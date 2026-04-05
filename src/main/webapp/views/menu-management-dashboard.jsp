@@ -1,6 +1,8 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
+<fmt:setLocale value="vi_VN" />
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -20,19 +22,19 @@
                     <div class="col-md-11">
                         <div class="dashboard-card shadow-sm border-0 p-4 bg-white rounded-3 mb-4">
                             <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
-                                <h1 class="h3 mb-0 text-success"><i class="fas fa-utensils me-2"></i>Menu Management Dashboard</h1>
+                                <h1 class="h3 mb-0 text-success"><i class="fas fa-utensils me-2"></i>Menu Management</h1>
                                 <a href="restaurant-analytics-dashboard" class="btn btn-outline-secondary">
                                     <i class="fas fa-arrow-left me-2"></i> Back to Analytics
                                 </a>
                             </div>
 
-                            <form method="get" action="menu-management-dashboard" class="row g-3 mb-4 bg-light p-3 rounded align-items-end">
+                             <form method="get" action="menu-management-dashboard" class="row g-3 mb-4 bg-light p-3 rounded align-items-end">
                                 <div class="col-md-3">
-                                    <label class="form-label fw-bold">Start date:</label>
+                                    <label class="form-label fw-bold">From Date:</label>
                                     <input type="date" name="startDate" value="${param.startDate}" class="form-control" />
                                 </div>
                                 <div class="col-md-3">
-                                    <label class="form-label fw-bold">End date:</label>
+                                    <label class="form-label fw-bold">To Date:</label>
                                     <input type="date" name="endDate" value="${param.endDate}" class="form-control" />
                                 </div>
                                 <div class="col-md-4">
@@ -53,7 +55,7 @@
                             <div class="table-responsive mb-5">
                                 <table class="table table-hover table-bordered table-striped align-middle">
                                     <thead class="table-light">
-                                        <tr><th style="width: 60px" class="text-center">#</th><th>Dish Name</th><th class="text-end">Total Sold</th></tr>
+                                        <tr><th style="width: 60px" class="text-center">#</th><th>Item Name</th><th class="text-end">Total Qty Sold</th></tr>
                                     </thead>
                                     <tbody>
     <c:forEach var="d" items="${topDishes}" varStatus="s">
@@ -67,7 +69,7 @@
                                 </table>
                             </div>
 
-                            <h4 class="mb-3">Revenue by Dish</h4>
+                            <h4 class="mb-3">Revenue by Item</h4>
                             <div class="mb-5 bg-light p-3 rounded border">
                                 <canvas id="revenueChart" style="max-height: 400px; width: 100%;"></canvas>
                             </div>
@@ -75,7 +77,7 @@
                             <div class="table-responsive mb-4">
                                 <table class="table table-hover table-bordered table-striped align-middle">
                                     <thead class="table-light">
-                                        <tr><th style="width: 60px" class="text-center">#</th><th>Dish Name</th><th class="text-end">Total Sold</th><th class="text-end">Revenue (VND)</th></tr>
+                                        <tr><th style="width: 60px" class="text-center">#</th><th>Item Name</th><th class="text-end">Total Qty Sold</th><th class="text-end">Revenue (VNĐ)</th></tr>
                                     </thead>
                                     <tbody>
     <c:forEach var="r" items="${stats}" varStatus="s">
@@ -83,7 +85,9 @@
             <td>${s.index + 1}</td>
             <td>${r.itemName}</td>
             <td>${r.totalSold}</td>
-            <td>${r.totalRevenue}</td>
+            <td>
+                <fmt:formatNumber value="${r.totalRevenue}" type="number" maxFractionDigits="0" />
+            </td>
         </tr>
     </c:forEach>
                                     </tbody>
@@ -109,7 +113,7 @@
         data: {
             labels: labels,
             datasets: [{
-                label: 'Doanh thu (VND)',
+                label: 'Revenue (VNĐ)',
                 data: data,
                 backgroundColor: 'rgba(54, 162, 235, 0.5)'
             }]
