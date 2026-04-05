@@ -79,17 +79,26 @@ public class CategoryManagementController extends HttpServlet {
         else if ("inactive".equals(statusStr))
             isActive = false;
 
-        String sortBy = request.getParameter("sortBy");
-        if (sortBy == null || sortBy.isEmpty())
-            sortBy = "DisplayOrder";
-
-        String sortOrder = request.getParameter("sortOrder");
-        if (sortOrder == null || sortOrder.isEmpty())
-            sortOrder = "ASC";
+        int page = 1;
+        int pageSize = 5; // Default page size for categories
+        try {
+            if (request.getParameter("page") != null) {
+                page = Integer.parseInt(request.getParameter("page"));
+            }
+        } catch (NumberFormatException e) {
+            page = 1;
+        }
 
         MenuDAO menuDAO = new MenuDAO();
         List<MenuCategory> categories = menuDAO.getCategoriesByRestaurant(restaurant.getRestaurantId(), search,
-                isActive, sortBy, sortOrder);
+                isActive, sortBy, sortOrder, page, pageSize);
+        int totalCategories = menuDAO.countCategoriesByRestaurant(restaurant.getRestaurantId(), search, isActive);
+        int totalPages = (int) Math.ceil((double) totalCategories / pageSize);
+
+        request.setAttribute("categories", categories);
+        request.setAttribute("currentPage", page);
+        request.setAttribute("totalPages", totalPages);
+        request.setAttribute("pageSize", pageSize);
 
         request.setAttribute("categories", categories);
         request.setAttribute("currentSearch", search);

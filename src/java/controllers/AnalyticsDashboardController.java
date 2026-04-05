@@ -32,22 +32,35 @@ public class AnalyticsDashboardController extends HttpServlet {
         String startDate = request.getParameter("startDate");
         String endDate = request.getParameter("endDate");
         
-        List<Map<String, Object>> dailyStats = orderDAO.getDailyRevenueStats(restaurantId, startDate, endDate);
-        Restaurant restaurant = restaurantDAO.getRestaurantById(restaurantId);
-        
-        double totalRevenue = 0;
-        int totalOrders = 0;
-        for (Map<String, Object> stat : dailyStats) {
-            totalRevenue += (Double) stat.get("revenue");
-            totalOrders += (Integer) stat.get("count");
+        // Pagination logic
+        int page = 1;
+        int pageSize = 10;
+        String pageStr = request.getParameter("page");
+        if (pageStr != null && !pageStr.isEmpty()) {
+            try {
+                page = Integer.parseInt(pageStr);
+            } catch (NumberFormatException e) {
+                page = 1;
+            }
         }
+
+        List<Map<String, Object>> dailyStats = orderDAO.getDailyRevenueStatsPaginated(restaurantId, startDate, endDate, page, pageSize);
+        int totalRecords = orderDAO.countDailyRevenueDays(restaurantId, startDate, endDate);
+        int totalPages = (int) Math.ceil((double) totalRecords / pageSize);
+
+        // Get overview stats (non-paginated)
+        Map<String, Object> overviewStats = orderDAO.getRevenueStatistics(restaurantId, startDate, endDate);
+        Restaurant restaurant = restaurantDAO.getRestaurantById(restaurantId);
         
         request.setAttribute("dailyStats", dailyStats);
         request.setAttribute("restaurant", restaurant);
-        request.setAttribute("totalRevenue", totalRevenue);
-        request.setAttribute("totalOrders", totalOrders);
+        request.setAttribute("totalRevenue", overviewStats.get("totalRevenue"));
+        request.setAttribute("totalOrders", overviewStats.get("totalOrders"));
+        request.setAttribute("avgOrderValue", overviewStats.get("avgOrderValue"));
         request.setAttribute("startDate", startDate);
         request.setAttribute("endDate", endDate);
+        request.setAttribute("currentPage", page);
+        request.setAttribute("totalPages", totalPages);
         
         request.getRequestDispatcher("views/analytics-dashboard.jsp").forward(request, response);
     }

@@ -69,32 +69,65 @@
         </div>
     </div>
 
-    <h3>Chi tiết doanh thu theo ngày</h3>
-    <table>
-        <thead>
-            <tr>
-                <th>Ngày</th>
-                <th>Số đơn hàng</th>
-                <th>Doanh thu</th>
-                <th>Trung bình/Đơn</th>
-            </tr>
-        </thead>
-        <tbody>
-            <c:forEach var="stat" items="${dailyStats}">
+    <h3 class="mt-4 mb-3"><i class="fas fa-table me-2"></i>Chi tiết doanh thu theo ngày</h3>
+    <div class="table-responsive">
+        <table class="table table-hover border">
+            <thead class="table-light">
                 <tr>
-                    <td>${stat.date}</td>
-                    <td>${stat.count}</td>
-                    <td><fmt:formatNumber value="${stat.revenue}" type="currency" currencySymbol="VND"/></td>
-                    <td><fmt:formatNumber value="${stat.revenue / stat.count}" type="currency" currencySymbol="VND"/></td>
+                    <th>Ngày</th>
+                    <th class="text-center">Số đơn hàng</th>
+                    <th class="text-end">Doanh thu</th>
+                    <th class="text-end">Trung bình/Đơn</th>
                 </tr>
-            </c:forEach>
-            <c:if test="${empty dailyStats}">
-                <tr>
-                    <td colspan="4" style="text-align:center;">Không có dữ liệu trong khoảng thời gian này.</td>
-                </tr>
-            </c:if>
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                <c:forEach var="stat" items="${dailyStats}">
+                    <tr>
+                        <td class="fw-bold">${stat.date}</td>
+                        <td class="text-center"><span class="badge bg-soft-primary text-primary px-2">${stat.count}</span></td>
+                        <td class="text-end fw-bold text-success"><fmt:formatNumber value="${stat.revenue}" pattern="#,###" /> VND</td>
+                        <td class="text-end"><fmt:formatNumber value="${stat.revenue / stat.count}" pattern="#,###" /> VND</td>
+                    </tr>
+                </c:forEach>
+                <c:if test="${empty dailyStats}">
+                    <tr>
+                        <td colspan="4" class="text-center py-4 text-muted">
+                            <i class="fas fa-calendar-times fa-2x mb-2 d-block"></i>
+                            Không có dữ liệu trong khoảng thời gian này.
+                        </td>
+                    </tr>
+                </c:if>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    <c:if test="${totalPages > 1}">
+        <div class="d-flex justify-content-between align-items-center mt-4">
+            <div class="text-muted small">
+                Hiển thị trang ${currentPage} trên tổng số ${totalPages} trang
+            </div>
+            <nav aria-label="Page navigation">
+                <ul class="pagination pagination-sm mb-0">
+                    <li class="page-item ${currentPage == 1 ? 'disabled' : ''}">
+                        <a class="page-link" href="?page=${currentPage - 1}&startDate=${startDate}&endDate=${endDate}">
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                    </li>
+                    <c:forEach var="i" begin="1" end="${totalPages}">
+                        <li class="page-item ${currentPage == i ? 'active' : ''}">
+                            <a class="page-link" href="?page=${i}&startDate=${startDate}&endDate=${endDate}">${i}</a>
+                        </li>
+                    </c:forEach>
+                    <li class="page-item ${currentPage == totalPages ? 'disabled' : ''}">
+                        <a class="page-link" href="?page=${currentPage + 1}&startDate=${startDate}&endDate=${endDate}">
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </c:if>
                         </div>
                     </div>
                 </div>

@@ -67,10 +67,12 @@ public class RestaurantProfileSetupController extends HttpServlet {
 
         String name = request.getParameter("name");
         String address = request.getParameter("address");
+        String licenseNumber = request.getParameter("licenseNumber");
 
         Part filePart = request.getPart("licenseFile");
-        if (name == null || name.trim().isEmpty() || address == null || address.trim().isEmpty() || filePart == null || filePart.getSize() == 0) {
-            request.setAttribute("error", "Vui lòng điền đầy đủ thông tin và tải lên giấy đăng ký kinh doanh.");
+        if (name == null || name.trim().isEmpty() || address == null || address.trim().isEmpty() || 
+            licenseNumber == null || licenseNumber.trim().isEmpty() || filePart == null || filePart.getSize() == 0) {
+            request.setAttribute("error", "Vui lòng điền đầy đủ thông tin, mã số giấy phép và tải lên bản sao giấy đăng ký kinh doanh.");
             if (existing != null) request.setAttribute("restaurant", existing);
             request.getRequestDispatcher("views/restaurant-profile-setup.jsp").forward(request, response);
             return;
@@ -91,6 +93,7 @@ public class RestaurantProfileSetupController extends HttpServlet {
             restaurant.setOwnerId(ownerId);
             restaurant.setName(name.trim());
             restaurant.setAddress(address.trim());
+            restaurant.setLicenseNumber(licenseNumber.trim());
             restaurantDAO.insertRestaurant(restaurant);
             
             models.Restaurant created = restaurantDAO.getRestaurantByOwnerId(ownerId);
@@ -101,9 +104,10 @@ public class RestaurantProfileSetupController extends HttpServlet {
             }
             restaurantId = created.getRestaurantId();
         } else {
-            // Update existing record with potentially new name/address before file upload
+            // Update existing record with potentially new name/address/licenseNumber before file upload
             existing.setName(name.trim());
             existing.setAddress(address.trim());
+            existing.setLicenseNumber(licenseNumber.trim());
             restaurantDAO.updateRestaurantCoreInfo(existing);
             restaurantId = existing.getRestaurantId();
         }

@@ -1,6 +1,7 @@
 package controllers;
 
 import dal.UserDAO;
+import dal.RestaurantDAO;
 import java.io.IOException;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -32,7 +33,6 @@ public class RegisterController extends HttpServlet {
         String email = request.getParameter("email");
         String password = request.getParameter("password");
         String confirmPassword = request.getParameter("confirmPassword");
-        String phone = request.getParameter("phone");
         String roleIDParam = request.getParameter("roleID");
 
         // Server-side validation
@@ -45,8 +45,6 @@ public class RegisterController extends HttpServlet {
             errorMsg = "Password must be at least 6 characters.";
         } else if (!password.equals(confirmPassword)) {
             errorMsg = "Passwords do not match.";
-        } else if (phone == null || !phone.matches("^\\d{8,}$")) {
-            errorMsg = "Invalid phone number (minimum 8 digits).";
         }
 
         // Validate roleID: only allow 2 (Owner) or 4 (Customer) to prevent manipulation
@@ -75,10 +73,30 @@ public class RegisterController extends HttpServlet {
         u.setFullName(fullName.trim());
         u.setEmail(email.trim());
         u.setPasswordHash(password); // TODO: hash before storing
-        u.setPhone(phone.trim());
         u.setRoleID(roleID);
+        
+        // Generate verification token
+        String token = java.util.UUID.randomUUID().toString();
+        u.setVerificationToken(token);
 
-        if (udao.register(u)) {
+        int newUserId = udao.register(u);
+        if (newUserId > 0) {
+            // Send verification email
+            utils.EmailService.sendVerificationEmail(u.getEmail(), token, request.getContextPath());
+            
+            if (roleID == 2) {
+                // Also create the restaurant record
+                String rName = request.getParameter("restaurantName");
+                String rAddress = request.getParameter("restaurantAddress");
+
+                models.Restaurant restaurant = new models.Restaurant();
+                restaurant.setOwnerId(newUserId);
+                restaurant.setName(rName != null ? rName.trim() : "");
+                restaurant.setAddress(rAddress != null ? rAddress.trim() : "");
+                
+                RestaurantDAO rdao = new RestaurantDAO();
+                rdao.insertRestaurant(restaurant);
+            }
             response.sendRedirect("login?registered=1");
         } else {
             request.setAttribute("error", "Registration failed! Please try again.");

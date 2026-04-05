@@ -354,14 +354,15 @@ public class RestaurantDAO extends DBContext {
     }
 
     public void insertRestaurant(Restaurant restaurant) {
-        String sql = "INSERT INTO Restaurants (OwnerID, Name, Address, Phone, Description, Status, CreatedAt) " +
-                     "VALUES (?, ?, ?, ?, ?, 'Pending', GETDATE())";
+        String sql = "INSERT INTO Restaurants (OwnerID, Name, Address, LicenseNumber, Phone, Description, Status, CreatedAt) " +
+                     "VALUES (?, ?, ?, ?, ?, ?, 'Pending', GETDATE())";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, restaurant.getOwnerId());
             ps.setString(2, restaurant.getName());
             ps.setString(3, restaurant.getAddress());
-            ps.setString(4, restaurant.getPhone());
-            ps.setString(5, restaurant.getDescription());
+            ps.setString(4, restaurant.getLicenseNumber());
+            ps.setString(5, restaurant.getPhone());
+            ps.setString(6, restaurant.getDescription());
             ps.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -399,14 +400,15 @@ public class RestaurantDAO extends DBContext {
     }
 
     public void updateRestaurantCoreInfo(Restaurant restaurant) {
-        String sql = "UPDATE Restaurants SET Name = ?, Address = ?, Phone = ?, Description = ? WHERE RestaurantID = ?";
+        String sql = "UPDATE Restaurants SET Name = ?, Address = ?, LicenseNumber = ?, Phone = ?, Description = ? WHERE RestaurantID = ?";
         try {
             PreparedStatement ps = connection.prepareStatement(sql);
             ps.setString(1, restaurant.getName());
             ps.setString(2, restaurant.getAddress());
-            ps.setString(3, restaurant.getPhone());
-            ps.setString(4, restaurant.getDescription());
-            ps.setInt(5, restaurant.getRestaurantId());
+            ps.setString(3, restaurant.getLicenseNumber());
+            ps.setString(4, restaurant.getPhone());
+            ps.setString(5, restaurant.getDescription());
+            ps.setInt(6, restaurant.getRestaurantId());
             ps.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();

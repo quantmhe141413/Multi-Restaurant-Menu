@@ -21,13 +21,20 @@
                         <div class="form-group">
                             <label><i class="fas fa-store me-2"></i> Tên nhà hàng</label>
                             <input type="text" name="name" placeholder="Nhập tên nhà hàng của bạn" 
-                                   value="${not empty restaurant ? restaurant.name : ''}" required>
+                                   value="${not empty restaurant ? restaurant.name : ''}" 
+                                   ${not empty restaurant.name ? 'readonly' : ''} required>
                         </div>
                         <div class="form-group">
                             <label><i class="fas fa-map-marker-alt me-2"></i> Địa chỉ</label>
                             <input type="text" name="address"
                                 placeholder="Số nhà, Tên đường, Quận/Huyện, Tỉnh/Thành phố" 
-                                value="${not empty restaurant ? restaurant.address : ''}" required>
+                                value="${not empty restaurant ? restaurant.address : ''}" 
+                                ${not empty restaurant.address ? 'readonly' : ''} required>
+                        </div>
+                        <div class="form-group">
+                            <label><i class="fas fa-id-card me-2"></i> Mã số giấy phép kinh doanh (Bắt buộc)</label>
+                            <input type="text" name="licenseNumber" placeholder="Nhập mã số giấy phép kinh doanh" 
+                                   value="${not empty restaurant ? restaurant.licenseNumber : ''}" required>
                         </div>
 
 
@@ -74,6 +81,7 @@
                     const form = document.querySelector('form');
                     const nameInput = document.querySelector('input[name="name"]');
                     const addressInput = document.querySelector('input[name="address"]');
+                    const licenseNumberInput = document.querySelector('input[name="licenseNumber"]');
                     const fileInput = document.querySelector('input[name="licenseFile"]');
 
                     form.addEventListener('submit', function (event) {
@@ -85,6 +93,11 @@
                         if (addressInput.value.trim() === '') {
                             event.preventDefault();
                             Swal.fire('Thiếu thông tin', 'Vui lòng nhập địa chỉ nhà hàng.', 'warning');
+                            return;
+                        }
+                        if (licenseNumberInput.value.trim() === '') {
+                            event.preventDefault();
+                            Swal.fire('Thiếu thông tin', 'Vui lòng nhập mã số giấy phép kinh doanh.', 'warning');
                             return;
                         }
                         if (fileInput.files.length === 0) {

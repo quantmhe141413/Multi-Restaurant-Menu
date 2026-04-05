@@ -354,12 +354,15 @@ public class RestaurantDAO extends DBContext {
     }
 
     public void insertRestaurant(Restaurant restaurant) {
-        String sql = "INSERT INTO Restaurants (OwnerID, Name, Address, Status, CreatedAt) " +
-                     "VALUES (?, ?, ?, 'Pending', GETDATE())";
+        String sql = "INSERT INTO Restaurants (OwnerID, Name, Address, LicenseNumber, Phone, Description, Status, CreatedAt) " +
+                     "VALUES (?, ?, ?, ?, ?, ?, 'Pending', GETDATE())";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, restaurant.getOwnerId());
             ps.setString(2, restaurant.getName());
             ps.setString(3, restaurant.getAddress());
+            ps.setString(4, restaurant.getLicenseNumber());
+            ps.setString(5, restaurant.getPhone());
+            ps.setString(6, restaurant.getDescription());
             ps.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -389,49 +392,23 @@ public class RestaurantDAO extends DBContext {
         } catch (Exception ignored) {
         }
         try {
-            r.setLicenseFileUrl(canonicalLicenseFileReference(rs.getString("LicenseFileUrl")));
+            r.setLicenseFileUrl(rs.getString("LicenseFileUrl"));
         } catch (Exception ignored) {
         }
 
         return r;
     }
 
-    /**
-     * Normalizes license paths from DB: absolute filesystem paths, duplicated context paths,
-     * or backslashes become a single web path {@code /uploads/licenses/...} (or unchanged http(s) URLs).
-     */
-    private static String canonicalLicenseFileReference(String raw) {
-        if (raw == null) {
-            return null;
-        }
-        String s = raw.trim();
-        if (s.isEmpty()) {
-            return null;
-        }
-        if (s.regionMatches(true, 0, "http://", 0, 7) || s.regionMatches(true, 0, "https://", 0, 8)) {
-            return s;
-        }
-        s = s.replace('\\', '/');
-        int idx = s.indexOf("/uploads/licenses/");
-        if (idx >= 0) {
-            return s.substring(idx);
-        }
-        idx = s.indexOf("uploads/licenses/");
-        if (idx >= 0) {
-            return "/" + s.substring(idx);
-        }
-        return s;
-    }
-
     public void updateRestaurantCoreInfo(Restaurant restaurant) {
-        String sql = "UPDATE Restaurants SET Name = ?, Address = ?, Phone = ?, Description = ? WHERE RestaurantID = ?";
+        String sql = "UPDATE Restaurants SET Name = ?, Address = ?, LicenseNumber = ?, Phone = ?, Description = ? WHERE RestaurantID = ?";
         try {
             PreparedStatement ps = connection.prepareStatement(sql);
             ps.setString(1, restaurant.getName());
             ps.setString(2, restaurant.getAddress());
-            ps.setString(3, restaurant.getPhone());
-            ps.setString(4, restaurant.getDescription());
-            ps.setInt(5, restaurant.getRestaurantId());
+            ps.setString(3, restaurant.getLicenseNumber());
+            ps.setString(4, restaurant.getPhone());
+            ps.setString(5, restaurant.getDescription());
+            ps.setInt(6, restaurant.getRestaurantId());
             ps.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -441,7 +418,7 @@ public class RestaurantDAO extends DBContext {
     public void updateLicenseFile(int restaurantId, String licenseFileUrl) {
         String sql = "UPDATE Restaurants SET LicenseFileUrl = ? WHERE RestaurantID = ?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setString(1, canonicalLicenseFileReference(licenseFileUrl));
+            ps.setString(1, licenseFileUrl);
             ps.setInt(2, restaurantId);
             ps.executeUpdate();
         } catch (SQLException e) {

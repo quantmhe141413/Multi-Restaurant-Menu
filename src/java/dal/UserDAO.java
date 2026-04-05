@@ -28,6 +28,8 @@ public class UserDAO extends DBContext {
                 u.setPhone(rs.getString("Phone"));
                 u.setPasswordHash(rs.getString("PasswordHash"));
                 u.setCreatedAt(rs.getTimestamp("CreatedAt"));
+                u.setVerificationToken(rs.getString("VerificationToken"));
+                u.setIsEmailVerified(rs.getBoolean("IsEmailVerified"));
                 return u;
             }
         } catch (SQLException ex) {
@@ -85,8 +87,8 @@ public class UserDAO extends DBContext {
     }
 
     public int register(User user) {
-        String sql = "INSERT INTO [dbo].[Users] ([FullName], [Email], [PasswordHash], [Phone], [RoleID], [IsActive], [CreatedAt]) "
-                + "VALUES (?, ?, ?, ?, ?, 1, GETDATE())";
+        String sql = "INSERT INTO [dbo].[Users] ([FullName], [Email], [PasswordHash], [Phone], [RoleID], [IsActive], [CreatedAt], [VerificationToken], [IsEmailVerified]) "
+                + "VALUES (?, ?, ?, ?, ?, 1, GETDATE(), ?, 0)";
         try {
             PreparedStatement st = connection.prepareStatement(sql, java.sql.Statement.RETURN_GENERATED_KEYS);
             st.setString(1, user.getFullName());
@@ -94,6 +96,7 @@ public class UserDAO extends DBContext {
             st.setString(3, user.getPasswordHash());
             st.setString(4, user.getPhone());
             st.setInt(5, user.getRoleID());
+            st.setString(6, user.getVerificationToken());
             int affectedRows = st.executeUpdate();
             
             if (affectedRows > 0) {
@@ -175,6 +178,46 @@ public class UserDAO extends DBContext {
             PreparedStatement st = connection.prepareStatement(sql);
             st.setString(1, newPasswordHash);
             st.setInt(2, userId);
+            int rowsAffected = st.executeUpdate();
+            return rowsAffected > 0;
+        } catch (SQLException ex) {
+            Logger.getLogger(UserDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return false;
+    }
+
+    public boolean changePassword(int userId, String newPassword) {
+        return updatePassword(userId, newPassword);
+    }
+
+    public User getUserByToken(String token) {
+        String sql = "SELECT * FROM Users WHERE VerificationToken = ?";
+        try {
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setString(1, token);
+            ResultSet rs = st.executeQuery();
+            if (rs.next()) {
+                User u = new User();
+                u.setUserID(rs.getInt("UserID"));
+                u.setFullName(rs.getString("FullName"));
+                u.setEmail(rs.getString("Email"));
+                u.setRoleID(rs.getInt("RoleID"));
+                u.setIsActive(rs.getBoolean("IsActive"));
+                u.setVerificationToken(rs.getString("VerificationToken"));
+                u.setIsEmailVerified(rs.getBoolean("IsEmailVerified"));
+                return u;
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(UserDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return null;
+    }
+
+    public boolean verifyEmail(String token) {
+        String sql = "UPDATE Users SET IsEmailVerified = 1, VerificationToken = NULL WHERE VerificationToken = ?";
+        try {
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setString(1, token);
             int rowsAffected = st.executeUpdate();
             return rowsAffected > 0;
         } catch (SQLException ex) {
