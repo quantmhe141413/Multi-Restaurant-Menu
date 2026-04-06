@@ -1268,6 +1268,7 @@
                                     html += '<thead><tr style="background: #f8fafc; border-bottom: 2px solid #e2e8f0;">';
                                     html += '<th style="padding: 0.625rem; text-align: left; font-size: 0.8125rem; color: #64748b;">Tên món</th>';
                                     html += '<th style="padding: 0.625rem; text-align: center; font-size: 0.8125rem; color: #64748b;">SL</th>';
+                                    html += '<th style="padding: 0.625rem; text-align: left; font-size: 0.8125rem; color: #64748b;">Ghi chú</th>';
                                     html += '<th style="padding: 0.625rem; text-align: right; font-size: 0.8125rem; color: #64748b;">Đơn giá</th>';
                                     html += '<th style="padding: 0.625rem; text-align: right; font-size: 0.8125rem; color: #64748b;">Thành tiền</th>';
                                     html += '</tr></thead><tbody>';
@@ -1278,6 +1279,7 @@
                                         html += '<tr style="border-bottom: 1px solid #f1f5f9;">';
                                         html += '<td style="padding: 0.625rem; font-size: 0.875rem;">' + (item.itemName || 'N/A') + '</td>';
                                         html += '<td style="padding: 0.625rem; text-align: center; font-size: 0.875rem;">' + quantity + '</td>';
+                                        html += '<td style="padding: 0.625rem; font-size: 0.8125rem; color: #64748b; font-style: italic;">' + (item.note ? item.note : '<span style="color:#cbd5e1;">—</span>') + '</td>';
                                         html += '<td style="padding: 0.625rem; text-align: right; font-size: 0.875rem;">' + price.toLocaleString('vi-VN') + 'đ</td>';
                                         html += '<td style="padding: 0.625rem; text-align: right; font-weight: 600; font-size: 0.875rem;">' + (price * quantity).toLocaleString('vi-VN') + 'đ</td>';
                                         html += '</tr>';
@@ -1363,173 +1365,6 @@
                             const modal = document.getElementById('orderModal');
                             if (event.target === modal) closeModal();
                         }
-                    </script>
-
-                    <script>
-                        (function () {
-                            const POLL_INTERVAL_MS = 5000;
-                            const TOAST_DURATION_MS = 15000;
-                            let lastOrderId = 0;
-                            let initialized = false;
-
-                            function playNewOrderSound() {
-                                try {
-                                    const AudioContext = window.AudioContext || window.webkitAudioContext;
-                                    if (!AudioContext) return;
-                                    const audioCtx = new AudioContext();
-                                    const oscillator = audioCtx.createOscillator();
-                                    const gainNode = audioCtx.createGain();
-                                    oscillator.type = 'triangle';
-                                    oscillator.frequency.setValueAtTime(880, audioCtx.currentTime);
-                                    gainNode.gain.setValueAtTime(0.001, audioCtx.currentTime);
-                                    gainNode.gain.exponentialRampToValueAtTime(0.1, audioCtx.currentTime + 0.01);
-                                    gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.6);
-                                    oscillator.connect(gainNode);
-                                    gainNode.connect(audioCtx.destination);
-                                    oscillator.start();
-                                    oscillator.stop(audioCtx.currentTime + 0.6);
-                                } catch (e) {
-                                    console.warn('Unable to play notification sound', e);
-                                }
-                            }
-
-                            function showBrowserNotification(count) {
-                                if (!("Notification" in window)) return;
-                                if (Notification.permission === "granted") {
-                                    const body = count === 1
-                                        ? "You have 1 new order to prepare."
-                                        : "You have " + count + " new orders to prepare.";
-                                    new Notification("New order received", { body: body });
-                                }
-                            }
-
-                            function goToOrdersTab() {
-                                const ordersTabLink = document.querySelector('[data-tab="orders"]');
-                                if (ordersTabLink) {
-                                    ordersTabLink.click();
-                                }
-                            }
-
-                            function showOrderToast(count) {
-                                const msg = count === 1
-                                    ? 'There is 1 new order waiting for preparation.'
-                                    : 'There are ' + count + ' new orders waiting for preparation.';
-
-                                const existing = document.getElementById('__order-notif__');
-                                if (existing) existing.remove();
-
-                                const wrap = document.createElement('div');
-                                wrap.id = '__order-notif__';
-                                wrap.style.cssText =
-                                    'position:fixed;top:80px;right:20px;z-index:2147483647;width:320px;' +
-                                    'font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;' +
-                                    'opacity:0;transform:translateX(30px);transition:opacity 0.25s ease,transform 0.25s ease;';
-
-                                wrap.innerHTML =
-                                    '<div style="background:#fff;border-radius:14px;box-shadow:0 10px 30px rgba(15,23,42,.15);overflow:hidden;cursor:pointer;">' +
-                                    '  <div style="background:linear-gradient(135deg,#6366f1,#8b5cf6);padding:12px 14px;display:flex;align-items:center;justify-content:space-between;">' +
-                                    '    <div style="display:flex;align-items:center;gap:10px;">' +
-                                    '      <div style="background:rgba(255,255,255,.18);border-radius:12px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;">' +
-                                    '        <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6" stroke="white" stroke-width="2"/><path d="M16 10a4 4 0 0 1-8 0" stroke="white" stroke-width="2" fill="none"/></svg>' +
-                                    '      </div>' +
-                                    '      <div>' +
-                                    '        <div style="color:#fff;font-weight:700;font-size:.92rem;line-height:1.2;">New Order!</div>' +
-                                    '        <div style="color:rgba(255,255,255,.85);font-size:.75rem;">Tap to view orders</div>' +
-                                    '      </div>' +
-                                    '    </div>' +
-                                    '    <button id="__order-notif-close__" type="button" aria-label="Close" style="background:rgba(255,255,255,.18);border:none;color:#fff;width:28px;height:28px;border-radius:10px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;padding:0;">&times;</button>' +
-                                    '  </div>' +
-                                    '  <div style="padding:12px 14px 10px;">' +
-                                    '    <div style="color:#334155;font-size:.85rem;line-height:1.45;">' + msg + '</div>' +
-                                    '    <div style="margin-top:8px;display:flex;align-items:center;gap:6px;color:#6366f1;font-size:.78rem;font-weight:600;">' +
-                                    '      <span>View order list</span><span style="font-size:.95rem;">&#8594;</span>' +
-                                    '    </div>' +
-                                    '  </div>' +
-                                    '  <div style="padding:0 14px 12px;">' +
-                                    '    <div style="background:#e2e8f0;border-radius:999px;height:4px;overflow:hidden;">' +
-                                    '      <div id="__order-notif-bar__" style="height:100%;background:linear-gradient(90deg,#6366f1,#8b5cf6);width:100%;transition:width linear ' + TOAST_DURATION_MS + 'ms;"></div>' +
-                                    '    </div>' +
-                                    '  </div>' +
-                                    '</div>';
-
-                                document.body.appendChild(wrap);
-
-                                requestAnimationFrame(function () {
-                                    wrap.style.opacity = '1';
-                                    wrap.style.transform = 'translateX(0)';
-                                });
-
-                                let closed = false;
-                                function closeToast() {
-                                    if (closed) return;
-                                    closed = true;
-                                    wrap.style.opacity = '0';
-                                    wrap.style.transform = 'translateX(30px)';
-                                    setTimeout(function () {
-                                        if (wrap && wrap.parentNode) wrap.parentNode.removeChild(wrap);
-                                    }, 280);
-                                }
-
-                                const closeBtn = wrap.querySelector('#__order-notif-close__');
-                                if (closeBtn) {
-                                    closeBtn.addEventListener('click', function (e) {
-                                        e.stopPropagation();
-                                        closeToast();
-                                    });
-                                }
-
-                                wrap.addEventListener('click', function () {
-                                    goToOrdersTab();
-                                    closeToast();
-                                });
-
-                                const bar = wrap.querySelector('#__order-notif-bar__');
-                                if (bar) {
-                                    requestAnimationFrame(function () { bar.style.width = '0%'; });
-                                }
-
-                                setTimeout(closeToast, TOAST_DURATION_MS);
-                            }
-
-                            async function checkNewOrders() {
-                                try {
-                                    const ctxPath = '${pageContext.request.contextPath}';
-                                    const url = ctxPath + '/restaurant/order-notifications?lastOrderId=' + encodeURIComponent(lastOrderId);
-                                    const res = await fetch(url, { method: 'GET', credentials: 'same-origin', headers: { 'Accept': 'application/json' } });
-                                    if (!res.ok) return;
-                                    const data = await res.json();
-                                    if (!data || !data.success) return;
-
-                                    if (!initialized) {
-                                        if (typeof data.latestOrderId === 'number' && data.latestOrderId > 0) {
-                                            lastOrderId = data.latestOrderId;
-                                        }
-                                        initialized = true;
-                                        return;
-                                    }
-
-                                    if (typeof data.latestOrderId === 'number' && data.latestOrderId > lastOrderId) {
-                                        lastOrderId = data.latestOrderId;
-                                    }
-
-                                    if (data.hasNew && data.newOrdersCount > 0) {
-                                        playNewOrderSound();
-                                        showBrowserNotification(data.newOrdersCount);
-                                        showOrderToast(data.newOrdersCount);
-                                    }
-                                } catch (e) {
-                                    console.warn('Error while checking new orders', e);
-                                }
-                            }
-
-                            document.addEventListener('DOMContentLoaded', function () {
-                                if ("Notification" in window && Notification.permission === "default") {
-                                    Notification.requestPermission();
-                                }
-                                setTimeout(checkNewOrders, 3000);
-                                setInterval(checkNewOrders, POLL_INTERVAL_MS);
-                            });
-                        })();
                     </script>
                 </body>
 

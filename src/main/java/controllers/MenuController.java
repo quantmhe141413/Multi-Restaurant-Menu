@@ -48,11 +48,25 @@ public class MenuController extends HttpServlet {
             List<MenuCategory> categories = dao.getCategoriesByRestaurant(restaurantId);
             List<MenuItem> menuItems = dao.getMenuItemsByRestaurant(restaurantId);
 
-            // Lấy reviews và rating
-            List<Review> reviews = reviewDAO.getReviewsByRestaurantId(restaurantId);
-            Double averageRating = reviewDAO.getAverageRating(restaurantId);
+            // Phân trang reviews
+            final int PAGE_SIZE = 2;
             int reviewCount = reviewDAO.getReviewCount(restaurantId);
-            
+            int totalPages = (int) Math.ceil((double) reviewCount / PAGE_SIZE);
+
+            int currentPage = 1;
+            String pageParam = request.getParameter("reviewPage");
+            if (pageParam != null) {
+                try {
+                    currentPage = Integer.parseInt(pageParam);
+                    if (currentPage < 1) currentPage = 1;
+                    if (currentPage > totalPages && totalPages > 0) currentPage = totalPages;
+                } catch (NumberFormatException ignored) {}
+            }
+
+            // Lấy reviews và rating
+            List<Review> reviews = reviewDAO.getReviewsByRestaurantIdPaged(restaurantId, currentPage, PAGE_SIZE);
+            Double averageRating = reviewDAO.getAverageRating(restaurantId);
+
             // Lấy tên khách hàng cho reviews
             Map<Integer, String> customerNames = reviewDAO.getCustomerNamesForReviews(reviews);
 
@@ -94,6 +108,8 @@ public class MenuController extends HttpServlet {
             request.setAttribute("averageRating", averageRating);
             request.setAttribute("reviewCount", reviewCount);
             request.setAttribute("customerNames", customerNames);
+            request.setAttribute("currentReviewPage", currentPage);
+            request.setAttribute("totalReviewPages", totalPages);
 
             request.getRequestDispatcher("views/menu.jsp").forward(request, response);
 

@@ -60,7 +60,7 @@ public class StaffHomeController extends HttpServlet {
         }
 
         // Get today's orders for the restaurant (first 50 orders)
-        List<Order> orders = orderDAO.getOrdersByRestaurant(restaurantId, 1, 50);
+        List<Order> orders = orderDAO.getOrdersByRestaurant(restaurantId, 1, 5);
         
         request.setAttribute("restaurant", restaurant);
         request.setAttribute("tables", tables);
