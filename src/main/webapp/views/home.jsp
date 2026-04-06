@@ -1,5 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
     <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+    <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
         <!DOCTYPE html>
         <html lang="en">
 
@@ -253,6 +254,25 @@
                             <div class="restaurant-info">
                                 <div class="restaurant-name">${r.name}</div>
                                 <div class="restaurant-address"><i class="fas fa-map-marker-alt"></i> ${r.address}</div>
+                                <c:set var="ratingData" value="${ratingSummary[r.restaurantId]}" />
+                                <c:choose>
+                                    <c:when test="${not empty ratingData}">
+                                        <div style="display:flex;align-items:center;gap:0.4rem;margin-bottom:0.75rem;">
+                                            <span style="color:#ffc107;font-size:0.9rem;">
+                                                <c:forEach begin="1" end="5" var="s">
+                                                    <i class="fas fa-star${s <= ratingData[0] ? '' : s - ratingData[0] < 1 ? '-half-alt' : '-o'}" style="color:#ffc107;font-size:0.8rem;"></i>
+                                                </c:forEach>
+                                            </span>
+                                            <span style="font-weight:600;font-size:0.875rem;color:#333;"><fmt:formatNumber value="${ratingData[0]}" pattern="#.#"/></span>
+                                            <span style="color:#999;font-size:0.8rem;">(${ratingData[1].intValue()} đánh giá)</span>
+                                        </div>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <div style="margin-bottom:0.75rem;color:#bbb;font-size:0.8rem;">
+                                            <i class="fas fa-star"></i> Chưa có đánh giá
+                                        </div>
+                                    </c:otherwise>
+                                </c:choose>
                                 <a href="menu?restaurantId=${r.restaurantId}" class="btn-view">View Menu</a>
                             </div>
                         </div>
@@ -269,7 +289,7 @@
                         <c:if test="${currentPage > 1}">
                             <a href="home?page=${currentPage - 1}&search=${currentSearch}&zone=${selectedZone}"
                                 style="padding: 0.5rem 1rem; background: white; color: #2f3542; border: 1px solid #ddd; border-radius: 6px; text-decoration: none; transition: all 0.3s;">
-                                ← Previous
+                                <
                             </a>
                         </c:if>
 
@@ -283,7 +303,7 @@
                         <c:if test="${currentPage < totalPages}">
                             <a href="home?page=${currentPage + 1}&search=${currentSearch}&zone=${selectedZone}"
                                 style="padding: 0.5rem 1rem; background: white; color: #2f3542; border: 1px solid #ddd; border-radius: 6px; text-decoration: none; transition: all 0.3s;">
-                                Next →
+                                >
                             </a>
                         </c:if>
                     </div>

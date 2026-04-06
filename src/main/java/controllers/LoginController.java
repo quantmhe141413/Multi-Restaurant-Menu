@@ -34,8 +34,14 @@ public class LoginController extends HttpServlet {
         String email = request.getParameter("email");
         String password = request.getParameter("password");
 
+        if (email == null || email.trim().isEmpty() || password == null || password.trim().isEmpty()) {
+            request.setAttribute("error", "Email and password are required!");
+            request.getRequestDispatcher("views/login.jsp").forward(request, response);
+            return;
+        }
+
         UserDAO udao = new UserDAO();
-        User u = udao.login(email, password);
+        User u = udao.login(email.trim(), password);
 
         if (u != null) {
             HttpSession session = request.getSession();
@@ -47,8 +53,6 @@ public class LoginController extends HttpServlet {
                 }
             }
 
-            // Redirect all users to home
-            //response.sendRedirect("home");
             // Redirect by role after successful login
             redirectByRole(u, request, response);
 
@@ -75,7 +79,19 @@ public class LoginController extends HttpServlet {
         
         // Role 2: Owner -> Management Dashboard
         if (roleId == UserRole.OWNER) {
-            response.sendRedirect(request.getContextPath() + "/restaurant-analytics-dashboard");
+            Integer restaurantId = (Integer) request.getSession().getAttribute("restaurantId");
+            if (restaurantId == null) {
+                dal.UserDAO udao = new dal.UserDAO();
+                restaurantId = udao.getRestaurantIdByUserId(user.getUserID());
+                if (restaurantId != null) {
+                    request.getSession().setAttribute("restaurantId", restaurantId);
+                }
+            }
+            if (restaurantId == null) {
+                response.sendRedirect(request.getContextPath() + "/restaurant-profile-setup");
+            } else {
+                response.sendRedirect(request.getContextPath() + "/restaurant-analytics-dashboard");
+            }
             return;
         }
         

@@ -196,16 +196,17 @@
                         <input type="email" id="email" name="email" required>
                     </div>
                     <div class="form-group">
+                        <label for="phone">Phone Number</label>
+                        <input type="tel" id="phone" name="phone" placeholder="e.g. 0912345678" required>
+                        <div class="form-hint">Vietnamese format (10 digits starting with 0)</div>
+                    </div>
+                    <div class="form-group">
                         <label for="password">Password</label>
                         <input type="password" id="password" name="password" required>
                     </div>
                     <div class="form-group">
                         <label for="confirmPassword">Confirm Password</label>
                         <input type="password" id="confirmPassword" name="confirmPassword" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="phone">Phone Number</label>
-                        <input type="tel" id="phone" name="phone" required>
                     </div>
 
                     <!-- Restaurant Details Section -->
@@ -220,14 +221,6 @@
                         <div class="form-group">
                             <label for="restaurantAddress">Restaurant Address</label>
                             <input type="text" id="restaurantAddress" name="restaurantAddress">
-                        </div>
-                        <div class="form-group">
-                            <label for="restaurantPhone">Restaurant Business Phone</label>
-                            <input type="tel" id="restaurantPhone" name="restaurantPhone">
-                        </div>
-                        <div class="form-group">
-                            <label for="restaurantDescription">Description</label>
-                            <textarea id="restaurantDescription" name="restaurantDescription" rows="3" style="width: 100%; padding: 0.8rem; border: 1px solid #ced4da; border-radius: 8px; box-sizing: border-box; outline: none; transition: border-color 0.3s;"></textarea>
                         </div>
                     </div>
                     <button type="submit" class="btn-submit">Register</button>
@@ -246,11 +239,11 @@
             const form = document.getElementById('registerForm');
             const fullNameInput = document.getElementById('fullName');
             const emailInput = document.getElementById('email');
+            const phoneInput = document.getElementById('phone');
             const passwordInput = document.getElementById('password');
             const confirmPasswordInput = document.getElementById('confirmPassword');
-            const phoneInput = document.getElementById('phone');
             const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            const phonePattern = /^\d{8,}$/;
+            const phonePattern = /^0\d{9}$/;
 
             const restaurantDetails = document.getElementById('restaurantDetails');
             const roleIDInput = document.getElementById('roleIDHidden');
@@ -279,7 +272,6 @@
                 const email = emailInput.value.trim();
                 const password = passwordInput.value.trim();
                 const confirmPassword = confirmPasswordInput.value.trim();
-                const phone = phoneInput.value.trim();
 
                 const isOwner = roleIDInput.value === '2';
 
@@ -295,6 +287,13 @@
                     return;
                 }
 
+                const phone = phoneInput.value.trim();
+                if (!phonePattern.test(phone)) {
+                    event.preventDefault();
+                    Swal.fire('Invalid phone', 'Phone number must be 10 digits starting with 0.', 'warning');
+                    return;
+                }
+
                 if (password.length < 6) {
                     event.preventDefault();
                     Swal.fire('Weak password', 'Password must be at least 6 characters.', 'warning');
@@ -307,11 +306,6 @@
                     return;
                 }
 
-                if (!phonePattern.test(phone)) {
-                    event.preventDefault();
-                    Swal.fire('Invalid phone', 'Phone number must contain at least 8 digits.', 'warning');
-                    return;
-                }
 
                 if (isOwner) {
                     const rName = restaurantNameInput.value.trim();

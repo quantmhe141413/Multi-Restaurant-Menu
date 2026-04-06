@@ -1,4 +1,5 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <c:set var="pageTitle" value="Restaurant Application List" scope="request" />
 <!DOCTYPE html>
 <html lang="en">
@@ -106,9 +107,17 @@
                                                         <td>
                                                             <c:choose>
                                                                 <c:when test="${not empty r.licenseFileUrl}">
-                                                                    <img src="${pageContext.request.contextPath}${r.licenseFileUrl}" 
-                                                                         alt="License" 
-                                                                         style="width: 80px; height: auto; border-radius: 6px;" />
+                                                                    <c:set var="licSrc" value="${r.licenseFileUrl}" />
+                                                                    <c:choose>
+                                                                        <c:when test="${fn:startsWith(licSrc, 'http://') || fn:startsWith(licSrc, 'https://')}">
+                                                                            <img src="${licSrc}" alt="License"
+                                                                                 style="width: 80px; height: auto; border-radius: 6px;" />
+                                                                        </c:when>
+                                                                        <c:otherwise>
+                                                                            <img src="${pageContext.request.contextPath}${licSrc}" alt="License"
+                                                                                 style="width: 80px; height: auto; border-radius: 6px;" />
+                                                                        </c:otherwise>
+                                                                    </c:choose>
                                                                 </c:when>
                                                                 <c:otherwise>
                                                                     <span class="text-muted">No Image</span>

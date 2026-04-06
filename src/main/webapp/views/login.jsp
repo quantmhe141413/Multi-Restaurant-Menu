@@ -1,4 +1,5 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
     <!DOCTYPE html>
     <html lang="en">
 
@@ -230,20 +231,34 @@
                     }
                 });
 
-                const errorMessage = document.body.dataset.loginError;
-                if (errorMessage) {
-                    Swal.fire('Login failed', errorMessage, 'error');
+                if (document.body.dataset.loginError) {
+                    Swal.fire('Đăng nhập thất bại', document.body.dataset.loginError, 'error');
                 }
 
                 if (document.body.dataset.registered === '1') {
-                    Swal.fire('Account created', 'You can now log in with your credentials.', 'success');
+                    Swal.fire('Đăng ký thành công', 'Vui lòng kiểm tra email của bạn để kích hoạt tài khoản.', 'success');
                 }
 
                 if (document.body.dataset.logout === '1') {
-                    Swal.fire('Signed out', 'You have been logged out successfully.', 'info');
+                    Swal.fire('Đăng xuất', 'Bạn đã đăng xuất thành công.', 'info');
                 }
             });
             </script>
+            <c:if test="${not empty sessionScope.message}">
+                <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        Swal.fire({
+                            icon: '${sessionScope.messageType == "error" ? "error" : "success"}',
+                            title: '${sessionScope.messageType == "error" ? "Lỗi!" : "Thành công!"}',
+                            text: '${sessionScope.message}'
+                        });
+                    });
+                </script>
+                <% 
+                    session.removeAttribute("message"); 
+                    session.removeAttribute("messageType"); 
+                %>
+            </c:if>
 
         </body>
 

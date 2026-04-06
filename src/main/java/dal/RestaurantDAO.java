@@ -354,14 +354,13 @@ public class RestaurantDAO extends DBContext {
     }
 
     public void insertRestaurant(Restaurant restaurant) {
-        String sql = "INSERT INTO Restaurants (OwnerID, Name, Address, Phone, Description, Status, CreatedAt) " +
-                     "VALUES (?, ?, ?, ?, ?, 'Pending', GETDATE())";
+        String sql = "INSERT INTO Restaurants (OwnerID, Name, Address, LicenseNumber, Status, CreatedAt) " +
+                     "VALUES (?, ?, ?, ?, 'Pending', GETDATE())";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, restaurant.getOwnerId());
             ps.setString(2, restaurant.getName());
             ps.setString(3, restaurant.getAddress());
-            ps.setString(4, restaurant.getPhone());
-            ps.setString(5, restaurant.getDescription());
+            ps.setString(4, restaurant.getLicenseNumber());
             ps.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -399,14 +398,13 @@ public class RestaurantDAO extends DBContext {
     }
 
     public void updateRestaurantCoreInfo(Restaurant restaurant) {
-        String sql = "UPDATE Restaurants SET Name = ?, Address = ?, Phone = ?, Description = ? WHERE RestaurantID = ?";
+        String sql = "UPDATE Restaurants SET Name = ?, Address = ?, LicenseNumber = ? WHERE RestaurantID = ?";
         try {
             PreparedStatement ps = connection.prepareStatement(sql);
             ps.setString(1, restaurant.getName());
             ps.setString(2, restaurant.getAddress());
-            ps.setString(3, restaurant.getPhone());
-            ps.setString(4, restaurant.getDescription());
-            ps.setInt(5, restaurant.getRestaurantId());
+            ps.setString(3, restaurant.getLicenseNumber());
+            ps.setInt(4, restaurant.getRestaurantId());
             ps.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -455,8 +453,9 @@ public class RestaurantDAO extends DBContext {
     public List<Restaurant> getApprovedRestaurants(String search, String zone, String cuisine, int page, int pageSize) {
         List<Restaurant> list = new ArrayList<>();
         StringBuilder sql = new StringBuilder();
-        sql.append("SELECT DISTINCT r.* FROM Restaurants r ");
+        sql.append("SELECT DISTINCT r.*, rv.AvgR FROM Restaurants r ");
         sql.append("LEFT JOIN RestaurantDeliveryZones dz ON r.RestaurantID = dz.RestaurantID ");
+        sql.append("left join (select RestaurantID, count(*) as AvgR from Reviews group by RestaurantID) rv on r.RestaurantID = rv.RestaurantID ");
         sql.append("WHERE r.Status = 'Approved'");
         List<String> params = new ArrayList<>();
 
@@ -470,7 +469,7 @@ public class RestaurantDAO extends DBContext {
             params.add(zone.trim());
         }
 
-        sql.append(" ORDER BY r.Name ");
+        sql.append(" ORDER BY rv.AvgR DESC, r.Name ");
         sql.append("OFFSET ? ROWS FETCH NEXT ? ROWS ONLY");
         
         try {

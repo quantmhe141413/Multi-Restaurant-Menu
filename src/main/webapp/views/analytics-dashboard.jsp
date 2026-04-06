@@ -5,7 +5,7 @@
 <html lang="en">
 <head>
     <jsp:include page="includes/std_head.jsp" />
-    <title>Dashboard Phân tích - ${restaurant.name}</title>
+    <title>Analytics Dashboard - ${restaurant.name}</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/quan-tasks.css">
     <style>
         body { font-family: Arial, sans-serif; color: #333; }
@@ -33,68 +33,101 @@
                     <div class="col-md-11">
                         <div class="dashboard-card shadow-sm border-0 p-4 bg-white rounded-3">
                             <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-4">
-                                <h1 class="h3 mb-0 text-primary"><i class="fas fa-chart-line me-2"></i>Dashboard Phân tích: ${restaurant.name}</h1>
+                                <h1 class="h3 mb-0 text-primary"><i class="fas fa-chart-line me-2"></i>Analytics Dashboard: ${restaurant.name}</h1>
                                 <div>
-                                    <a href="peak-hours-analysis" class="btn btn-outline-primary me-2"><i class="fas fa-clock me-1"></i>Xem Giờ Cao Điểm</a>
-                                    <a href="menu-management-dashboard" class="btn btn-success"><i class="fas fa-utensils me-1"></i>Quản lý Menu</a>
+                                    <a href="peak-hours-analysis" class="btn btn-outline-primary me-2"><i class="fas fa-clock me-1"></i>View Peak Hours</a>
+                                    <a href="menu-management-dashboard" class="btn btn-success"><i class="fas fa-utensils me-1"></i>Menu Management</a>
                                 </div>
                             </div>
     <div class="filter-section">
         <form method="get" action="restaurant-analytics-dashboard">
-            Từ ngày: <input type="date" name="startDate" value="${startDate}">
-            Đến ngày: <input type="date" name="endDate" value="${endDate}">
-            <input type="submit" value="Lọc báo cáo" class="btn">
+            From Date: <input type="date" name="startDate" value="${startDate}">
+            To Date: <input type="date" name="endDate" value="${endDate}">
+            <input type="submit" value="Filter Report" class="btn">
         </form>
     </div>
 
     <div class="stats-grid">
         <div class="stat-card">
-            <div class="stat-value"><fmt:formatNumber value="${totalRevenue}" type="currency" currencySymbol="VND"/></div>
-            <div class="stat-label">Tổng doanh thu</div>
+            <div class="stat-value"><fmt:formatNumber value="${totalRevenue}" pattern="#,##0"/> VNĐ</div>
+            <div class="stat-label">Total Revenue</div>
         </div>
         <div class="stat-card">
             <div class="stat-value">${totalOrders}</div>
-            <div class="stat-label">Tổng đơn hàng</div>
+            <div class="stat-label">Total Orders</div>
         </div>
         <div class="stat-card">
             <div class="stat-value">
                 <c:choose>
                     <c:when test="${totalOrders > 0}">
-                        <fmt:formatNumber value="${totalRevenue / totalOrders}" type="currency" currencySymbol="VND"/>
+                        <fmt:formatNumber value="${totalRevenue / totalOrders}" pattern="#,##0"/> VNĐ
                     </c:when>
-                    <c:otherwise>0 VND</c:otherwise>
+                    <c:otherwise>0 VNĐ</c:otherwise>
                 </c:choose>
             </div>
-            <div class="stat-label">Giá trị đơn hàng TB</div>
+            <div class="stat-label">Avg Order Value</div>
         </div>
     </div>
 
-    <h3>Chi tiết doanh thu theo ngày</h3>
-    <table>
-        <thead>
-            <tr>
-                <th>Ngày</th>
-                <th>Số đơn hàng</th>
-                <th>Doanh thu</th>
-                <th>Trung bình/Đơn</th>
-            </tr>
-        </thead>
-        <tbody>
-            <c:forEach var="stat" items="${dailyStats}">
+    <h3 class="mt-4 mb-3"><i class="fas fa-table me-2"></i>Daily Revenue Details</h3>
+    <div class="table-responsive">
+        <table class="table table-hover border">
+            <thead class="table-light">
                 <tr>
-                    <td>${stat.date}</td>
-                    <td>${stat.count}</td>
-                    <td><fmt:formatNumber value="${stat.revenue}" type="currency" currencySymbol="VND"/></td>
-                    <td><fmt:formatNumber value="${stat.revenue / stat.count}" type="currency" currencySymbol="VND"/></td>
+                    <th>Date</th>
+                    <th class="text-center">Orders</th>
+                    <th class="text-end">Revenue</th>
+                    <th class="text-end">Avg/Order</th>
                 </tr>
-            </c:forEach>
-            <c:if test="${empty dailyStats}">
-                <tr>
-                    <td colspan="4" style="text-align:center;">Không có dữ liệu trong khoảng thời gian này.</td>
-                </tr>
-            </c:if>
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                <c:forEach var="stat" items="${dailyStats}">
+                    <tr>
+                        <td class="fw-bold">${stat.date}</td>
+                        <td class="text-center"><span class="badge bg-soft-primary text-primary px-2">${stat.count}</span></td>
+                        <td class="text-end fw-bold text-success"><fmt:formatNumber value="${stat.revenue}" pattern="#,##0" /> VNĐ</td>
+                        <td class="text-end"><fmt:formatNumber value="${stat.revenue / stat.count}" pattern="#,##0" /> VNĐ</td>
+                    </tr>
+                </c:forEach>
+                <c:if test="${empty dailyStats}">
+                    <tr>
+                        <td colspan="4" class="text-center py-4 text-muted">
+                            <i class="fas fa-calendar-times fa-2x mb-2 d-block"></i>
+                            No data available for this period.
+                        </td>
+                    </tr>
+                </c:if>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    <c:if test="${totalPages > 1}">
+        <div class="d-flex justify-content-between align-items-center mt-4">
+            <div class="text-muted small">
+                Showing page ${currentPage} of ${totalPages}
+            </div>
+            <nav aria-label="Page navigation">
+                <ul class="pagination pagination-sm mb-0">
+                    <li class="page-item ${currentPage == 1 ? 'disabled' : ''}">
+                        <a class="page-link" href="?page=${currentPage - 1}&startDate=${startDate}&endDate=${endDate}">
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                    </li>
+                    <c:forEach var="i" begin="1" end="${totalPages}">
+                        <li class="page-item ${currentPage == i ? 'active' : ''}">
+                            <a class="page-link" href="?page=${i}&startDate=${startDate}&endDate=${endDate}">${i}</a>
+                        </li>
+                    </c:forEach>
+                    <li class="page-item ${currentPage == totalPages ? 'disabled' : ''}">
+                        <a class="page-link" href="?page=${currentPage + 1}&startDate=${startDate}&endDate=${endDate}">
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </c:if>
                         </div>
                     </div>
                 </div>

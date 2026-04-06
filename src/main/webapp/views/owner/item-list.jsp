@@ -20,7 +20,7 @@
                         <main class="col-md-9 col-lg-10 main-content">
                             <div class="page-header d-flex justify-content-between align-items-center">
                                 <div>
-                                    <h1><i class="fas fa-utensils text-primary"></i>Item Management</h1>
+                                    <h1><i class="fas fa-utensils text-primary"></i> Item Management</h1>
                                     <nav aria-label="breadcrumb">
                                         <ol class="breadcrumb">
                                             <li class="breadcrumb-item"><a
@@ -92,11 +92,11 @@
                                         <div class="row g-3 align-items-center">
                                             <div class="col-md-2">
                                                 <select name="status" class="form-select">
-                                                    <option value="">All Status</option>
+                                                    <option value="">All Statuses</option>
                                                     <option value="available" ${currentStatus=='available' ? 'selected'
-                                                        : '' }>Available</option>
+                                                        : '' }>In Stock</option>
                                                     <option value="unavailable" ${currentStatus=='unavailable'
-                                                        ? 'selected' : '' }>Unavailable</option>
+                                                        ? 'selected' : '' }>Out of Stock</option>
                                                 </select>
                                             </div>
                                             <div class="col-md-3">
@@ -122,7 +122,7 @@
                                                         <option value="price" ${currentSortBy=='price' ? 'selected' : ''
                                                             }>Sort by Price</option>
                                                         <option value="date" ${currentSortBy=='date' ? 'selected' : ''
-                                                            }>Sort by Date</option>
+                                                            }>Sort by Date Created</option>
                                                     </select>
                                                 </div>
                                             </div>
@@ -158,17 +158,16 @@
                                                     <th>Category</th>
                                                     <th>Price</th>
                                                     <th>Status</th>
-                                                    <th class="text-end pe-4">Actions</th>
+                                                    <th class="text-end pe-4">Action</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 <c:choose>
                                                     <c:when test="${empty items}">
                                                         <tr>
-                                                            <td colspan="6" class="text-center py-5">
+                                                            <td colspan="8" class="text-center py-5">
                                                                 <i class="fas fa-hamburger fa-3x text-muted mb-3"></i>
-                                                                <p class="text-muted">No dishes found. Add your first
-                                                                    masterpiece!</p>
+                                                                <p class="text-muted">No menu items found. Let's add your first signature dish!</p>
                                                             </td>
                                                         </tr>
                                                     </c:when>
@@ -218,11 +217,11 @@
                                                                     <c:choose>
                                                                         <c:when test="${item.isAvailable}">
                                                                             <span class="badge bg-success"><i
-                                                                                    class="fas fa-check me-1"></i>Available</span>
+                                                                                    class="fas fa-check me-1"></i>In Stock</span>
                                                                         </c:when>
                                                                         <c:otherwise>
                                                                             <span class="badge bg-secondary"><i
-                                                                                    class="fas fa-times me-1"></i>Unavailable</span>
+                                                                                    class="fas fa-times me-1"></i>Out of Stock</span>
                                                                         </c:otherwise>
                                                                     </c:choose>
                                                                 </td>
@@ -246,6 +245,32 @@
                                                 </c:choose>
                                             </tbody>
                                         </table>
+                                    </div>
+
+                                    <!-- Pagination -->
+                                    <div class="d-flex justify-content-between align-items-center p-4 border-top">
+                                        <div class="text-muted small">
+                                            Showing page ${currentPage} of ${totalPages}
+                                        </div>
+                                        <nav aria-label="Page navigation">
+                                            <ul class="pagination pagination-sm mb-0">
+                                                <li class="page-item ${currentPage == 1 ? 'disabled' : ''}">
+                                                    <a class="page-link" href="?action=list&page=${currentPage - 1}&search=${currentSearch}&categoryId=${currentCategoryId}&status=${currentStatus}&minPrice=${currentMinPrice}&maxPrice=${currentMaxPrice}&sortBy=${currentSortBy}&sortOrder=${currentSortOrder}">
+                                                        <i class="fas fa-chevron-left"></i>
+                                                    </a>
+                                                </li>
+                                                <c:forEach var="i" begin="1" end="${totalPages}">
+                                                    <li class="page-item ${currentPage == i ? 'active' : ''}">
+                                                        <a class="page-link" href="?action=list&page=${i}&search=${currentSearch}&categoryId=${currentCategoryId}&status=${currentStatus}&minPrice=${currentMinPrice}&maxPrice=${currentMaxPrice}&sortBy=${currentSortBy}&sortOrder=${currentSortOrder}">${i}</a>
+                                                    </li>
+                                                </c:forEach>
+                                                <li class="page-item ${currentPage == totalPages ? 'disabled' : ''}">
+                                                    <a class="page-link" href="?action=list&page=${currentPage + 1}&search=${currentSearch}&categoryId=${currentCategoryId}&status=${currentStatus}&minPrice=${currentMinPrice}&maxPrice=${currentMaxPrice}&sortBy=${currentSortBy}&sortOrder=${currentSortOrder}">
+                                                        <i class="fas fa-chevron-right"></i>
+                                                    </a>
+                                                </li>
+                                            </ul>
+                                        </nav>
                                     </div>
                                 </div>
                             </div>
@@ -295,13 +320,14 @@
             <script>
                 function confirmDelete(id) {
                     Swal.fire({
-                        title: 'Delete Item?',
+                        title: 'Delete item?',
                         text: "This item will be removed from your menu.",
                         icon: 'warning',
                         showCancelButton: true,
                         confirmButtonColor: '#ef4444',
                         cancelButtonColor: '#64748b',
-                        confirmButtonText: 'Yes, delete it!'
+                        confirmButtonText: 'Yes, delete it!',
+                        cancelButtonText: 'Cancel'
                     }).then((result) => {
                         if (result.isConfirmed) {
                             window.location.href = '${pageContext.request.contextPath}/items?action=delete&id=' + id;

@@ -3,6 +3,8 @@ package dal;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import models.User;
@@ -24,7 +26,10 @@ public class UserDAO extends DBContext {
                 u.setRoleID(rs.getInt("RoleID"));
                 u.setIsActive(rs.getBoolean("IsActive"));
                 u.setPhone(rs.getString("Phone"));
+                u.setPasswordHash(rs.getString("PasswordHash"));
                 u.setCreatedAt(rs.getTimestamp("CreatedAt"));
+                u.setVerificationToken(rs.getString("VerificationToken"));
+                u.setIsEmailVerified(rs.getBoolean("IsEmailVerified"));
                 return u;
             }
         } catch (SQLException ex) {
@@ -34,41 +39,76 @@ public class UserDAO extends DBContext {
     }
 
     /**
-     * Get RestaurantID for a user (Owner/Staff)
-     * Returns null if user is SuperAdmin (RoleID = 1) or Customer (RoleID = 4)
+     * Get all RestaurantIDs assigned to a user (Owner/Staff can belong to multiple restaurants).
+     * Returns empty list for SuperAdmin (RoleID = 1) or Customer (RoleID = 4).
      */
-    public Integer getRestaurantIdByUserId(int userId) {
-        String sql = "SELECT TOP 1 RestaurantID FROM RestaurantUsers " +
-                     "WHERE UserID = ? AND IsActive = 1";
+    public List<Integer> getRestaurantIdsByUserId(int userId) {
+        List<Integer> ids = new ArrayList<>();
+        String sql = "SELECT RestaurantID FROM RestaurantUsers WHERE UserID = ? AND IsActive = 1 ORDER BY RestaurantID";
         try {
+            connection = getConnection();
             PreparedStatement st = connection.prepareStatement(sql);
             st.setInt(1, userId);
+            ResultSet rs = st.executeQuery();
+            while (rs.next()) {
+                ids.add(rs.getInt("RestaurantID"));
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(UserDAO.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            closeResources();
+        }
+        return ids;
+    }
+
+    /**
+     * Get primary RestaurantID for a user - prefers 'Owner' role, falls back to first assigned.
+     * Returns null if user has no restaurant assignment.
+     */
+    public Integer getRestaurantIdByUserId(int userId) {
+        String sql = "SELECT RestaurantID FROM Restaurants WHERE OwnerID = ? " +
+                     "UNION " +
+                     "SELECT RestaurantID FROM RestaurantUsers WHERE UserID = ? AND IsActive = 1";
+        try {
+            connection = getConnection();
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setInt(1, userId);
+            st.setInt(2, userId);
             ResultSet rs = st.executeQuery();
             if (rs.next()) {
                 return rs.getInt("RestaurantID");
             }
         } catch (SQLException ex) {
             Logger.getLogger(UserDAO.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            closeResources();
         }
         return null;
     }
 
-    public boolean register(User user) {
-        String sql = "INSERT INTO [dbo].[Users] ([FullName], [Email], [PasswordHash], [Phone], [RoleID], [IsActive], [CreatedAt]) "
-                + "VALUES (?, ?, ?, ?, ?, 1, GETDATE())";
+    public int register(User user) {
+        String sql = "INSERT INTO [dbo].[Users] ([FullName], [Email], [PasswordHash], [Phone], [RoleID], [IsActive], [CreatedAt], [VerificationToken], [IsEmailVerified]) "
+                + "VALUES (?, ?, ?, ?, ?, 1, GETDATE(), ?, 0)";
         try {
-            PreparedStatement st = connection.prepareStatement(sql);
+            PreparedStatement st = connection.prepareStatement(sql, java.sql.Statement.RETURN_GENERATED_KEYS);
             st.setString(1, user.getFullName());
             st.setString(2, user.getEmail());
             st.setString(3, user.getPasswordHash());
             st.setString(4, user.getPhone());
             st.setInt(5, user.getRoleID());
-            st.executeUpdate();
-            return true;
+            st.setString(6, user.getVerificationToken());
+            int affectedRows = st.executeUpdate();
+            
+            if (affectedRows > 0) {
+                ResultSet rs = st.getGeneratedKeys();
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
         } catch (SQLException ex) {
             Logger.getLogger(UserDAO.class.getName()).log(Level.SEVERE, null, ex);
         }
-        return false;
+        return -1;
     }
 
     public boolean checkEmailExists(String email) {
@@ -131,13 +171,53 @@ public class UserDAO extends DBContext {
         return false;
     }
 
-    // Change password for logged in user
-    public boolean changePassword(int userId, String newPassword) {
+    // Update password for a user by userId (used for change-password flow)
+    public boolean updatePassword(int userId, String newPasswordHash) {
         String sql = "UPDATE Users SET PasswordHash = ? WHERE UserID = ?";
         try {
             PreparedStatement st = connection.prepareStatement(sql);
-            st.setString(1, newPassword);
+            st.setString(1, newPasswordHash);
             st.setInt(2, userId);
+            int rowsAffected = st.executeUpdate();
+            return rowsAffected > 0;
+        } catch (SQLException ex) {
+            Logger.getLogger(UserDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return false;
+    }
+
+    public boolean changePassword(int userId, String newPassword) {
+        return updatePassword(userId, newPassword);
+    }
+
+    public User getUserByToken(String token) {
+        String sql = "SELECT * FROM Users WHERE VerificationToken = ?";
+        try {
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setString(1, token);
+            ResultSet rs = st.executeQuery();
+            if (rs.next()) {
+                User u = new User();
+                u.setUserID(rs.getInt("UserID"));
+                u.setFullName(rs.getString("FullName"));
+                u.setEmail(rs.getString("Email"));
+                u.setRoleID(rs.getInt("RoleID"));
+                u.setIsActive(rs.getBoolean("IsActive"));
+                u.setVerificationToken(rs.getString("VerificationToken"));
+                u.setIsEmailVerified(rs.getBoolean("IsEmailVerified"));
+                return u;
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(UserDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return null;
+    }
+
+    public boolean verifyEmail(String token) {
+        String sql = "UPDATE Users SET IsEmailVerified = 1, VerificationToken = NULL WHERE VerificationToken = ?";
+        try {
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setString(1, token);
             int rowsAffected = st.executeUpdate();
             return rowsAffected > 0;
         } catch (SQLException ex) {

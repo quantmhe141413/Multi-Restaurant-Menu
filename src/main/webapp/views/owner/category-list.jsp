@@ -80,7 +80,7 @@
                                             <!-- Status -->
                                             <div class="col-md-2">
                                                 <select name="status" class="form-select">
-                                                    <option value="">All Status</option>
+                                                    <option value="">All Statuses</option>
                                                     <option value="active" ${currentStatus=='active' ? 'selected' : ''
                                                         }>
                                                         Active</option>
@@ -136,20 +136,18 @@
                                                 <tr>
                                                     <th class="ps-4">ID</th>
                                                     <th>Category Name</th>
-                                                    <th>Order</th>
+                                                    <th>Display Order</th>
                                                     <th>Status</th>
-                                                    <th class="text-end pe-4">Actions</th>
+                                                    <th class="text-end pe-4">Action</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 <c:choose>
                                                     <c:when test="${empty categories}">
                                                         <tr>
-                                                            <td colspan="4" class="text-center py-5">
+                                                            <td colspan="5" class="text-center py-5">
                                                                 <i class="fas fa-folder-open fa-3x text-muted mb-3"></i>
-                                                                <p class="text-muted">No categories found. Start by
-                                                                    adding
-                                                                    one!
+                                                                <p class="text-muted">No categories found. Let's start by adding one!
                                                                 </p>
                                                             </td>
                                                         </tr>
@@ -195,6 +193,32 @@
                                                 </c:choose>
                                             </tbody>
                                         </table>
+                                    </div>
+
+                                    <!-- Pagination -->
+                                    <div class="d-flex justify-content-between align-items-center p-4 border-top">
+                                        <div class="text-muted small">
+                                            Showing page ${currentPage} of ${totalPages}
+                                        </div>
+                                        <nav aria-label="Page navigation">
+                                            <ul class="pagination pagination-sm mb-0">
+                                                <li class="page-item ${currentPage == 1 ? 'disabled' : ''}">
+                                                    <a class="page-link" href="?action=list&page=${currentPage - 1}&search=${currentSearch}&status=${currentStatus}&sortBy=${currentSortBy}&sortOrder=${currentSortOrder}">
+                                                        <i class="fas fa-chevron-left"></i>
+                                                    </a>
+                                                </li>
+                                                <c:forEach var="i" begin="1" end="${totalPages}">
+                                                    <li class="page-item ${currentPage == i ? 'active' : ''}">
+                                                        <a class="page-link" href="?action=list&page=${i}&search=${currentSearch}&status=${currentStatus}&sortBy=${currentSortBy}&sortOrder=${currentSortOrder}">${i}</a>
+                                                    </li>
+                                                </c:forEach>
+                                                <li class="page-item ${currentPage == totalPages ? 'disabled' : ''}">
+                                                    <a class="page-link" href="?action=list&page=${currentPage + 1}&search=${currentSearch}&status=${currentStatus}&sortBy=${currentSortBy}&sortOrder=${currentSortOrder}">
+                                                        <i class="fas fa-chevron-right"></i>
+                                                    </a>
+                                                </li>
+                                            </ul>
+                                        </nav>
                                     </div>
                                 </div>
                             </div>
@@ -249,13 +273,14 @@
             <script>
                 function confirmDelete(id) {
                     Swal.fire({
-                        title: 'Delete Category?',
-                        text: "All items in this category might be affected.",
+                        title: 'Delete category?',
+                        text: "All items in this category may be affected.",
                         icon: 'warning',
                         showCancelButton: true,
                         confirmButtonColor: '#ef4444',
                         cancelButtonColor: '#64748b',
-                        confirmButtonText: 'Yes, delete it!'
+                        confirmButtonText: 'Yes, delete it!',
+                        cancelButtonText: 'Cancel'
                     }).then((result) => {
                         if (result.isConfirmed) {
                             window.location.href = '${pageContext.request.contextPath}/categories?action=delete&id=' + id;

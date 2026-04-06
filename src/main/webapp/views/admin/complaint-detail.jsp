@@ -85,7 +85,7 @@
                                     <select class="form-select" id="statusSelect" name="status" required>
                                         <option value="InProgress" ${complaint.status == 'Open' || complaint.status == 'InProgress' ? 'selected' : ''}>In Progress</option>
                                         <option value="Resolved" ${complaint.status == 'Resolved' ? 'selected' : ''}>Resolved</option>
-                                        <option value="Rejected" ${complaint.status == 'Rejected' ? 'selected' : ''}>Rejected</option>
+                                        <!--<option value="Rejected" ${complaint.status == 'Rejected' ? 'selected' : ''}>Rejected</option>-->
                                     </select>
                                 </div>
 

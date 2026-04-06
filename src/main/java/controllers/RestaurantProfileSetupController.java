@@ -9,10 +9,17 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import jakarta.servlet.http.Part;
+import java.io.File;
 import java.io.IOException;
+import java.util.UUID;
+import jakarta.servlet.annotation.MultipartConfig;
 
 @WebServlet(name = "RestaurantProfileSetupController", urlPatterns = { "/restaurant-profile-setup" })
+@MultipartConfig(fileSizeThreshold = 1024 * 1024, maxFileSize = 1024 * 1024 * 10, maxRequestSize = 1024 * 1024 * 15)
 public class RestaurantProfileSetupController extends HttpServlet {
+    private static final String UPLOAD_DIR = "uploads/licenses";
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -22,10 +29,19 @@ public class RestaurantProfileSetupController extends HttpServlet {
             if (user != null) {
                 RestaurantDAO dao = new RestaurantDAO();
                 models.Restaurant r = dao.getRestaurantByOwnerId(user.getUserID());
-                if (r != null) {
+                // Only redirect to dashboard if status is Approved
+                if (r != null && "Approved".equalsIgnoreCase(r.getStatus())) {
                     session.setAttribute("restaurantId", r.getRestaurantId());
                     response.sendRedirect("restaurant-analytics-dashboard");
                     return;
+                }
+                
+                if ("1".equals(request.getParameter("success"))) {
+                    request.setAttribute("success", "Hồ sơ đã được gửi! Vui lòng chờ Admin phê duyệt.");
+                }
+                // Pre-fill restaurant data if it exists
+                if (r != null) {
+                    request.setAttribute("restaurant", r);
                 }
             }
         }
@@ -45,31 +61,85 @@ public class RestaurantProfileSetupController extends HttpServlet {
 
         RestaurantDAO restaurantDAO = new RestaurantDAO();
         models.Restaurant existing = restaurantDAO.getRestaurantByOwnerId(ownerId);
-        if (existing != null) {
+        
+        // If already Approved, redirect to dashboard
+        if (existing != null && "Approved".equalsIgnoreCase(existing.getStatus())) {
             session.setAttribute("restaurantId", existing.getRestaurantId());
             response.sendRedirect("restaurant-analytics-dashboard");
             return;
         }
+
         String name = request.getParameter("name");
         String address = request.getParameter("address");
-        String phone = request.getParameter("phone");
-        String description = request.getParameter("description");
+        String licenseNumber = request.getParameter("licenseNumber");
 
-        Restaurant restaurant = new Restaurant();
-        restaurant.setOwnerId(ownerId);
-        restaurant.setName(name);
-        restaurant.setAddress(address);
-        restaurant.setPhone(phone);
-        restaurant.setDescription(description);
-        restaurantDAO.insertRestaurant(restaurant);
-
-        // Fetch newly created restaurant.
-        models.Restaurant created = restaurantDAO.getRestaurantByOwnerId(ownerId);
-        if (created != null) {
-            session.setAttribute("restaurantId", created.getRestaurantId());
+        Part filePart = request.getPart("licenseFile");
+        if (name == null || name.trim().isEmpty() || address == null || address.trim().isEmpty() || 
+            licenseNumber == null || licenseNumber.trim().isEmpty() || filePart == null || filePart.getSize() == 0) {
+            request.setAttribute("error", "Vui lòng điền đầy đủ thông tin, mã số giấy phép và tải lên bản sao giấy đăng ký kinh doanh.");
+            if (existing != null) request.setAttribute("restaurant", existing);
+            request.getRequestDispatcher("views/restaurant-profile-setup.jsp").forward(request, response);
+            return;
         }
 
-        request.setAttribute("success", "Thiết lập hồ sơ nhà hàng thành công.");
-        request.getRequestDispatcher("views/restaurant-profile-setup.jsp").forward(request, response);
+        // Validate file type
+        String contentType = filePart.getContentType();
+        if (contentType == null || (!contentType.startsWith("image/") && !contentType.equals("application/pdf"))) {
+            request.setAttribute("error", "Chỉ chấp nhận file ảnh hoặc PDF cho giấy phép kinh doanh.");
+            if (existing != null) request.setAttribute("restaurant", existing);
+            request.getRequestDispatcher("views/restaurant-profile-setup.jsp").forward(request, response);
+            return;
+        }
+
+        int restaurantId;
+        if (existing == null) {
+            Restaurant restaurant = new Restaurant();
+            restaurant.setOwnerId(ownerId);
+            restaurant.setName(name.trim());
+            restaurant.setAddress(address.trim());
+            restaurant.setLicenseNumber(licenseNumber.trim());
+            restaurantDAO.insertRestaurant(restaurant);
+            
+            models.Restaurant created = restaurantDAO.getRestaurantByOwnerId(ownerId);
+            if (created == null) {
+                request.setAttribute("error", "Có lỗi xảy ra khi tạo hồ sơ nhà hàng. Vui lòng thử lại.");
+                request.getRequestDispatcher("views/restaurant-profile-setup.jsp").forward(request, response);
+                return;
+            }
+            restaurantId = created.getRestaurantId();
+        } else {
+            // Update existing record with potentially new name/address/licenseNumber before file upload
+            existing.setName(name.trim());
+            existing.setAddress(address.trim());
+            existing.setLicenseNumber(licenseNumber.trim());
+            restaurantDAO.updateRestaurantCoreInfo(existing);
+            restaurantId = existing.getRestaurantId();
+        }
+
+        session.setAttribute("restaurantId", restaurantId);
+
+        try {
+            String applicationPath = request.getServletContext().getRealPath("");
+            String uploadPath = applicationPath + File.separator + UPLOAD_DIR;
+            File uploadDir = new File(uploadPath);
+            if (!uploadDir.exists()) uploadDir.mkdirs();
+
+            String submittedFileName = filePart.getSubmittedFileName();
+            String ext = "";
+            int idx = submittedFileName.lastIndexOf('.');
+            if (idx > 0) ext = submittedFileName.substring(idx);
+            String savedFileName = "license_" + restaurantId + "_" + UUID.randomUUID() + ext;
+            String fullPath = uploadPath + File.separator + savedFileName;
+            filePart.write(fullPath);
+
+            String publicPath = "/" + UPLOAD_DIR + "/" + savedFileName;
+            restaurantDAO.updateLicenseFile(restaurantId, publicPath);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        // Redirect back to profile setup with success message
+        response.sendRedirect(request.getContextPath() + "/restaurant-profile-setup?success=1");
     }
 }

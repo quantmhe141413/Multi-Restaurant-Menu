@@ -1,6 +1,7 @@
 <%@ page contentType="text/html" pageEncoding="UTF-8" %>
     <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
         <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
+        <fmt:setLocale value="vi_VN" />
             <!DOCTYPE html>
             <html>
 
@@ -528,7 +529,7 @@
                                                         </c:choose>
                                                     </p>
                                                     <small class="text-secondary d-block mt-1">Đơn tối thiểu
-                                                        <fmt:formatNumber value="${v.minOrderAmount}" pattern="#,###" />
+                                                        <fmt:formatNumber value="${v.minOrderAmount}" pattern="#,##0" />
                                                         ₫
                                                     </small>
                                                 </div>
