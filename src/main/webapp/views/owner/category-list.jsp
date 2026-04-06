@@ -1,7 +1,7 @@
 <%@ page contentType="text/html" pageEncoding="UTF-8" %>
     <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
         <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
-            <c:set var="pageTitle" value="Danh mục món ăn" scope="request" />
+            <c:set var="pageTitle" value="Menu Categories" scope="request" />
             <!DOCTYPE html>
             <html lang="en">
 
@@ -20,20 +20,20 @@
                         <main class="col-md-9 col-lg-10 main-content">
                             <div class="page-header d-flex justify-content-between align-items-center">
                                 <div>
-                                    <h1><i class="fas fa-list text-primary"></i> Quản lý Danh mục</h1>
+                                    <h1><i class="fas fa-list text-primary"></i> Category Management</h1>
                                     <nav aria-label="breadcrumb">
                                         <ol class="breadcrumb">
                                             <li class="breadcrumb-item"><a
-                                                    href="${pageContext.request.contextPath}/">Trang chủ</a>
+                                                    href="${pageContext.request.contextPath}/">Home</a>
                                             </li>
-                                            <li class="breadcrumb-item active">Danh mục món ăn</li>
+                                            <li class="breadcrumb-item active">Menu Categories</li>
                                         </ol>
                                     </nav>
                                 </div>
                                 <div>
                                     <a href="${pageContext.request.contextPath}/categories?action=add"
                                         class="btn btn-primary">
-                                        <i class="fas fa-plus-circle"></i> Thêm danh mục mới
+                                        <i class="fas fa-plus-circle"></i> Add New Category
                                     </a>
                                 </div>
                             </div>
@@ -45,7 +45,7 @@
                                     document.addEventListener('DOMContentLoaded', function () {
                                         Swal.fire({
                                             icon: '${sessionScope.messageType}',
-                                            title: '${sessionScope.messageType == "success" ? "Thành công!" : "Lỗi!"}',
+                                            title: '${sessionScope.messageType == "success" ? "Success!" : "Error!"}',
                                             text: '${sessionScope.message}',
                                             timer: 3000,
                                             showConfirmButton: false,
@@ -73,19 +73,19 @@
                                                     </span>
                                                     <input type="text" name="search"
                                                         class="form-control border-start-0 ps-0"
-                                                        placeholder="Tìm theo tên..." value="${currentSearch}">
+                                                        placeholder="Search by name..." value="${currentSearch}">
                                                 </div>
                                             </div>
 
                                             <!-- Status -->
                                             <div class="col-md-2">
                                                 <select name="status" class="form-select">
-                                                    <option value="">Tất cả trạng thái</option>
+                                                    <option value="">All Statuses</option>
                                                     <option value="active" ${currentStatus=='active' ? 'selected' : ''
                                                         }>
-                                                        Hoạt động</option>
+                                                        Active</option>
                                                     <option value="inactive" ${currentStatus=='inactive' ? 'selected'
-                                                        : '' }>Ngừng hoạt động</option>
+                                                        : '' }>Inactive</option>
                                                 </select>
                                             </div>
 
@@ -96,12 +96,12 @@
                                                             class="fas fa-sort"></i></span>
                                                     <select name="sortBy" class="form-select">
                                                         <option value="DisplayOrder" ${currentSortBy=='DisplayOrder'
-                                                            ? 'selected' : '' }>Sắp xếp theo Thứ tự</option>
+                                                            ? 'selected' : '' }>Sort by Order</option>
                                                         <option value="name" ${currentSortBy=='name' ? 'selected' : ''
                                                             }>
-                                                            Sắp xếp theo Tên</option>
+                                                            Sort by Name</option>
                                                         <option value="status" ${currentSortBy=='status' ? 'selected'
-                                                            : '' }>Sắp xếp theo Trạng thái</option>
+                                                            : '' }>Sort by Status</option>
                                                     </select>
                                                 </div>
                                             </div>
@@ -110,16 +110,16 @@
                                             <div class="col-md-2">
                                                 <select name="sortOrder" class="form-select">
                                                     <option value="ASC" ${currentSortOrder=='ASC' ? 'selected' : '' }>
-                                                        Tăng dần</option>
+                                                        Ascending</option>
                                                     <option value="DESC" ${currentSortOrder=='DESC' ? 'selected' : '' }>
-                                                        Giảm dần</option>
+                                                        Descending</option>
                                                 </select>
                                             </div>
 
                                             <!-- Apply Button -->
                                             <div class="col-md-2 d-grid">
                                                 <button type="submit" class="btn btn-primary shadow-sm">
-                                                    <i class="fas fa-filter me-2"></i>Áp dụng
+                                                    <i class="fas fa-filter me-2"></i>Apply
                                                 </button>
                                             </div>
                                         </div>
@@ -135,10 +135,10 @@
                                             <thead class="table-light py-3">
                                                 <tr>
                                                     <th class="ps-4">ID</th>
-                                                    <th>Tên danh mục</th>
-                                                    <th>Thứ tự hiển thị</th>
-                                                    <th>Trạng thái</th>
-                                                    <th class="text-end pe-4">Hành động</th>
+                                                    <th>Category Name</th>
+                                                    <th>Display Order</th>
+                                                    <th>Status</th>
+                                                    <th class="text-end pe-4">Action</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -147,7 +147,7 @@
                                                         <tr>
                                                             <td colspan="5" class="text-center py-5">
                                                                 <i class="fas fa-folder-open fa-3x text-muted mb-3"></i>
-                                                                <p class="text-muted">Không tìm thấy danh mục nào. Hãy bắt đầu bằng cách thêm một cái!
+                                                                <p class="text-muted">No categories found. Let's start by adding one!
                                                                 </p>
                                                             </td>
                                                         </tr>
@@ -164,11 +164,11 @@
                                                                 <td>
                                                                     <c:choose>
                                                                         <c:when test="${cat.isActive}">
-                                                                            <span class="badge bg-success">Hoạt động</span>
+                                                                            <span class="badge bg-success">Active</span>
                                                                         </c:when>
                                                                         <c:otherwise>
                                                                             <span
-                                                                                class="badge bg-secondary">Ngừng hoạt động</span>
+                                                                                class="badge bg-secondary">Inactive</span>
                                                                         </c:otherwise>
                                                                     </c:choose>
                                                                 </td>
@@ -176,13 +176,13 @@
                                                                     <div class="btn-group">
                                                                         <a href="${pageContext.request.contextPath}/categories?action=edit&id=${cat.categoryID}"
                                                                             class="btn btn-sm btn-outline-warning"
-                                                                            title="Chỉnh sửa">
+                                                                            title="Edit">
                                                                             <i class="fas fa-edit"></i>
                                                                         </a>
                                                                         <button
                                                                             onclick="confirmDelete(${cat.categoryID})"
                                                                             class="btn btn-sm btn-outline-danger"
-                                                                            title="Xóa">
+                                                                            title="Delete">
                                                                             <i class="fas fa-trash"></i>
                                                                         </button>
                                                                     </div>
@@ -198,7 +198,7 @@
                                     <!-- Pagination -->
                                     <div class="d-flex justify-content-between align-items-center p-4 border-top">
                                         <div class="text-muted small">
-                                            Hiển thị trang ${currentPage} trên tổng số ${totalPages} trang
+                                            Showing page ${currentPage} of ${totalPages}
                                         </div>
                                         <nav aria-label="Page navigation">
                                             <ul class="pagination pagination-sm mb-0">
@@ -273,14 +273,14 @@
             <script>
                 function confirmDelete(id) {
                     Swal.fire({
-                        title: 'Xóa danh mục?',
-                        text: "Tất cả các món ăn trong danh mục này có thể bị ảnh hưởng.",
+                        title: 'Delete category?',
+                        text: "All items in this category may be affected.",
                         icon: 'warning',
                         showCancelButton: true,
                         confirmButtonColor: '#ef4444',
                         cancelButtonColor: '#64748b',
-                        confirmButtonText: 'Vâng, xóa nó!',
-                        cancelButtonText: 'Hủy'
+                        confirmButtonText: 'Yes, delete it!',
+                        cancelButtonText: 'Cancel'
                     }).then((result) => {
                         if (result.isConfirmed) {
                             window.location.href = '${pageContext.request.contextPath}/categories?action=delete&id=' + id;

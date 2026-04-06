@@ -1,7 +1,7 @@
 <%@ page contentType="text/html" pageEncoding="UTF-8" %>
     <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
         <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
-            <c:set var="pageTitle" value="Danh sách món ăn" scope="request" />
+            <c:set var="pageTitle" value="Menu Items" scope="request" />
             <!DOCTYPE html>
             <html lang="en">
 
@@ -20,19 +20,19 @@
                         <main class="col-md-9 col-lg-10 main-content">
                             <div class="page-header d-flex justify-content-between align-items-center">
                                 <div>
-                                    <h1><i class="fas fa-utensils text-primary"></i> Quản lý món ăn</h1>
+                                    <h1><i class="fas fa-utensils text-primary"></i> Item Management</h1>
                                     <nav aria-label="breadcrumb">
                                         <ol class="breadcrumb">
                                             <li class="breadcrumb-item"><a
-                                                    href="${pageContext.request.contextPath}/">Trang chủ</a></li>
-                                            <li class="breadcrumb-item active">Danh sách món ăn</li>
+                                                    href="${pageContext.request.contextPath}/">Home</a></li>
+                                            <li class="breadcrumb-item active">Menu Items</li>
                                         </ol>
                                     </nav>
                                 </div>
                                 <div>
                                     <a href="${pageContext.request.contextPath}/items?action=add"
                                         class="btn btn-primary">
-                                        <i class="fas fa-plus-circle"></i> Thêm món mới
+                                        <i class="fas fa-plus-circle"></i> Add New Item
                                     </a>
                                 </div>
                             </div>
@@ -44,7 +44,7 @@
                                     document.addEventListener('DOMContentLoaded', function () {
                                         Swal.fire({
                                             icon: '${sessionScope.messageType}',
-                                            title: '${sessionScope.messageType == "success" ? "Thành công!" : "Lỗi!"}',
+                                            title: '${sessionScope.messageType == "success" ? "Success!" : "Error!"}',
                                             text: '${sessionScope.message}',
                                             timer: 3000,
                                             showConfirmButton: false,
@@ -72,12 +72,12 @@
                                                     </span>
                                                     <input type="text" name="search"
                                                         class="form-control border-start-0 ps-0"
-                                                        placeholder="Tìm theo tên hoặc SKU..." value="${currentSearch}">
+                                                        placeholder="Search by name or SKU..." value="${currentSearch}">
                                                 </div>
                                             </div>
                                             <div class="col-md-4">
                                                 <select name="categoryId" class="form-select">
-                                                    <option value="">Tất cả danh mục</option>
+                                                    <option value="">All Categories</option>
                                                     <c:forEach var="cat" items="${categories}">
                                                         <option value="${cat.categoryID}"
                                                             ${cat.categoryID==currentCategoryId ? 'selected' : '' }>
@@ -92,11 +92,11 @@
                                         <div class="row g-3 align-items-center">
                                             <div class="col-md-2">
                                                 <select name="status" class="form-select">
-                                                    <option value="">Tất cả trạng thái</option>
+                                                    <option value="">All Statuses</option>
                                                     <option value="available" ${currentStatus=='available' ? 'selected'
-                                                        : '' }>Còn hàng</option>
+                                                        : '' }>In Stock</option>
                                                     <option value="unavailable" ${currentStatus=='unavailable'
-                                                        ? 'selected' : '' }>Hết hàng</option>
+                                                        ? 'selected' : '' }>Out of Stock</option>
                                                 </select>
                                             </div>
                                             <div class="col-md-3">
@@ -118,25 +118,25 @@
                                                             class="fas fa-sort"></i></span>
                                                     <select name="sortBy" class="form-select">
                                                         <option value="ItemName" ${currentSortBy=='ItemName'
-                                                            ? 'selected' : '' }>Sắp xếp theo Tên</option>
+                                                            ? 'selected' : '' }>Sort by Name</option>
                                                         <option value="price" ${currentSortBy=='price' ? 'selected' : ''
-                                                            }>Sắp xếp theo Giá</option>
+                                                            }>Sort by Price</option>
                                                         <option value="date" ${currentSortBy=='date' ? 'selected' : ''
-                                                            }>Sắp xếp theo Ngày tạo</option>
+                                                            }>Sort by Date Created</option>
                                                     </select>
                                                 </div>
                                             </div>
                                             <div class="col-md-2">
                                                 <select name="sortOrder" class="form-select">
                                                     <option value="ASC" ${currentSortOrder=='ASC' ? 'selected' : '' }>
-                                                        Tăng dần</option>
+                                                        Ascending</option>
                                                     <option value="DESC" ${currentSortOrder=='DESC' ? 'selected' : '' }>
-                                                        Giảm dần</option>
+                                                        Descending</option>
                                                 </select>
                                             </div>
                                             <div class="col-md-2 d-grid">
                                                 <button type="submit" class="btn btn-primary shadow-sm">
-                                                    <i class="fas fa-filter me-2"></i>Áp dụng
+                                                    <i class="fas fa-filter me-2"></i>Apply
                                                 </button>
                                             </div>
                                         </div>
@@ -152,13 +152,13 @@
                                             <thead class="table-light py-3">
                                                 <tr>
                                                     <th class="ps-4">ID</th>
-                                                    <th>Hình ảnh</th>
+                                                    <th>Image</th>
                                                     <th>SKU</th>
-                                                    <th>Chi tiết món ăn</th>
-                                                    <th>Danh mục</th>
-                                                    <th>Giá</th>
-                                                    <th>Trạng thái</th>
-                                                    <th class="text-end pe-4">Hành động</th>
+                                                    <th>Item Details</th>
+                                                    <th>Category</th>
+                                                    <th>Price</th>
+                                                    <th>Status</th>
+                                                    <th class="text-end pe-4">Action</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -167,7 +167,7 @@
                                                         <tr>
                                                             <td colspan="8" class="text-center py-5">
                                                                 <i class="fas fa-hamburger fa-3x text-muted mb-3"></i>
-                                                                <p class="text-muted">Không tìm thấy món ăn nào. Hãy thêm món ăn đặc sắc đầu tiên của bạn!</p>
+                                                                <p class="text-muted">No menu items found. Let's add your first signature dish!</p>
                                                             </td>
                                                         </tr>
                                                     </c:when>
@@ -217,11 +217,11 @@
                                                                     <c:choose>
                                                                         <c:when test="${item.isAvailable}">
                                                                             <span class="badge bg-success"><i
-                                                                                    class="fas fa-check me-1"></i>Còn hàng</span>
+                                                                                    class="fas fa-check me-1"></i>In Stock</span>
                                                                         </c:when>
                                                                         <c:otherwise>
                                                                             <span class="badge bg-secondary"><i
-                                                                                    class="fas fa-times me-1"></i>Hết hàng</span>
+                                                                                    class="fas fa-times me-1"></i>Out of Stock</span>
                                                                         </c:otherwise>
                                                                     </c:choose>
                                                                 </td>
@@ -229,12 +229,12 @@
                                                                     <div class="btn-group">
                                                                         <a href="${pageContext.request.contextPath}/items?action=edit&id=${item.itemID}"
                                                                             class="btn btn-sm btn-outline-warning"
-                                                                            title="Chỉnh sửa">
+                                                                            title="Edit">
                                                                             <i class="fas fa-edit"></i>
                                                                         </a>
                                                                         <button onclick="confirmDelete(${item.itemID})"
                                                                             class="btn btn-sm btn-outline-danger"
-                                                                            title="Xóa">
+                                                                            title="Delete">
                                                                             <i class="fas fa-trash"></i>
                                                                         </button>
                                                                     </div>
@@ -250,7 +250,7 @@
                                     <!-- Pagination -->
                                     <div class="d-flex justify-content-between align-items-center p-4 border-top">
                                         <div class="text-muted small">
-                                            Hiển thị trang ${currentPage} trên tổng số ${totalPages} trang
+                                            Showing page ${currentPage} of ${totalPages}
                                         </div>
                                         <nav aria-label="Page navigation">
                                             <ul class="pagination pagination-sm mb-0">
@@ -320,14 +320,14 @@
             <script>
                 function confirmDelete(id) {
                     Swal.fire({
-                        title: 'Xóa món ăn?',
-                        text: "Món ăn này sẽ bị xóa khỏi thực đơn của bạn.",
+                        title: 'Delete item?',
+                        text: "This item will be removed from your menu.",
                         icon: 'warning',
                         showCancelButton: true,
                         confirmButtonColor: '#ef4444',
                         cancelButtonColor: '#64748b',
-                        confirmButtonText: 'Vâng, xóa nó!',
-                        cancelButtonText: 'Hủy'
+                        confirmButtonText: 'Yes, delete it!',
+                        cancelButtonText: 'Cancel'
                     }).then((result) => {
                         if (result.isConfirmed) {
                             window.location.href = '${pageContext.request.contextPath}/items?action=delete&id=' + id;

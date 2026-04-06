@@ -196,6 +196,11 @@
                         <input type="email" id="email" name="email" required>
                     </div>
                     <div class="form-group">
+                        <label for="phone">Phone Number</label>
+                        <input type="tel" id="phone" name="phone" placeholder="e.g. 0912345678" required>
+                        <div class="form-hint">Vietnamese format (10 digits starting with 0)</div>
+                    </div>
+                    <div class="form-group">
                         <label for="password">Password</label>
                         <input type="password" id="password" name="password" required>
                     </div>
@@ -234,9 +239,11 @@
             const form = document.getElementById('registerForm');
             const fullNameInput = document.getElementById('fullName');
             const emailInput = document.getElementById('email');
+            const phoneInput = document.getElementById('phone');
             const passwordInput = document.getElementById('password');
             const confirmPasswordInput = document.getElementById('confirmPassword');
             const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            const phonePattern = /^0\d{9}$/;
 
             const restaurantDetails = document.getElementById('restaurantDetails');
             const roleIDInput = document.getElementById('roleIDHidden');
@@ -277,6 +284,13 @@
                 if (!emailPattern.test(email)) {
                     event.preventDefault();
                     Swal.fire('Invalid email', 'Please enter a valid email address.', 'warning');
+                    return;
+                }
+
+                const phone = phoneInput.value.trim();
+                if (!phonePattern.test(phone)) {
+                    event.preventDefault();
+                    Swal.fire('Invalid phone', 'Phone number must be 10 digits starting with 0.', 'warning');
                     return;
                 }
 

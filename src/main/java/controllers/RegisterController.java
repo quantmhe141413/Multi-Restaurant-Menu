@@ -33,6 +33,7 @@ public class RegisterController extends HttpServlet {
         String email = request.getParameter("email");
         String password = request.getParameter("password");
         String confirmPassword = request.getParameter("confirmPassword");
+        String phone = request.getParameter("phone");
         String roleIDParam = request.getParameter("roleID");
 
         // Server-side validation
@@ -45,6 +46,8 @@ public class RegisterController extends HttpServlet {
             errorMsg = "Password must be at least 6 characters.";
         } else if (!password.equals(confirmPassword)) {
             errorMsg = "Passwords do not match.";
+        } else if (phone == null || !phone.matches("^0\\d{9}$")) {
+            errorMsg = "Phone number must be 10 digits starting with 0.";
         }
 
         // Validate roleID: only allow 2 (Owner) or 4 (Customer) to prevent manipulation
@@ -72,6 +75,7 @@ public class RegisterController extends HttpServlet {
         User u = new User();
         u.setFullName(fullName.trim());
         u.setEmail(email.trim());
+        u.setPhone(phone.trim());
         u.setPasswordHash(password); // TODO: hash before storing
         u.setRoleID(roleID);
         
@@ -89,13 +93,23 @@ public class RegisterController extends HttpServlet {
                 String rName = request.getParameter("restaurantName");
                 String rAddress = request.getParameter("restaurantAddress");
 
+                System.out.println("[RegisterController] Creating restaurant for new owner ID: " + newUserId);
+                System.out.println("[RegisterController] Name: " + rName + ", Address: " + rAddress);
+
                 models.Restaurant restaurant = new models.Restaurant();
                 restaurant.setOwnerId(newUserId);
-                restaurant.setName(rName != null ? rName.trim() : "");
+                restaurant.setName(rName != null ? rName.trim() : "New Restaurant");
                 restaurant.setAddress(rAddress != null ? rAddress.trim() : "");
+                restaurant.setLicenseNumber("");
                 
                 RestaurantDAO rdao = new RestaurantDAO();
-                rdao.insertRestaurant(restaurant);
+                try {
+                    rdao.insertRestaurant(restaurant);
+                    System.out.println("[RegisterController] Restaurant record inserted successfully.");
+                } catch (Exception e) {
+                    System.err.println("[RegisterController] ERROR inserting restaurant: " + e.getMessage());
+                    e.printStackTrace();
+                }
             }
             response.sendRedirect("login?registered=1");
         } else {
