@@ -86,6 +86,39 @@ public class ReviewDAO extends DBContext {
     }
 
     /**
+     * Get paginated reviews for a restaurant.
+     * @param restaurantId restaurant ID
+     * @param page page number (1-based)
+     * @param pageSize number of reviews per page
+     */
+    public List<Review> getReviewsByRestaurantIdPaged(int restaurantId, int page, int pageSize) {
+        List<Review> reviews = new ArrayList<>();
+        int offset = (page - 1) * pageSize;
+        String sql = "SELECT * FROM Reviews WHERE RestaurantID = ? ORDER BY CreatedAt DESC "
+                + "OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+        try {
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setInt(1, restaurantId);
+            st.setInt(2, offset);
+            st.setInt(3, pageSize);
+            ResultSet rs = st.executeQuery();
+            while (rs.next()) {
+                Review review = new Review();
+                review.setReviewID(rs.getInt("ReviewID"));
+                review.setRestaurantID(rs.getInt("RestaurantID"));
+                review.setCustomerID(rs.getInt("CustomerID"));
+                review.setRating(rs.getInt("Rating"));
+                review.setComment(rs.getString("Comment"));
+                review.setCreatedAt(rs.getTimestamp("CreatedAt"));
+                reviews.add(review);
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(ReviewDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return reviews;
+    }
+
+    /**
      * Get customer names for a list of reviews.
      * Returns Map of customerId -> customerName.
      */

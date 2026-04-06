@@ -924,7 +924,7 @@
             })
             .then(r => r.json())
             .then(data => {
-                if (data.success) { showToast('success', 'Thanh toán thành công!'); setTimeout(() => location.href = ctx + '/staff/home', 1500); }
+                if (data.success) { showToast('success', 'Thanh toán thành công!'); setTimeout(() => location.href = ctx + '/staff/home', 100); }
                 else showToast('error', data.message || 'Thanh toán thất bại');
             })
             .catch(() => showToast('error', 'Lỗi kết nối'));
