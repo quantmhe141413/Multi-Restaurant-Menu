@@ -79,11 +79,22 @@ public class CategoryManagementController extends HttpServlet {
         else if ("inactive".equals(statusStr))
             isActive = false;
 
+        // Sorting and Pagination
+        String sortBy = request.getParameter("sortBy");
+        if (sortBy == null || sortBy.isEmpty()) {
+            sortBy = "DisplayOrder";
+        }
+        String sortOrder = request.getParameter("sortOrder");
+        if (sortOrder == null || sortOrder.isEmpty()) {
+            sortOrder = "ASC";
+        }
+
         int page = 1;
-        int pageSize = 5; // Default page size for categories
+        int pageSize = 10; // Default page size for categories
         try {
-            if (request.getParameter("page") != null) {
-                page = Integer.parseInt(request.getParameter("page"));
+            String pageStr = request.getParameter("page");
+            if (pageStr != null && !pageStr.isEmpty()) {
+                page = Integer.parseInt(pageStr);
             }
         } catch (NumberFormatException e) {
             page = 1;
@@ -93,14 +104,13 @@ public class CategoryManagementController extends HttpServlet {
         List<MenuCategory> categories = menuDAO.getCategoriesByRestaurant(restaurant.getRestaurantId(), search,
                 isActive, sortBy, sortOrder, page, pageSize);
         int totalCategories = menuDAO.countCategoriesByRestaurant(restaurant.getRestaurantId(), search, isActive);
-        int totalPages = (int) Math.ceil((double) totalCategories / pageSize);
+        int totalPages = (int) Math.max(1, (int) Math.ceil((double) totalCategories / pageSize));
 
         request.setAttribute("categories", categories);
         request.setAttribute("currentPage", page);
         request.setAttribute("totalPages", totalPages);
         request.setAttribute("pageSize", pageSize);
 
-        request.setAttribute("categories", categories);
         request.setAttribute("currentSearch", search);
         request.setAttribute("currentStatus", statusStr);
         request.setAttribute("currentSortBy", sortBy);
@@ -149,7 +159,7 @@ public class CategoryManagementController extends HttpServlet {
 
         String name = request.getParameter("categoryName");
         String displayOrderStr = request.getParameter("displayOrder");
-        
+
         if (name == null || name.trim().isEmpty()) {
             request.getSession().setAttribute("message", "Category name is required!");
             request.getSession().setAttribute("messageType", "error");
@@ -204,7 +214,7 @@ public class CategoryManagementController extends HttpServlet {
         String categoryIdStr = request.getParameter("categoryId");
         String name = request.getParameter("categoryName");
         String displayOrderStr = request.getParameter("displayOrder");
-        
+
         if (categoryIdStr == null || name == null || name.trim().isEmpty()) {
             request.getSession().setAttribute("message", "Category name is required!");
             request.getSession().setAttribute("messageType", "error");

@@ -110,12 +110,22 @@ public class ItemManagementController extends HttpServlet {
             }
         }
 
-        // Sorting
+        // Sorting and Pagination
+        String sortBy = request.getParameter("sortBy");
+        if (sortBy == null || sortBy.isEmpty()) {
+            sortBy = "ItemName";
+        }
+        String sortOrder = request.getParameter("sortOrder");
+        if (sortOrder == null || sortOrder.isEmpty()) {
+            sortOrder = "ASC";
+        }
+
         int page = 1;
         int pageSize = 10; // Default page size for items
         try {
-            if (request.getParameter("page") != null) {
-                page = Integer.parseInt(request.getParameter("page"));
+            String pageStr = request.getParameter("page");
+            if (pageStr != null && !pageStr.isEmpty()) {
+                page = Integer.parseInt(pageStr);
             }
         } catch (NumberFormatException e) {
             page = 1;
@@ -125,7 +135,7 @@ public class ItemManagementController extends HttpServlet {
         List<MenuItem> items = menuDAO.getMenuItemsByRestaurant(restaurant.getRestaurantId(), search, categoryId,
                 isAvailable, minPrice, maxPrice, sortBy, sortOrder, page, pageSize);
         int totalItems = menuDAO.countMenuItemsByRestaurant(restaurant.getRestaurantId(), search, categoryId, isAvailable, minPrice, maxPrice);
-        int totalPages = (int) Math.ceil((double) totalItems / pageSize);
+        int totalPages = (int) Math.max(1, (int) Math.ceil((double) totalItems / pageSize));
 
         request.setAttribute("items", items);
         request.setAttribute("currentPage", page);
@@ -133,7 +143,6 @@ public class ItemManagementController extends HttpServlet {
         request.setAttribute("pageSize", pageSize);
         List<MenuCategory> categories = menuDAO.getCategoriesByRestaurant(restaurant.getRestaurantId());
 
-        request.setAttribute("items", items);
         request.setAttribute("categories", categories);
         request.setAttribute("currentSearch", search);
         request.setAttribute("currentCategoryId", categoryId);
