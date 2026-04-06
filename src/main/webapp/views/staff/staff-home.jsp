@@ -1371,10 +1371,161 @@
                             });
                         }
 
+                        // Auto-switch tab based on URL hash (e.g. #orders)
+                        (function () {
+                            const hash = window.location.hash.replace('#', '');
+                            if (hash) {
+                                const targetLink = document.querySelector('[data-tab="' + hash + '"]');
+                                if (targetLink) targetLink.click();
+                            }
+                        })();
+
                         window.onclick = function (event) {
                             const modal = document.getElementById('orderModal');
                             if (event.target === modal) closeModal();
                         }
+                    </script>
+
+                    <script>
+                        (function () {
+                            const POLL_INTERVAL_MS = 5000;
+                            const TOAST_DURATION_MS = 15000;
+                            let lastOrderId = 0;
+                            let initialized = false;
+
+                            function playNewOrderSound() {
+                                try {
+                                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                                    if (!AudioContext) return;
+                                    const ctx = new AudioContext();
+                                    const oscillator = ctx.createOscillator();
+                                    const gainNode = ctx.createGain();
+                                    oscillator.type = 'triangle';
+                                    oscillator.frequency.setValueAtTime(880, ctx.currentTime);
+                                    gainNode.gain.setValueAtTime(0.001, ctx.currentTime);
+                                    gainNode.gain.exponentialRampToValueAtTime(0.1, ctx.currentTime + 0.01);
+                                    gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.6);
+                                    oscillator.connect(gainNode);
+                                    gainNode.connect(ctx.destination);
+                                    oscillator.start();
+                                    oscillator.stop(ctx.currentTime + 0.6);
+                                } catch (e) {}
+                            }
+
+                            function updateNotificationBadge(count) {
+                                const badge = document.querySelector('.notification-badge');
+                                if (badge) {
+                                    badge.textContent = count;
+                                    badge.style.display = count > 0 ? '' : 'none';
+                                }
+                            }
+
+                            function showOrderToast(count) {
+                                const ctxPath = '${pageContext.request.contextPath}';
+                                const orderListUrl = ctxPath + '/staff/home#orders';
+                                const msg = count === 1
+                                    ? 'Có 1 đơn hàng mới đang chờ xử lý.'
+                                    : 'Có ' + count + ' đơn hàng mới đang chờ xử lý.';
+
+                                const existing = document.getElementById('__order-notif__');
+                                if (existing) existing.remove();
+
+                                const wrap = document.createElement('div');
+                                wrap.id = '__order-notif__';
+                                wrap.style.cssText =
+                                    'position:fixed;top:80px;right:20px;z-index:2147483647;width:320px;' +
+                                    'font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;' +
+                                    'opacity:0;transform:translateX(30px);transition:opacity 0.25s ease,transform 0.25s ease;';
+
+                                wrap.innerHTML =
+                                    '<div style="background:#fff;border-radius:14px;box-shadow:0 10px 30px rgba(15,23,42,.15);overflow:hidden;cursor:pointer;">' +
+                                    '  <div style="background:linear-gradient(135deg,#6366f1,#8b5cf6);padding:12px 14px;display:flex;align-items:center;justify-content:space-between;">' +
+                                    '    <div style="display:flex;align-items:center;gap:10px;">' +
+                                    '      <div style="background:rgba(255,255,255,.18);border-radius:12px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;">' +
+                                    '        <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>' +
+                                    '      </div>' +
+                                    '      <div>' +
+                                    '        <div style="color:#fff;font-weight:700;font-size:.92rem;line-height:1.2;">Đơn hàng mới!</div>' +
+                                    '        <div style="color:rgba(255,255,255,.85);font-size:.75rem;">Nhấn để xem danh sách đơn</div>' +
+                                    '      </div>' +
+                                    '    </div>' +
+                                    '    <button id="__order-notif-close__" type="button" style="background:rgba(255,255,255,.18);border:none;color:#fff;width:28px;height:28px;border-radius:10px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;">&times;</button>' +
+                                    '  </div>' +
+                                    '  <div style="padding:12px 14px 10px;">' +
+                                    '    <div style="color:#334155;font-size:.85rem;line-height:1.45;">' + msg + '</div>' +
+                                    '    <div style="margin-top:8px;color:#6366f1;font-size:.78rem;font-weight:600;">Xem danh sách đơn &#8594;</div>' +
+                                    '  </div>' +
+                                    '  <div style="padding:0 14px 12px;">' +
+                                    '    <div style="background:#e2e8f0;border-radius:999px;height:4px;overflow:hidden;">' +
+                                    '      <div id="__order-notif-bar__" style="height:100%;background:linear-gradient(90deg,#6366f1,#8b5cf6);width:100%;transition:width linear ' + TOAST_DURATION_MS + 'ms;"></div>' +
+                                    '    </div>' +
+                                    '  </div>' +
+                                    '</div>';
+
+                                wrap.onclick = function () {
+                                    const tabLink = document.querySelector('[data-tab="orders"]');
+                                    if (tabLink) {
+                                        tabLink.click();
+                                        window.location.hash = 'orders';
+                                    } else {
+                                        window.location.href = orderListUrl;
+                                    }
+                                };
+                                document.body.appendChild(wrap);
+
+                                requestAnimationFrame(function () {
+                                    wrap.style.opacity = '1';
+                                    wrap.style.transform = 'translateX(0)';
+                                    const bar = document.getElementById('__order-notif-bar__');
+                                    if (bar) requestAnimationFrame(function () { bar.style.width = '0%'; });
+                                });
+
+                                let closed = false;
+                                function closeToast() {
+                                    if (closed) return;
+                                    closed = true;
+                                    wrap.style.opacity = '0';
+                                    wrap.style.transform = 'translateX(30px)';
+                                    setTimeout(function () { if (wrap.parentNode) wrap.remove(); }, 300);
+                                }
+
+                                const closeBtn = document.getElementById('__order-notif-close__');
+                                if (closeBtn) closeBtn.onclick = function (e) { e.stopPropagation(); closeToast(); };
+                                setTimeout(closeToast, TOAST_DURATION_MS);
+                            }
+
+                            async function checkNewOrders() {
+                                try {
+                                    const url = '${pageContext.request.contextPath}/restaurant/order-notifications?lastOrderId=' + lastOrderId;
+                                    const res = await fetch(url, { credentials: 'same-origin' });
+                                    if (!res.ok) return;
+                                    const data = await res.json();
+                                    if (!data || !data.success) return;
+
+                                    if (!initialized) {
+                                        lastOrderId = (typeof data.latestOrderId === 'number' && data.latestOrderId > 0) ? data.latestOrderId : 0;
+                                        initialized = true;
+                                        return;
+                                    }
+
+                                    if (typeof data.latestOrderId === 'number' && data.latestOrderId > lastOrderId) {
+                                        lastOrderId = data.latestOrderId;
+                                    }
+
+                                    if (data.hasNew && data.newOrdersCount > 0) {
+                                        playNewOrderSound();
+                                        showOrderToast(data.newOrdersCount);
+                                        updateNotificationBadge(data.newOrdersCount);
+                                    }
+                                } catch (e) {}
+                            }
+
+                            document.addEventListener('DOMContentLoaded', function () {
+                                updateNotificationBadge(0);
+                                setTimeout(checkNewOrders, 3000);
+                                setInterval(checkNewOrders, POLL_INTERVAL_MS);
+                            });
+                        })();
                     </script>
                 </body>
 
