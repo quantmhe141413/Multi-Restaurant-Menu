@@ -1218,13 +1218,23 @@
                                         'Cancelled':  { bg: '#fee2e2', color: '#991b1b' }
                                     };
                                     // next allowed statuses (chỉ dùng values DB cho phép)
-                                    const nextStatuses = {
-                                        'Pending':    ['Preparing', 'Cancelled'],
-                                        'Preparing':  ['Delivering', 'Completed', 'Cancelled'],
-                                        'Delivering': ['Completed', 'Cancelled'],
-                                        'Completed':  [],
-                                        'Cancelled':  []
-                                    };
+                                    // Đơn Online: phải qua Delivering trước rồi mới Completed
+                                    // Đơn DineIn/Pickup: Preparing -> Completed trực tiếp
+                                    const nextStatuses = (order.orderType === 'Online')
+                                        ? {
+                                            'Pending':    ['Preparing', 'Cancelled'],
+                                            'Preparing':  ['Delivering', 'Cancelled'],
+                                            'Delivering': ['Completed', 'Cancelled'],
+                                            'Completed':  [],
+                                            'Cancelled':  []
+                                          }
+                                        : {
+                                            'Pending':    ['Preparing', 'Cancelled'],
+                                            'Preparing':  ['Completed', 'Cancelled'],
+                                            'Delivering': ['Completed', 'Cancelled'],
+                                            'Completed':  [],
+                                            'Cancelled':  []
+                                          };
 
                                     const sc = statusColor[order.orderStatus] || { bg: '#f1f5f9', color: '#64748b' };
                                     const nexts = nextStatuses[order.orderStatus] || [];
