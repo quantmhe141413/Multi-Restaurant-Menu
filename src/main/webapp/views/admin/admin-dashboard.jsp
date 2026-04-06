@@ -14,6 +14,23 @@
         <jsp:include page="/views/includes/admin-sidebar.jsp" />
 
         <main class="col-md-9 col-lg-10 main-content">
+            <c:url value="/admin/restaurant-applications" var="allRestaurantsUrl">
+                <c:param name="action" value="list" />
+                <c:param name="status" value="all" />
+            </c:url>
+            <c:url value="/admin/restaurant-applications" var="pendingRestaurantsUrl">
+                <c:param name="action" value="list" />
+                <c:param name="status" value="Pending" />
+            </c:url>
+            <c:url value="/admin/restaurant-applications" var="approvedRestaurantsUrl">
+                <c:param name="action" value="list" />
+                <c:param name="status" value="Approved" />
+            </c:url>
+            <c:url value="/admin/restaurant-applications" var="rejectedRestaurantsUrl">
+                <c:param name="action" value="list" />
+                <c:param name="status" value="Rejected" />
+            </c:url>
+
             <div class="page-header">
                 <h1><i class="fas fa-chart-line text-primary"></i> System Dashboard</h1>
                 <nav aria-label="breadcrumb">
@@ -26,6 +43,7 @@
 
             <div class="row g-4 mb-4">
                 <div class="col-md-3">
+                    <a href="${allRestaurantsUrl}" class="text-decoration-none text-reset d-block">
                     <div class="card">
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-center">
@@ -37,9 +55,11 @@
                             </div>
                         </div>
                     </div>
+                    </a>
                 </div>
 
                 <div class="col-md-3">
+                    <a href="${pendingRestaurantsUrl}" class="text-decoration-none text-reset d-block">
                     <div class="card">
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-center">
@@ -51,9 +71,11 @@
                             </div>
                         </div>
                     </div>
+                    </a>
                 </div>
 
                 <div class="col-md-3">
+                    <a href="${approvedRestaurantsUrl}" class="text-decoration-none text-reset d-block">
                     <div class="card">
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-center">
@@ -65,9 +87,11 @@
                             </div>
                         </div>
                     </div>
+                    </a>
                 </div>
 
                 <div class="col-md-3">
+                    <a href="${rejectedRestaurantsUrl}" class="text-decoration-none text-reset d-block">
                     <div class="card">
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-center">
@@ -79,6 +103,7 @@
                             </div>
                         </div>
                     </div>
+                    </a>
                 </div>
             </div>
 

@@ -1,7 +1,7 @@
 <%@ page contentType="text/html" pageEncoding="UTF-8" %>
     <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
         <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
-            <c:set var="pageTitle" value="Menu Items" scope="request" />
+            <c:set var="pageTitle" value="Danh sách món ăn" scope="request" />
             <!DOCTYPE html>
             <html lang="en">
 
@@ -20,19 +20,19 @@
                         <main class="col-md-9 col-lg-10 main-content">
                             <div class="page-header d-flex justify-content-between align-items-center">
                                 <div>
-                                    <h1><i class="fas fa-utensils text-primary"></i>Item Management</h1>
+                                    <h1><i class="fas fa-utensils text-primary"></i> Quản lý món ăn</h1>
                                     <nav aria-label="breadcrumb">
                                         <ol class="breadcrumb">
                                             <li class="breadcrumb-item"><a
-                                                    href="${pageContext.request.contextPath}/">Home</a></li>
-                                            <li class="breadcrumb-item active">Menu Items</li>
+                                                    href="${pageContext.request.contextPath}/">Trang chủ</a></li>
+                                            <li class="breadcrumb-item active">Danh sách món ăn</li>
                                         </ol>
                                     </nav>
                                 </div>
                                 <div>
                                     <a href="${pageContext.request.contextPath}/items?action=add"
                                         class="btn btn-primary">
-                                        <i class="fas fa-plus-circle"></i> Add New Item
+                                        <i class="fas fa-plus-circle"></i> Thêm món mới
                                     </a>
                                 </div>
                             </div>
@@ -44,7 +44,7 @@
                                     document.addEventListener('DOMContentLoaded', function () {
                                         Swal.fire({
                                             icon: '${sessionScope.messageType}',
-                                            title: '${sessionScope.messageType == "success" ? "Success!" : "Error!"}',
+                                            title: '${sessionScope.messageType == "success" ? "Thành công!" : "Lỗi!"}',
                                             text: '${sessionScope.message}',
                                             timer: 3000,
                                             showConfirmButton: false,
@@ -72,12 +72,12 @@
                                                     </span>
                                                     <input type="text" name="search"
                                                         class="form-control border-start-0 ps-0"
-                                                        placeholder="Search by name or SKU..." value="${currentSearch}">
+                                                        placeholder="Tìm theo tên hoặc SKU..." value="${currentSearch}">
                                                 </div>
                                             </div>
                                             <div class="col-md-4">
                                                 <select name="categoryId" class="form-select">
-                                                    <option value="">All Categories</option>
+                                                    <option value="">Tất cả danh mục</option>
                                                     <c:forEach var="cat" items="${categories}">
                                                         <option value="${cat.categoryID}"
                                                             ${cat.categoryID==currentCategoryId ? 'selected' : '' }>
@@ -92,11 +92,11 @@
                                         <div class="row g-3 align-items-center">
                                             <div class="col-md-2">
                                                 <select name="status" class="form-select">
-                                                    <option value="">All Status</option>
+                                                    <option value="">Tất cả trạng thái</option>
                                                     <option value="available" ${currentStatus=='available' ? 'selected'
-                                                        : '' }>Available</option>
+                                                        : '' }>Còn hàng</option>
                                                     <option value="unavailable" ${currentStatus=='unavailable'
-                                                        ? 'selected' : '' }>Unavailable</option>
+                                                        ? 'selected' : '' }>Hết hàng</option>
                                                 </select>
                                             </div>
                                             <div class="col-md-3">
@@ -118,25 +118,25 @@
                                                             class="fas fa-sort"></i></span>
                                                     <select name="sortBy" class="form-select">
                                                         <option value="ItemName" ${currentSortBy=='ItemName'
-                                                            ? 'selected' : '' }>Sort by Name</option>
+                                                            ? 'selected' : '' }>Sắp xếp theo Tên</option>
                                                         <option value="price" ${currentSortBy=='price' ? 'selected' : ''
-                                                            }>Sort by Price</option>
+                                                            }>Sắp xếp theo Giá</option>
                                                         <option value="date" ${currentSortBy=='date' ? 'selected' : ''
-                                                            }>Sort by Date</option>
+                                                            }>Sắp xếp theo Ngày tạo</option>
                                                     </select>
                                                 </div>
                                             </div>
                                             <div class="col-md-2">
                                                 <select name="sortOrder" class="form-select">
                                                     <option value="ASC" ${currentSortOrder=='ASC' ? 'selected' : '' }>
-                                                        Ascending</option>
+                                                        Tăng dần</option>
                                                     <option value="DESC" ${currentSortOrder=='DESC' ? 'selected' : '' }>
-                                                        Descending</option>
+                                                        Giảm dần</option>
                                                 </select>
                                             </div>
                                             <div class="col-md-2 d-grid">
                                                 <button type="submit" class="btn btn-primary shadow-sm">
-                                                    <i class="fas fa-filter me-2"></i>Apply
+                                                    <i class="fas fa-filter me-2"></i>Áp dụng
                                                 </button>
                                             </div>
                                         </div>
@@ -152,22 +152,22 @@
                                             <thead class="table-light py-3">
                                                 <tr>
                                                     <th class="ps-4">ID</th>
+                                                    <th>Hình ảnh</th>
                                                     <th>SKU</th>
-                                                    <th>Item Details</th>
-                                                    <th>Category</th>
-                                                    <th>Price</th>
-                                                    <th>Status</th>
-                                                    <th class="text-end pe-4">Actions</th>
+                                                    <th>Chi tiết món ăn</th>
+                                                    <th>Danh mục</th>
+                                                    <th>Giá</th>
+                                                    <th>Trạng thái</th>
+                                                    <th class="text-end pe-4">Hành động</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 <c:choose>
                                                     <c:when test="${empty items}">
                                                         <tr>
-                                                            <td colspan="6" class="text-center py-5">
+                                                            <td colspan="8" class="text-center py-5">
                                                                 <i class="fas fa-hamburger fa-3x text-muted mb-3"></i>
-                                                                <p class="text-muted">No dishes found. Add your first
-                                                                    masterpiece!</p>
+                                                                <p class="text-muted">Không tìm thấy món ăn nào. Hãy thêm món ăn đặc sắc đầu tiên của bạn!</p>
                                                             </td>
                                                         </tr>
                                                     </c:when>
@@ -175,6 +175,21 @@
                                                         <c:forEach var="item" items="${items}">
                                                             <tr>
                                                                 <td class="ps-4"><strong>#${item.itemID}</strong></td>
+                                                                <td>
+                                                                    <c:choose>
+                                                                        <c:when test="${not empty item.imageUrl}">
+                                                                            <img src="${item.imageUrl}" alt="${item.itemName}" 
+                                                                                 class="rounded-circle shadow-sm" 
+                                                                                 style="width: 45px; height: 45px; object-fit: cover; border: 2px solid #fff;">
+                                                                        </c:when>
+                                                                        <c:otherwise>
+                                                                            <div class="rounded-circle bg-light d-flex align-items-center justify-content-center shadow-sm"
+                                                                                 style="width: 45px; height: 45px; border: 2px solid #fff;">
+                                                                                <i class="fas fa-image text-muted"></i>
+                                                                            </div>
+                                                                        </c:otherwise>
+                                                                    </c:choose>
+                                                                </td>
                                                                 <td><span
                                                                         class="badge bg-light text-dark border">${item.sku}</span>
                                                                 </td>
@@ -202,11 +217,11 @@
                                                                     <c:choose>
                                                                         <c:when test="${item.isAvailable}">
                                                                             <span class="badge bg-success"><i
-                                                                                    class="fas fa-check me-1"></i>Available</span>
+                                                                                    class="fas fa-check me-1"></i>Còn hàng</span>
                                                                         </c:when>
                                                                         <c:otherwise>
                                                                             <span class="badge bg-secondary"><i
-                                                                                    class="fas fa-times me-1"></i>Unavailable</span>
+                                                                                    class="fas fa-times me-1"></i>Hết hàng</span>
                                                                         </c:otherwise>
                                                                     </c:choose>
                                                                 </td>
@@ -214,12 +229,12 @@
                                                                     <div class="btn-group">
                                                                         <a href="${pageContext.request.contextPath}/items?action=edit&id=${item.itemID}"
                                                                             class="btn btn-sm btn-outline-warning"
-                                                                            title="Edit">
+                                                                            title="Chỉnh sửa">
                                                                             <i class="fas fa-edit"></i>
                                                                         </a>
                                                                         <button onclick="confirmDelete(${item.itemID})"
                                                                             class="btn btn-sm btn-outline-danger"
-                                                                            title="Delete">
+                                                                            title="Xóa">
                                                                             <i class="fas fa-trash"></i>
                                                                         </button>
                                                                     </div>
@@ -230,6 +245,32 @@
                                                 </c:choose>
                                             </tbody>
                                         </table>
+                                    </div>
+
+                                    <!-- Pagination -->
+                                    <div class="d-flex justify-content-between align-items-center p-4 border-top">
+                                        <div class="text-muted small">
+                                            Hiển thị trang ${currentPage} trên tổng số ${totalPages} trang
+                                        </div>
+                                        <nav aria-label="Page navigation">
+                                            <ul class="pagination pagination-sm mb-0">
+                                                <li class="page-item ${currentPage == 1 ? 'disabled' : ''}">
+                                                    <a class="page-link" href="?action=list&page=${currentPage - 1}&search=${currentSearch}&categoryId=${currentCategoryId}&status=${currentStatus}&minPrice=${currentMinPrice}&maxPrice=${currentMaxPrice}&sortBy=${currentSortBy}&sortOrder=${currentSortOrder}">
+                                                        <i class="fas fa-chevron-left"></i>
+                                                    </a>
+                                                </li>
+                                                <c:forEach var="i" begin="1" end="${totalPages}">
+                                                    <li class="page-item ${currentPage == i ? 'active' : ''}">
+                                                        <a class="page-link" href="?action=list&page=${i}&search=${currentSearch}&categoryId=${currentCategoryId}&status=${currentStatus}&minPrice=${currentMinPrice}&maxPrice=${currentMaxPrice}&sortBy=${currentSortBy}&sortOrder=${currentSortOrder}">${i}</a>
+                                                    </li>
+                                                </c:forEach>
+                                                <li class="page-item ${currentPage == totalPages ? 'disabled' : ''}">
+                                                    <a class="page-link" href="?action=list&page=${currentPage + 1}&search=${currentSearch}&categoryId=${currentCategoryId}&status=${currentStatus}&minPrice=${currentMinPrice}&maxPrice=${currentMaxPrice}&sortBy=${currentSortBy}&sortOrder=${currentSortOrder}">
+                                                        <i class="fas fa-chevron-right"></i>
+                                                    </a>
+                                                </li>
+                                            </ul>
+                                        </nav>
                                     </div>
                                 </div>
                             </div>
@@ -279,13 +320,14 @@
             <script>
                 function confirmDelete(id) {
                     Swal.fire({
-                        title: 'Delete Item?',
-                        text: "This item will be removed from your menu.",
+                        title: 'Xóa món ăn?',
+                        text: "Món ăn này sẽ bị xóa khỏi thực đơn của bạn.",
                         icon: 'warning',
                         showCancelButton: true,
                         confirmButtonColor: '#ef4444',
                         cancelButtonColor: '#64748b',
-                        confirmButtonText: 'Yes, delete it!'
+                        confirmButtonText: 'Vâng, xóa nó!',
+                        cancelButtonText: 'Hủy'
                     }).then((result) => {
                         if (result.isConfirmed) {
                             window.location.href = '${pageContext.request.contextPath}/items?action=delete&id=' + id;

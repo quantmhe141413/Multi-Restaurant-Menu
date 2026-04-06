@@ -25,6 +25,20 @@ public class EmailService {
      * @param resetLink Password reset link
      * @return true if email sent successfully, false otherwise
      */
+    public static boolean sendVerificationEmail(String toEmail, String verificationToken, String contextPath) {
+        String verificationLink = "http://localhost:8080" + contextPath + "/verify-email?token=" + verificationToken;
+        String subject = "Verify Your Account - Multi-Restaurant Menu";
+        String htmlContent = buildVerificationEmailContent(verificationLink);
+        return sendEmailCustom(toEmail, subject, htmlContent);
+    }
+
+    /**
+     * Send password reset email to user
+     * 
+     * @param toEmail Recipient email
+     * @param resetLink The link to reset password
+     * @return true if sent, false otherwise
+     */
     public static boolean sendPasswordResetEmail(String toEmail, String resetLink) {
         try {
             // Setup mail server properties
@@ -201,6 +215,20 @@ public class EmailService {
         return sendEmailCustom(ownerEmail.trim(), subject, message);
     }
 
+    public static boolean sendComplaintStatusEmail(String ownerEmail, String ownerName, String restaurantName,
+            int complaintId, String status, String adminNote) {
+        if (ownerEmail == null || ownerEmail.trim().isEmpty()
+                || restaurantName == null || restaurantName.trim().isEmpty()
+                || status == null || status.trim().isEmpty()) {
+            return false;
+        }
+        String safeOwnerName = (ownerName == null || ownerName.trim().isEmpty()) ? "Restaurant Owner" : ownerName.trim();
+        String safeNote = adminNote == null ? "" : adminNote.trim();
+        String subject = "Complaint #" + complaintId + " Status Updated - " + restaurantName;
+        String message = buildComplaintStatusEmail(safeOwnerName, restaurantName, complaintId, status.trim(), safeNote);
+        return sendEmailCustom(ownerEmail.trim(), subject, message);
+    }
+
     private static boolean sendEmailCustom(String toEmail, String subject, String messageContent) {
         if (!isValidEmail(toEmail)) {
             System.out.println("[EmailService] Invalid email: " + toEmail);
@@ -351,12 +379,116 @@ public class EmailService {
                 + "</html>";
     }
 
+    private static String buildComplaintStatusEmail(String ownerName, String restaurantName,
+            int complaintId, String status, String adminNote) {
+        return "<!DOCTYPE html>"
+                + "<html>"
+                + "<head>"
+                + "<meta charset='UTF-8'>"
+                + "<style>"
+                + "body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f4f4f4; }"
+                + ".container { max-width: 600px; margin: 0 auto; background-color: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }"
+                + ".title { font-size: 22px; font-weight: bold; color: #333; margin-bottom: 20px; }"
+                + ".content { line-height: 1.6; color: #555; }"
+                + ".status { display: inline-block; padding: 6px 12px; border-radius: 6px; background-color: #eef2ff; color: #1e3a8a; font-weight: bold; }"
+                + ".note-box { background-color: #f8fafc; padding: 15px; border: 1px solid #e2e8f0; border-radius: 8px; margin-top: 10px; white-space: pre-wrap; }"
+                + ".footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; text-align: center; color: #777; font-size: 14px; }"
+                + "</style>"
+                + "</head>"
+                + "<body>"
+                + "<div class='container'>"
+                + "<div class='title'>Complaint Status Update</div>"
+                + "<div class='content'>"
+                + "<p>Dear <strong>" + escapeHtml(ownerName) + "</strong>,</p>"
+                + "<p>The complaint related to your restaurant <strong>" + escapeHtml(restaurantName) + "</strong> has been updated by admin.</p>"
+                + "<p>Complaint ID: <strong>#" + complaintId + "</strong></p>"
+                + "<p>New status: <span class='status'>" + escapeHtml(status) + "</span></p>"
+                + "<p>Admin note:</p>"
+                + "<div class='note-box'>" + escapeHtml(adminNote) + "</div>"
+                + "</div>"
+                + "<div class='footer'>"
+                + "<p>Best regards,<br>The Multi Restaurant Menu Team</p>"
+                + "<p><small>This is an automated message. Please do not reply to this email.</small></p>"
+                + "</div>"
+                + "</div>"
+                + "</body>"
+                + "</html>";
+    }
+
     private static String escapeHtml(String text) {
         if (text == null) return "";
         return text.replace("&", "&amp;")
                   .replace("<", "&lt;")
-                  .replace(">", "&gt;")
+                   .replace(">", "&gt;")
                   .replace("\"", "&quot;")
                   .replace("'", "&#x27;");
+    }
+
+    private static String buildVerificationEmailContent(String verificationLink) {
+        return "<!DOCTYPE html>" +
+                "<html lang='en'>" +
+                "<head>" +
+                "    <meta charset='UTF-8'>" +
+                "    <meta name='viewport' content='width=device-width, initial-scale=1.0'>" +
+                "    <title>Verify Your Account</title>" +
+                "</head>" +
+                "<body style='margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4;'>" +
+                "    <table width='100%' cellpadding='0' cellspacing='0' style='background-color: #f4f4f4; padding: 20px;'>" +
+                "        <tr>" +
+                "            <td align='center'>" +
+                "                <table width='600' cellpadding='0' cellspacing='0' style='background-color: #ffffff; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.1);'>" +
+                "                    <!-- Header -->" +
+                "                    <tr>" +
+                "                        <td style='background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%); padding: 30px; text-align: center;'>" +
+                "                            <h1 style='margin: 0; color: #ffffff; font-size: 28px;'>👋 Welcome to Multi-Restaurant Menu!</h1>" +
+                "                        </td>" +
+                "                    </tr>" +
+                "                    " +
+                "                    <!-- Content -->" +
+                "                    <tr>" +
+                "                        <td style='padding: 40px 30px;'>" +
+                "                            <h2 style='margin-top: 0; color: #2f3542; font-size: 22px;'>Verify Your Email Address</h2>" +
+                "                            <p style='color: #57606f; font-size: 16px; line-height: 1.6;'>" +
+                "                                Thanks for signing up! We're excited to have you join our platform. Before you get started, please verify your email address by clicking the button below." +
+                "                            </p>" +
+                "                            " +
+                "                            <!-- Button -->" +
+                "                            <table width='100%' cellpadding='0' cellspacing='0' style='margin: 30px 0;'>" +
+                "                                <tr>" +
+                "                                    <td align='center'>" +
+                "                                        <a href='" + verificationLink + "' style='display: inline-block; padding: 15px 40px; background-color: #2ecc71; color: #ffffff; text-decoration: none; border-radius: 8px; font-size: 16px; font-weight: bold;'>Verify Email</a>" +
+                "                                    </td>" +
+                "                                </tr>" +
+                "                            </table>" +
+                "                            " +
+                "                            <p style='color: #57606f; font-size: 14px; line-height: 1.6;'>" +
+                "                                Or copy and paste this link into your browser:" +
+                "                            </p>" +
+                "                            <p style='color: #1976d2; font-size: 14px; word-break: break-all; background-color: #f1f2f6; padding: 12px; border-radius: 6px;'>" +
+                "                                " + verificationLink +
+                "                            </p>" +
+                "                            " +
+                "                            <hr style='border: none; border-top: 1px solid #e0e0e0; margin: 30px 0;'>" +
+                "                            " +
+                "                            <p style='color: #95a5a6; font-size: 13px; line-height: 1.6;'>" +
+                "                                <strong>Didn't sign up for an account?</strong> You can safely ignore this email." +
+                "                            </p>" +
+                "                        </td>" +
+                "                    </tr>" +
+                "                    " +
+                "                    <!-- Footer -->" +
+                "                    <tr>" +
+                "                        <td style='background-color: #2f3542; padding: 20px; text-align: center;'>" +
+                "                            <p style='margin: 0; color: #ffffff; font-size: 14px;'>" +
+                "                                © 2026 Multi-Restaurant Menu. All rights reserved." +
+                "                            </p>" +
+                "                        </td>" +
+                "                    </tr>" +
+                "                </table>" +
+                "            </td>" +
+                "        </tr>" +
+                "    </table>" +
+                "</body>" +
+                "</html>";
     }
 }

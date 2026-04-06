@@ -32,12 +32,27 @@ public class BusinessLicenseUploadController extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         HttpSession session = request.getSession();
-        Integer ownerId = (Integer) session.getAttribute("userId");
-        Integer restaurantId = (Integer) session.getAttribute("restaurantId");
-        if (ownerId == null || restaurantId == null) {
+        models.User user = (models.User) session.getAttribute("user");
+        if (user == null) {
             response.sendRedirect("login");
             return;
         }
+
+        RestaurantDAO dao = new RestaurantDAO();
+        Restaurant restaurant = dao.getRestaurantByOwnerId(user.getUserID());
+        if (restaurant == null) {
+            // Fallback: check RestaurantUsers table (for managers)
+            dal.UserDAO userDAO = new dal.UserDAO();
+            Integer restaurantId = userDAO.getRestaurantIdByUserId(user.getUserID());
+            if (restaurantId != null) {
+                restaurant = dao.getRestaurantById(restaurantId);
+            }
+        }
+        if (restaurant == null) {
+            response.sendRedirect("restaurant-profile-setup");
+            return;
+        }
+        int restaurantId = restaurant.getRestaurantId();
 
         Part filePart = request.getPart("licenseFile");
         if (filePart == null || filePart.getSize() == 0) {
@@ -61,12 +76,12 @@ public class BusinessLicenseUploadController extends HttpServlet {
         String fullPath = uploadPath + File.separator + savedFileName;
         filePart.write(fullPath);
 
-        String publicPath = request.getContextPath() + "/" + UPLOAD_DIR + "/" + savedFileName;
+        // Store only context-relative web path so URLs work on any deployment (avoid machine-specific or duplicated context).
+        String publicPath = "/" + UPLOAD_DIR + "/" + savedFileName;
 
-        RestaurantDAO dao = new RestaurantDAO();
         dao.updateLicenseFile(restaurantId, publicPath);
 
-        request.setAttribute("success", "Upload thành công.");
-        request.getRequestDispatcher("views/business-license-upload.jsp").forward(request, response);
+        // Redirect back to Edit Profile page with success indication
+        response.sendRedirect(request.getContextPath() + "/edit-restaurant-profile?licenseUploaded=1");
     }
 }

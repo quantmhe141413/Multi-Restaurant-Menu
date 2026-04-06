@@ -1,6 +1,7 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
+<fmt:setLocale value="vi_VN" />
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -108,8 +109,8 @@
                             </c:if>
                         </td>
                         <td class="text-center">${item.quantity}</td>
-                        <td class="text-end"><fmt:formatNumber value="${item.unitPrice}" type="number" groupingUsed="true"/> đ</td>
-                        <td class="text-end"><fmt:formatNumber value="${item.quantity * item.unitPrice}" type="number" groupingUsed="true"/> đ</td>
+                        <td class="text-end"><fmt:formatNumber value="${item.unitPrice}" pattern="#,##0"/> đ</td>
+                        <td class="text-end"><fmt:formatNumber value="${item.quantity * item.unitPrice}" pattern="#,##0"/> đ</td>
                     </tr>
                 </c:forEach>
             </tbody>
@@ -121,23 +122,23 @@
                 <table class="table table-sm">
                     <tr>
                         <td><strong>Tạm tính:</strong></td>
-                        <td class="text-end"><fmt:formatNumber value="${order.totalAmount}" type="number" groupingUsed="true"/> đ</td>
+                        <td class="text-end"><fmt:formatNumber value="${order.totalAmount}" pattern="#,##0"/> đ</td>
                     </tr>
                     <c:if test="${order.discountAmount > 0}">
                         <tr>
                             <td><strong>Giảm giá:</strong></td>
-                            <td class="text-end text-success">-<fmt:formatNumber value="${order.discountAmount}" type="number" groupingUsed="true"/> đ</td>
+                            <td class="text-end text-success">-<fmt:formatNumber value="${order.discountAmount}" pattern="#,##0"/> đ</td>
                         </tr>
                     </c:if>
                     <c:if test="${order.deliveryFee > 0}">
                         <tr>
                             <td><strong>Phí giao hàng:</strong></td>
-                            <td class="text-end"><fmt:formatNumber value="${order.deliveryFee}" type="number" groupingUsed="true"/> đ</td>
+                            <td class="text-end"><fmt:formatNumber value="${order.deliveryFee}" pattern="#,##0"/> đ</td>
                         </tr>
                     </c:if>
                     <tr class="table-active">
                         <td><strong>Tổng cộng:</strong></td>
-                        <td class="text-end"><strong><fmt:formatNumber value="${order.finalAmount}" type="number" groupingUsed="true"/> đ</strong></td>
+                        <td class="text-end"><strong><fmt:formatNumber value="${order.finalAmount}" pattern="#,##0"/> đ</strong></td>
                     </tr>
                 </table>
             </div>

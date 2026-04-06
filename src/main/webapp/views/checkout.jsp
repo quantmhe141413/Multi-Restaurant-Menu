@@ -1,6 +1,7 @@
 <%@ page contentType="text/html" pageEncoding="UTF-8" %>
     <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
         <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
+        <fmt:setLocale value="vi_VN" />
             <!DOCTYPE html>
             <html>
 
@@ -349,6 +350,21 @@
                                         <input type="text" class="form-control" id="city" name="city"
                                             value="Hồ Chí Minh" required>
                                     </div>
+                                    <c:if test="${not empty deliveryZones}">
+                                        <div class="form-group">
+                                            <label for="zoneId">Khu vực giao hàng <span class="text-danger">*</span></label>
+                                            <select class="form-control" id="zoneId" name="zoneId" required>
+                                                <option value="">-- Chọn khu vực --</option>
+                                                <c:forEach var="zone" items="${deliveryZones}">
+                                                    <option value="${zone.zoneId}">${zone.zoneName}</option>
+                                                </c:forEach>
+                                            </select>
+                                            <small class="text-muted">Phí giao hàng sẽ được tính theo khu vực bạn chọn</small>
+                                        </div>
+                                    </c:if>
+                                    <c:if test="${empty deliveryZones}">
+                                        <input type="hidden" name="zoneId" value="">
+                                    </c:if>
                                     <div class="form-group">
                                         <label for="note">Ghi chú (tùy chọn)</label>
                                         <textarea class="form-control" id="note" name="note" rows="3"
@@ -405,14 +421,24 @@
                                         <fmt:formatNumber value="${totalAmount}" pattern="#,###" /> ₫
                                     </span>
                                 </div>
+                                <div class="total-row" id="discountRow" style="display:none;">
+                                    <span class="total-label">Giảm giá:</span>
+                                    <span id="discountAmountText" class="text-success">- 0 ₫</span>
+                                </div>
                                 <div class="total-row">
                                     <span class="total-label">Phí giao hàng:</span>
-                                    <span>Miễn phí</span>
+                                    <span id="deliveryFeeText">
+                                        <c:choose>
+                                            <c:when test="${empty deliveryZones}">Miễn phí</c:when>
+                                            <c:otherwise>---</c:otherwise>
+                                        </c:choose>
+                                    </span>
                                 </div>
                                 <div class="total-row" style="margin-top: 1rem;">
                                     <span style="font-weight: 600; font-size: 1.1rem;">Tổng cộng:</span>
-                                    <span class="total-amount">
-                                        <fmt:formatNumber value="${totalAmount}" pattern="#,###" /> ₫
+                                    <span class="total-amount" id="finalAmountText"
+                                          data-original-total="${totalAmount}">
+                                        <fmt:formatNumber value="${totalAmount - maxDiscountGained}" pattern="#,###" /> ₫
                                     </span>
                                 </div>
                             </div>
@@ -438,11 +464,12 @@
                                 <small id="discountMessage" class="form-text text-muted"></small>
                             </div>
 
-                            <!-- Hidden fields to send discount info to server -->
+                            <!-- Hidden fields to send discount/fee info to server -->
                             <input type="hidden" form="checkoutForm" name="discountId" id="discountId"
                                 value="${not empty bestDiscount ? bestDiscount.discountID : ''}">
                             <input type="hidden" form="checkoutForm" name="discountAmount" id="discountAmount"
                                 value="${maxDiscountGained}">
+                            <input type="hidden" form="checkoutForm" name="deliveryFee" id="deliveryFeeInput" value="0">
                             <input type="hidden" form="checkoutForm" name="finalAmount" id="finalAmount"
                                 value="${totalAmount - maxDiscountGained}">
 
@@ -502,7 +529,7 @@
                                                         </c:choose>
                                                     </p>
                                                     <small class="text-secondary d-block mt-1">Đơn tối thiểu
-                                                        <fmt:formatNumber value="${v.minOrderAmount}" pattern="#,###" />
+                                                        <fmt:formatNumber value="${v.minOrderAmount}" pattern="#,##0" />
                                                         ₫
                                                     </small>
                                                 </div>
@@ -561,61 +588,59 @@
 
                 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
                 <script>
-                    // Helper to format number as VND string
                     function formatCurrencyVND(amount) {
                         return amount.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' }).replace('₫', '').trim() + ' ₫';
                     }
 
-                    // Handle Delivery Zone change
-                    document.getElementById('zoneId').addEventListener('change', function () {
-                        var zoneId = this.value;
+                    function recalcTotal() {
                         var originalTotal = parseFloat(document.getElementById('finalAmountText').getAttribute('data-original-total')) || 0;
-                        var deliveryFeeText = document.getElementById('deliveryFeeText');
-                        var deliveryFeeInput = document.getElementById('deliveryFeeInput');
-                        var finalAmountText = document.getElementById('finalAmountText');
-                        var finalAmountInput = document.getElementById('finalAmount');
                         var currentDiscount = parseFloat(document.getElementById('discountAmount').value) || 0;
+                        var currentFee = parseFloat(document.getElementById('deliveryFeeInput').value) || 0;
+                        var newTotal = originalTotal - currentDiscount + currentFee;
+                        if (newTotal < 0) newTotal = 0;
+                        document.getElementById('finalAmountText').textContent = formatCurrencyVND(newTotal);
+                        document.getElementById('finalAmount').value = newTotal;
+                    }
 
-                        if (!zoneId) {
-                            deliveryFeeText.textContent = '---';
-                            deliveryFeeInput.value = 0;
-                            var newTotal = originalTotal - currentDiscount;
-                            finalAmountText.textContent = formatCurrencyVND(newTotal);
-                            finalAmountInput.value = newTotal;
-                            return;
-                        }
+                    // Handle Delivery Zone change
+                    var zoneSelect = document.getElementById('zoneId');
+                    if (zoneSelect) {
+                        zoneSelect.addEventListener('change', function () {
+                            var zoneId = this.value;
+                            var originalTotal = parseFloat(document.getElementById('finalAmountText').getAttribute('data-original-total')) || 0;
+                            var deliveryFeeText = document.getElementById('deliveryFeeText');
+                            var deliveryFeeInput = document.getElementById('deliveryFeeInput');
 
-                        fetch('${pageContext.request.contextPath}/api/calculate-delivery-fee?zoneId=' + encodeURIComponent(zoneId) + '&totalAmount=' + encodeURIComponent(originalTotal))
-                            .then(res => {
-                                if (!res.ok) throw new Error('HTTP ' + res.status);
-                                return res.json();
-                            })
-                            .then(data => {
-                                if (data.success) {
-                                    var fee = parseFloat(data.fee);
-                                    if (fee === 0) {
-                                        deliveryFeeText.textContent = 'Miễn phí';
+                            if (!zoneId) {
+                                deliveryFeeText.textContent = '---';
+                                deliveryFeeInput.value = 0;
+                                recalcTotal();
+                                return;
+                            }
+
+                            fetch('${pageContext.request.contextPath}/api/calculate-delivery-fee?zoneId=' + encodeURIComponent(zoneId) + '&totalAmount=' + encodeURIComponent(originalTotal))
+                                .then(function(res) {
+                                    if (!res.ok) throw new Error('HTTP ' + res.status);
+                                    return res.json();
+                                })
+                                .then(function(data) {
+                                    if (data.success) {
+                                        var fee = parseFloat(data.fee);
+                                        deliveryFeeText.textContent = fee === 0 ? 'Miễn phí' : formatCurrencyVND(fee);
+                                        deliveryFeeInput.value = fee;
                                     } else {
-                                        deliveryFeeText.textContent = formatCurrencyVND(fee);
+                                        alert(data.message || 'Khu vực này chưa có biểu phí giao hàng.');
+                                        zoneSelect.value = '';
+                                        deliveryFeeText.textContent = '---';
+                                        deliveryFeeInput.value = 0;
                                     }
-                                    deliveryFeeInput.value = fee;
-                                    var newTotal = originalTotal - currentDiscount + fee;
-                                    finalAmountText.textContent = formatCurrencyVND(newTotal);
-                                    finalAmountInput.value = newTotal;
-                                } else {
-                                    alert(data.message);
-                                    document.getElementById('zoneId').value = '';
-                                    deliveryFeeText.textContent = '---';
-                                    deliveryFeeInput.value = 0;
-                                    var newTotal = originalTotal - currentDiscount;
-                                    finalAmountText.textContent = formatCurrencyVND(newTotal);
-                                    finalAmountInput.value = newTotal;
-                                }
-                            })
-                            .catch(err => {
-                                console.error('Error fetching delivery fee:', err);
-                            });
-                    });
+                                    recalcTotal();
+                                })
+                                .catch(function(err) {
+                                    console.error('Error fetching delivery fee:', err);
+                                });
+                        });
+                    }
 
                     // Update hidden input and highlight selected payment method
                     function updatePaymentSelection() {
@@ -710,28 +735,20 @@
                             if (autoAppliedAlert) { autoAppliedAlert.style.display = 'none'; }
 
                             if (!data.valid) {
-                                // Reset discount info
                                 discountRow.style.display = 'none';
                                 discountAmountText.textContent = '- 0 ₫';
-                                finalAmountText.textContent = formatCurrencyVND(originalTotal);
-                                finalAmountInput.value = originalTotal;
                                 discountIdInput.value = '';
                                 discountAmountInput.value = 0;
+                                recalcTotal();
 
                                 messageEl.textContent = data.message || 'Mã ưu đãi không hợp lệ.';
                                 messageEl.className = 'form-text text-danger mt-2';
                             } else {
-                                // Apply discount
                                 discountRow.style.display = 'flex';
                                 discountAmountText.textContent = '- ' + formatCurrencyVND(data.discountAmount);
-
-                                var currentDeliveryFee = parseFloat(document.getElementById('deliveryFeeInput').value) || 0;
-                                var newFinalAmount = data.finalAmount + currentDeliveryFee;
-                                finalAmountText.textContent = formatCurrencyVND(newFinalAmount);
-
                                 discountIdInput.value = data.discountID;
                                 discountAmountInput.value = data.discountAmount;
-                                finalAmountInput.value = newFinalAmount;
+                                recalcTotal();
 
                                 messageEl.innerHTML = '<i class="fas fa-check-circle"></i> ' + (data.message || 'Áp dụng mã ưu đãi thành công!');
                                 messageEl.className = 'form-text text-success mt-2 fw-bold';

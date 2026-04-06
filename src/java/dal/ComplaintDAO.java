@@ -25,6 +25,8 @@ public class ComplaintDAO extends DBContext {
 
         c.setRestaurantID((Integer) rs.getObject("RestaurantID"));
         c.setRestaurantName(rs.getString("RestaurantName"));
+        c.setRestaurantOwnerName(rs.getString("RestaurantOwnerName"));
+        c.setRestaurantOwnerEmail(rs.getString("RestaurantOwnerEmail"));
 
         c.setOrderStatus(rs.getString("OrderStatus"));
         BigDecimal finalAmount = rs.getBigDecimal("FinalAmount");
@@ -36,13 +38,15 @@ public class ComplaintDAO extends DBContext {
     private static final String BASE_SELECT =
             "SELECT c.ComplaintID, c.OrderID, c.CustomerID, c.Description, c.Status, c.CreatedAt, "
             + "u.FullName AS CustomerName, u.Email AS CustomerEmail, "
-            + "o.RestaurantID, r.Name AS RestaurantName, o.OrderStatus, o.FinalAmount ";
+            + "o.RestaurantID, r.Name AS RestaurantName, o.OrderStatus, o.FinalAmount, "
+            + "owner.FullName AS RestaurantOwnerName, owner.Email AS RestaurantOwnerEmail ";
 
     private static final String BASE_FROM =
             "FROM Complaints c "
             + "LEFT JOIN Orders o ON c.OrderID = o.OrderID "
             + "LEFT JOIN Restaurants r ON o.RestaurantID = r.RestaurantID "
-            + "LEFT JOIN Users u ON c.CustomerID = u.UserID ";
+            + "LEFT JOIN Users u ON c.CustomerID = u.UserID "
+            + "LEFT JOIN Users owner ON r.OwnerID = owner.UserID ";
 
     private void appendFilters(StringBuilder sql, List<Object> params,
             String status, String search, Timestamp fromTs, Timestamp toExclusive) {
@@ -168,5 +172,44 @@ public class ComplaintDAO extends DBContext {
             System.out.println("Error updateComplaintStatus: " + ex.getMessage());
             return false;
         } 
+    }
+
+    public boolean hasOrderBeenComplained(int orderId) {
+        String sql = "SELECT COUNT(*) AS cnt FROM Complaints WHERE OrderID = ?";
+        try {
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setInt(1, orderId);
+            ResultSet rs = st.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("cnt") > 0;
+            }
+        } catch (SQLException ex) {
+            System.out.println("Error hasOrderBeenComplained: " + ex.getMessage());
+        }
+        return false;
+    }
+
+    /**
+     * New complaint with status Open (DB default).
+     */
+    public boolean insertComplaint(int orderId, int customerId, String description) {
+        if (description == null || description.trim().isEmpty()) {
+            return false;
+        }
+        String trimmed = description.trim();
+        if (trimmed.length() > 255) {
+            trimmed = trimmed.substring(0, 255);
+        }
+        String sql = "INSERT INTO Complaints (OrderID, CustomerID, Description) VALUES (?, ?, ?)";
+        try {
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setInt(1, orderId);
+            st.setInt(2, customerId);
+            st.setString(3, trimmed);
+            return st.executeUpdate() > 0;
+        } catch (SQLException ex) {
+            System.out.println("Error insertComplaint: " + ex.getMessage());
+            return false;
+        }
     }
 }

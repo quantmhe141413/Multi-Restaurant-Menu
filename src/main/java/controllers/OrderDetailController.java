@@ -70,17 +70,6 @@ public class OrderDetailController extends HttpServlet {
             } else {
                 // Owner: can view any order (no restaurant restriction)
                 order = orderDAO.getOrderById(orderId);
-                if (order != null) {
-                    // Load customer name for display
-                    OrderDAO dao = new OrderDAO();
-                    List<Order> tempList = dao.getOrdersWithFilters(null, null, null, null, 1, 999);
-                    for (Order o : tempList) {
-                        if (o.getOrderID() == orderId) {
-                            order.setCustomerName(o.getCustomerName());
-                            break;
-                        }
-                    }
-                }
             }
             
             if (order == null) {

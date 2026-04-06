@@ -103,20 +103,23 @@ public class OrderDAO extends DBContext {
     }
 
     public Order getOrderById(int orderID) {
-        String sql = "SELECT * FROM Orders WHERE OrderID = ?";
-        
+        String sql = "SELECT o.*, u.FullName AS CustomerName FROM Orders o "
+                + "JOIN Users u ON o.CustomerID = u.UserID WHERE o.OrderID = ?";
+
         try {
             PreparedStatement st = connection.prepareStatement(sql);
             st.setInt(1, orderID);
             ResultSet rs = st.executeQuery();
-            
+
             if (rs.next()) {
-                return mapOrder(rs);
+                Order order = mapOrder(rs);
+                order.setCustomerName(rs.getString("CustomerName"));
+                return order;
             }
         } catch (SQLException ex) {
             Logger.getLogger(OrderDAO.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
+
         return null;
     }
 
@@ -278,7 +281,7 @@ public class OrderDAO extends DBContext {
         List<Order> list = new ArrayList<>();
         String sql = "SELECT o.*, u.FullName AS CustomerName "
                 + "FROM Orders o "
-                + "JOIN Users u ON o.CustomerID = u.UserID "
+                + "LEFT JOIN Users u ON o.CustomerID = u.UserID "
                 + "WHERE o.RestaurantID = ? "
                 + "ORDER BY o.CreatedAt DESC "
                 + "OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
@@ -318,10 +321,24 @@ public class OrderDAO extends DBContext {
     }
 
     /**
-     * Get orders with filters for owner (date range, status).
-     * If restaurantId is null, returns orders from ALL restaurants.
+     * Build IN clause placeholder string for a list of IDs, e.g. "?,?,?"
      */
-    public List<Order> getOrdersWithFilters(Integer restaurantId, String fromDate, String toDate, 
+    private String buildInClause(int size) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < size; i++) {
+            if (i > 0) sb.append(",");
+            sb.append("?");
+        }
+        return sb.toString();
+    }
+
+    /**
+     * Get orders with filters for owner.
+     * If restaurantId is not null, filters by that restaurant.
+     * Otherwise filters by the provided ownerRestaurantIds list.
+     */
+    public List<Order> getOrdersWithFilters(Integer restaurantId, List<Integer> ownerRestaurantIds,
+                                            String fromDate, String toDate,
                                             String status, int page, int pageSize) {
         List<Order> list = new ArrayList<>();
         StringBuilder sql = new StringBuilder();
@@ -330,9 +347,11 @@ public class OrderDAO extends DBContext {
            .append("JOIN Users u ON o.CustomerID = u.UserID ")
            .append("JOIN Restaurants r ON o.RestaurantID = r.RestaurantID ")
            .append("WHERE 1=1 ");
-        
+
         if (restaurantId != null) {
             sql.append("AND o.RestaurantID = ? ");
+        } else if (ownerRestaurantIds != null && !ownerRestaurantIds.isEmpty()) {
+            sql.append("AND o.RestaurantID IN (").append(buildInClause(ownerRestaurantIds.size())).append(") ");
         }
         if (fromDate != null && !fromDate.trim().isEmpty()) {
             sql.append("AND CAST(o.CreatedAt AS DATE) >= ? ");
@@ -343,15 +362,19 @@ public class OrderDAO extends DBContext {
         if (status != null && !status.trim().isEmpty() && !status.equals("All")) {
             sql.append("AND o.OrderStatus = ? ");
         }
-        
+
         sql.append("ORDER BY o.CreatedAt DESC ")
            .append("OFFSET ? ROWS FETCH NEXT ? ROWS ONLY");
-        
+
         try {
             PreparedStatement st = connection.prepareStatement(sql.toString());
             int idx = 1;
             if (restaurantId != null) {
                 st.setInt(idx++, restaurantId);
+            } else if (ownerRestaurantIds != null && !ownerRestaurantIds.isEmpty()) {
+                for (Integer id : ownerRestaurantIds) {
+                    st.setInt(idx++, id);
+                }
             }
             if (fromDate != null && !fromDate.trim().isEmpty()) {
                 st.setString(idx++, fromDate);
@@ -364,7 +387,7 @@ public class OrderDAO extends DBContext {
             }
             st.setInt(idx++, (page - 1) * pageSize);
             st.setInt(idx++, pageSize);
-            
+
             ResultSet rs = st.executeQuery();
             while (rs.next()) {
                 Order order = mapOrder(rs);
@@ -380,14 +403,18 @@ public class OrderDAO extends DBContext {
 
     /**
      * Count orders with filters.
-     * If restaurantId is null, counts orders from ALL restaurants.
+     * If restaurantId is not null, filters by that restaurant.
+     * Otherwise filters by the provided ownerRestaurantIds list.
      */
-    public int countOrdersWithFilters(Integer restaurantId, String fromDate, String toDate, String status) {
+    public int countOrdersWithFilters(Integer restaurantId, List<Integer> ownerRestaurantIds,
+                                      String fromDate, String toDate, String status) {
         StringBuilder sql = new StringBuilder();
         sql.append("SELECT COUNT(*) FROM Orders WHERE 1=1 ");
-        
+
         if (restaurantId != null) {
             sql.append("AND RestaurantID = ? ");
+        } else if (ownerRestaurantIds != null && !ownerRestaurantIds.isEmpty()) {
+            sql.append("AND RestaurantID IN (").append(buildInClause(ownerRestaurantIds.size())).append(") ");
         }
         if (fromDate != null && !fromDate.trim().isEmpty()) {
             sql.append("AND CAST(CreatedAt AS DATE) >= ? ");
@@ -398,12 +425,16 @@ public class OrderDAO extends DBContext {
         if (status != null && !status.trim().isEmpty() && !status.equals("All")) {
             sql.append("AND OrderStatus = ? ");
         }
-        
+
         try {
             PreparedStatement st = connection.prepareStatement(sql.toString());
             int idx = 1;
             if (restaurantId != null) {
                 st.setInt(idx++, restaurantId);
+            } else if (ownerRestaurantIds != null && !ownerRestaurantIds.isEmpty()) {
+                for (Integer id : ownerRestaurantIds) {
+                    st.setInt(idx++, id);
+                }
             }
             if (fromDate != null && !fromDate.trim().isEmpty()) {
                 st.setString(idx++, fromDate);
@@ -414,7 +445,7 @@ public class OrderDAO extends DBContext {
             if (status != null && !status.trim().isEmpty() && !status.equals("All")) {
                 st.setString(idx++, status);
             }
-            
+
             ResultSet rs = st.executeQuery();
             if (rs.next()) {
                 return rs.getInt(1);
@@ -427,9 +458,11 @@ public class OrderDAO extends DBContext {
 
     /**
      * Get revenue statistics for a date range.
-     * If restaurantId is null, calculates stats for ALL restaurants.
+     * If restaurantId is not null, filters by that restaurant.
+     * Otherwise filters by the provided ownerRestaurantIds list.
      */
-    public Map<String, Object> getRevenueStatistics(Integer restaurantId, String fromDate, String toDate) {
+    public Map<String, Object> getRevenueStatistics(Integer restaurantId, List<Integer> ownerRestaurantIds,
+                                                     String fromDate, String toDate) {
         Map<String, Object> stats = new HashMap<>();
         StringBuilder sql = new StringBuilder();
         sql.append("SELECT ")
@@ -440,9 +473,11 @@ public class OrderDAO extends DBContext {
            .append("AVG(CASE WHEN OrderStatus = 'Completed' THEN FinalAmount ELSE NULL END) AS AvgOrderValue ")
            .append("FROM Orders ")
            .append("WHERE 1=1 ");
-        
+
         if (restaurantId != null) {
             sql.append("AND RestaurantID = ? ");
+        } else if (ownerRestaurantIds != null && !ownerRestaurantIds.isEmpty()) {
+            sql.append("AND RestaurantID IN (").append(buildInClause(ownerRestaurantIds.size())).append(") ");
         }
         if (fromDate != null && !fromDate.trim().isEmpty()) {
             sql.append("AND CAST(CreatedAt AS DATE) >= ? ");
@@ -450,12 +485,16 @@ public class OrderDAO extends DBContext {
         if (toDate != null && !toDate.trim().isEmpty()) {
             sql.append("AND CAST(CreatedAt AS DATE) <= ? ");
         }
-        
+
         try {
             PreparedStatement st = connection.prepareStatement(sql.toString());
             int idx = 1;
             if (restaurantId != null) {
                 st.setInt(idx++, restaurantId);
+            } else if (ownerRestaurantIds != null && !ownerRestaurantIds.isEmpty()) {
+                for (Integer id : ownerRestaurantIds) {
+                    st.setInt(idx++, id);
+                }
             }
             if (fromDate != null && !fromDate.trim().isEmpty()) {
                 st.setString(idx++, fromDate);
@@ -463,7 +502,7 @@ public class OrderDAO extends DBContext {
             if (toDate != null && !toDate.trim().isEmpty()) {
                 st.setString(idx++, toDate);
             }
-            
+
             ResultSet rs = st.executeQuery();
             if (rs.next()) {
                 stats.put("totalOrders", rs.getInt("TotalOrders"));
@@ -511,8 +550,25 @@ public class OrderDAO extends DBContext {
      * Update order status.
      */
     public boolean updateOrderStatus(int orderId, String newStatus) {
-        String sql = "UPDATE Orders SET OrderStatus = ? WHERE OrderID = ?";
         try {
+            String sql;
+            if ("Completed".equals(newStatus)) {
+                sql = "UPDATE Orders SET OrderStatus = ?, PaymentStatus = 'Success', PaidAt = GETUTCDATE() WHERE OrderID = ?";
+            } else if ("Cancelled".equals(newStatus)) {
+                // Nếu đã thanh toán thì hoàn tiền, chưa thì đánh dấu Failed
+                String currentPaymentStatus = null;
+                PreparedStatement check = connection.prepareStatement(
+                    "SELECT PaymentStatus FROM Orders WHERE OrderID = ?");
+                check.setInt(1, orderId);
+                ResultSet rs = check.executeQuery();
+                if (rs.next()) {
+                    currentPaymentStatus = rs.getString("PaymentStatus");
+                }
+                String cancelPaymentStatus = "Success".equals(currentPaymentStatus) ? "Refunded" : "Failed";
+                sql = "UPDATE Orders SET OrderStatus = ?, PaymentStatus = '" + cancelPaymentStatus + "' WHERE OrderID = ?";
+            } else {
+                sql = "UPDATE Orders SET OrderStatus = ? WHERE OrderID = ?";
+            }
             PreparedStatement st = connection.prepareStatement(sql);
             st.setString(1, newStatus);
             st.setInt(2, orderId);
@@ -532,9 +588,9 @@ public class OrderDAO extends DBContext {
         StringBuilder sql = new StringBuilder();
         sql.append("SELECT o.*, u.FullName AS CustomerName ")
            .append("FROM Orders o ")
-           .append("JOIN Users u ON o.CustomerID = u.UserID ")
+           .append("LEFT JOIN Users u ON o.CustomerID = u.UserID ")
            .append("WHERE o.RestaurantID = ? ");
-        
+
         if (fromDate != null && !fromDate.trim().isEmpty()) {
             sql.append("AND CAST(o.CreatedAt AS DATE) >= ? ");
         }

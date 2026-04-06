@@ -111,17 +111,26 @@ public class ItemManagementController extends HttpServlet {
         }
 
         // Sorting
-        String sortBy = request.getParameter("sortBy");
-        if (sortBy == null || sortBy.isEmpty())
-            sortBy = "ItemName";
-
-        String sortOrder = request.getParameter("sortOrder");
-        if (sortOrder == null || sortOrder.isEmpty())
-            sortOrder = "ASC";
+        int page = 1;
+        int pageSize = 10; // Default page size for items
+        try {
+            if (request.getParameter("page") != null) {
+                page = Integer.parseInt(request.getParameter("page"));
+            }
+        } catch (NumberFormatException e) {
+            page = 1;
+        }
 
         MenuDAO menuDAO = new MenuDAO();
         List<MenuItem> items = menuDAO.getMenuItemsByRestaurant(restaurant.getRestaurantId(), search, categoryId,
-                isAvailable, minPrice, maxPrice, sortBy, sortOrder);
+                isAvailable, minPrice, maxPrice, sortBy, sortOrder, page, pageSize);
+        int totalItems = menuDAO.countMenuItemsByRestaurant(restaurant.getRestaurantId(), search, categoryId, isAvailable, minPrice, maxPrice);
+        int totalPages = (int) Math.ceil((double) totalItems / pageSize);
+
+        request.setAttribute("items", items);
+        request.setAttribute("currentPage", page);
+        request.setAttribute("totalPages", totalPages);
+        request.setAttribute("pageSize", pageSize);
         List<MenuCategory> categories = menuDAO.getCategoriesByRestaurant(restaurant.getRestaurantId());
 
         request.setAttribute("items", items);
@@ -185,26 +194,53 @@ public class ItemManagementController extends HttpServlet {
         String sku = request.getParameter("sku");
         String name = request.getParameter("itemName");
         String description = request.getParameter("description");
-        double price = Double.parseDouble(request.getParameter("price"));
-        int categoryId = Integer.parseInt(request.getParameter("categoryId"));
+        String imageUrl = request.getParameter("imageUrl");
+        String priceStr = request.getParameter("price");
+        String categoryIdStr = request.getParameter("categoryId");
         boolean isAvailable = request.getParameter("isAvailable") != null;
 
-        MenuItem item = new MenuItem();
-        item.setRestaurantID(restaurant.getRestaurantId());
-        item.setCategoryID(categoryId);
-        item.setSku(sku);
-        item.setItemName(name);
-        item.setDescription(description);
-        item.setPrice(price);
-        item.setIsAvailable(isAvailable);
-
-        MenuDAO menuDAO = new MenuDAO();
-        if (menuDAO.insertMenuItem(item)) {
-            request.getSession().setAttribute("message", "Item added successfully!");
-            request.getSession().setAttribute("messageType", "success");
-        } else {
-            request.getSession().setAttribute("message", "Failed to add item.");
+        // Validation
+        if (name == null || name.trim().isEmpty() || priceStr == null || categoryIdStr == null) {
+            request.getSession().setAttribute("message", "Item name, price, and category are required!");
             request.getSession().setAttribute("messageType", "error");
+            showAddForm(request, response);
+            return;
+        }
+
+        try {
+            double price = Double.parseDouble(priceStr);
+            int categoryId = Integer.parseInt(categoryIdStr);
+
+            if (price < 0) {
+                request.getSession().setAttribute("message", "Price cannot be negative.");
+                request.getSession().setAttribute("messageType", "error");
+                showAddForm(request, response);
+                return;
+            }
+
+            MenuItem item = new MenuItem();
+            item.setRestaurantID(restaurant.getRestaurantId());
+            item.setCategoryID(categoryId);
+            item.setSku(sku != null ? sku.trim() : "");
+            item.setItemName(name.trim());
+            item.setDescription(description != null ? description.trim() : "");
+            item.setImageUrl(imageUrl != null ? imageUrl.trim() : "");
+            item.setPrice(price);
+            item.setIsAvailable(isAvailable);
+
+            MenuDAO menuDAO = new MenuDAO();
+            if (menuDAO.insertMenuItem(item)) {
+                request.getSession().setAttribute("message", "Item added successfully!");
+                request.getSession().setAttribute("messageType", "success");
+            } else {
+                request.getSession().setAttribute("message", "Failed to add item.");
+                request.getSession().setAttribute("messageType", "error");
+            }
+        } catch (NumberFormatException e) {
+            request.getSession().setAttribute("message", "Invalid price or category.");
+            request.getSession().setAttribute("messageType", "error");
+            showAddForm(request, response);
+            return;
         }
         response.sendRedirect(request.getContextPath() + "/items");
     }
@@ -217,34 +253,59 @@ public class ItemManagementController extends HttpServlet {
             return;
         }
 
-        int itemId = Integer.parseInt(request.getParameter("itemId"));
+        String itemIdStr = request.getParameter("itemId");
         String sku = request.getParameter("sku");
         String name = request.getParameter("itemName");
         String description = request.getParameter("description");
-        double price = Double.parseDouble(request.getParameter("price"));
-        int categoryId = Integer.parseInt(request.getParameter("categoryId"));
+        String imageUrl = request.getParameter("imageUrl");
+        String priceStr = request.getParameter("price");
+        String categoryIdStr = request.getParameter("categoryId");
         boolean isAvailable = request.getParameter("isAvailable") != null;
 
-        MenuDAO menuDAO = new MenuDAO();
-        MenuItem item = menuDAO.getMenuItemById(itemId);
+        if (itemIdStr == null || name == null || name.trim().isEmpty() || priceStr == null || categoryIdStr == null) {
+            request.getSession().setAttribute("message", "Missing required fields.");
+            request.getSession().setAttribute("messageType", "error");
+            response.sendRedirect(request.getContextPath() + "/items");
+            return;
+        }
 
-        if (item != null && item.getRestaurantID() == restaurant.getRestaurantId()) {
-            item.setCategoryID(categoryId);
-            item.setSku(sku);
-            item.setItemName(name);
-            item.setDescription(description);
-            item.setPrice(price);
-            item.setIsAvailable(isAvailable);
+        try {
+            int itemId = Integer.parseInt(itemIdStr);
+            double price = Double.parseDouble(priceStr);
+            int categoryId = Integer.parseInt(categoryIdStr);
 
-            if (menuDAO.updateMenuItem(item)) {
-                request.getSession().setAttribute("message", "Item updated successfully!");
-                request.getSession().setAttribute("messageType", "success");
+            if (price < 0) {
+                request.getSession().setAttribute("message", "Price cannot be negative.");
+                request.getSession().setAttribute("messageType", "error");
+                response.sendRedirect(request.getContextPath() + "/items?action=edit&id=" + itemId);
+                return;
+            }
+
+            MenuDAO menuDAO = new MenuDAO();
+            MenuItem item = menuDAO.getMenuItemById(itemId);
+
+            if (item != null && item.getRestaurantID() == restaurant.getRestaurantId()) {
+                item.setCategoryID(categoryId);
+                item.setSku(sku != null ? sku.trim() : "");
+                item.setItemName(name.trim());
+                item.setDescription(description != null ? description.trim() : "");
+                item.setImageUrl(imageUrl != null ? imageUrl.trim() : "");
+                item.setPrice(price);
+                item.setIsAvailable(isAvailable);
+
+                if (menuDAO.updateMenuItem(item)) {
+                    request.getSession().setAttribute("message", "Item updated successfully!");
+                    request.getSession().setAttribute("messageType", "success");
+                } else {
+                    request.getSession().setAttribute("message", "Failed to update item.");
+                    request.getSession().setAttribute("messageType", "error");
+                }
             } else {
-                request.getSession().setAttribute("message", "Failed to update item.");
+                request.getSession().setAttribute("message", "Unauthorized to edit this item.");
                 request.getSession().setAttribute("messageType", "error");
             }
-        } else {
-            request.getSession().setAttribute("message", "Unauthorized to edit this item.");
+        } catch (NumberFormatException e) {
+            request.getSession().setAttribute("message", "Invalid numeric data provided.");
             request.getSession().setAttribute("messageType", "error");
         }
         response.sendRedirect(request.getContextPath() + "/items");
@@ -279,11 +340,21 @@ public class ItemManagementController extends HttpServlet {
 
     private Restaurant getRestaurantFromSession(HttpServletRequest request) {
         HttpSession session = request.getSession(false);
-        if (session == null || session.getAttribute("restaurantId") == null) {
+        if (session == null || session.getAttribute("user") == null) {
             return null;
         }
-        int restaurantId = (int) session.getAttribute("restaurantId");
+        User user = (User) session.getAttribute("user");
         RestaurantDAO restaurantDAO = new RestaurantDAO();
-        return restaurantDAO.getRestaurantById(restaurantId);
+        // Try owner lookup first
+        Restaurant restaurant = restaurantDAO.getRestaurantByOwnerId(user.getUserID());
+        if (restaurant == null) {
+            // Fall back to searching RestaurantUsers (for managers/staff)
+            dal.UserDAO userDAO = new dal.UserDAO();
+            Integer restaurantId = userDAO.getRestaurantIdByUserId(user.getUserID());
+            if (restaurantId != null) {
+                restaurant = restaurantDAO.getRestaurantById(restaurantId);
+            }
+        }
+        return restaurant;
     }
 }

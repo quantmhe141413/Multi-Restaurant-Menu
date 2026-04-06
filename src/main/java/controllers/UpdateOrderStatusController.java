@@ -52,7 +52,7 @@ public class UpdateOrderStatusController extends HttpServlet {
             }
 
             // Validate status
-            if (!newStatus.equals("Preparing") && !newStatus.equals("Delivering") 
+            if (!newStatus.equals("Preparing") && !newStatus.equals("Delivering")
                     && !newStatus.equals("Completed") && !newStatus.equals("Cancelled")) {
                 out.write("{\"success\":false,\"message\":\"Invalid status\"}");
                 return;

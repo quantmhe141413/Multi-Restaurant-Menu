@@ -16,6 +16,8 @@ public class ComplaintView {
 
     private Integer restaurantID;
     private String restaurantName;
+    private String restaurantOwnerName;
+    private String restaurantOwnerEmail;
 
     private String orderStatus;
     private Double finalAmount;
@@ -101,6 +103,22 @@ public class ComplaintView {
 
     public void setRestaurantName(String restaurantName) {
         this.restaurantName = restaurantName;
+    }
+
+    public String getRestaurantOwnerName() {
+        return restaurantOwnerName;
+    }
+
+    public void setRestaurantOwnerName(String restaurantOwnerName) {
+        this.restaurantOwnerName = restaurantOwnerName;
+    }
+
+    public String getRestaurantOwnerEmail() {
+        return restaurantOwnerEmail;
+    }
+
+    public void setRestaurantOwnerEmail(String restaurantOwnerEmail) {
+        this.restaurantOwnerEmail = restaurantOwnerEmail;
     }
 
     public String getOrderStatus() {

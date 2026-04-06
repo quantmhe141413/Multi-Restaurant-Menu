@@ -547,33 +547,18 @@
                                         <span class="badge bg-light text-dark badge-status ms-2">
                                             <i class="fas fa-shipping-fast"></i> Phí giao hàng:
                                             <fmt:formatNumber value="${restaurant.deliveryFee}" pattern="#,###" /> VND
-=======
-                                    <c:when test="${restaurant.isOpen}">
-                                        <span class="badge bg-success badge-status">
-                                            <i class="fas fa-door-open"></i> Đang mở cửa
->>>>>>> Stashed changes
                                         </span>
-                                    </c:when>
-                                    <c:otherwise>
-                                        <span class="badge bg-danger badge-status">
-                                            <i class="fas fa-door-closed"></i> Đã đóng cửa
-                                        </span>
-                                    </c:otherwise>
-                                </c:choose>
-                                <span class="badge bg-light text-dark badge-status ms-2">
-                                    <i class="fas fa-shipping-fast"></i> Phí giao hàng theo khu vực
-                                </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-auto">
+                                <a href="home" class="btn back-btn">
+                                    <i class="fas fa-arrow-left"></i> Quay lại
+                                </a>
                             </div>
                         </div>
                     </div>
-                    <div class="col-auto">
-                        <a href="home" class="btn back-btn">
-                            <i class="fas fa-arrow-left"></i> Quay lại
-                        </a>
-                    </div>
                 </div>
-            </div>
-        </div>
 
         <!-- Filter Bar -->
         <div class="container">

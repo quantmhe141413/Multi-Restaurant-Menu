@@ -1,5 +1,6 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<fmt:setLocale value="vi_VN" />
 <c:set var="pageTitle" value="Order Detail" scope="request" />
 <!DOCTYPE html>
 <html lang="en">
@@ -128,11 +129,11 @@
                                 </div>
                                 <div class="col-md-6">
                                     <label class="text-muted small">Total Amount</label>
-                                    <div class="fs-5 text-success fw-bold">$<fmt:formatNumber value="${order.finalAmount}" pattern="#,##0.00" /></div>
+                                    <div class="fs-5 text-success fw-bold"><fmt:formatNumber value="${order.finalAmount}" pattern="#,##0" /> VNĐ</div>
                                 </div>
                                 <div class="col-md-6">
                                     <label class="text-muted small">Delivery Fee</label>
-                                    <div class="fw-bold">$<fmt:formatNumber value="${order.deliveryFee}" pattern="#,##0.00" /></div>
+                                    <div class="fw-bold"><fmt:formatNumber value="${order.deliveryFee}" pattern="#,##0" /> VNĐ</div>
                                 </div>
                             </div>
                         </div>
@@ -169,9 +170,9 @@
                                         <td class="text-center">
                                             <span class="badge bg-primary">${item.quantity}</span>
                                         </td>
-                                        <td class="text-end">$<fmt:formatNumber value="${item.unitPrice}" pattern="#,##0.00" /></td>
+                                        <td class="text-end"><fmt:formatNumber value="${item.unitPrice}" pattern="#,##0" /></td>
                                         <td class="text-end pe-4">
-                                            <strong>$<fmt:formatNumber value="${item.unitPrice * item.quantity}" pattern="#,##0.00" /></strong>
+                                            <strong><fmt:formatNumber value="${item.unitPrice * item.quantity}" pattern="#,##0" /></strong>
                                         </td>
                                     </tr>
                                 </c:forEach>
@@ -179,21 +180,21 @@
                             <tfoot class="table-light">
                                 <tr>
                                     <td colspan="3" class="text-end pe-3"><strong>Total Amount:</strong></td>
-                                    <td class="text-end pe-4"><strong class="text-success fs-5">$<fmt:formatNumber value="${order.totalAmount}" pattern="#,##0.00" /></strong></td>
+                                    <td class="text-end pe-4"><strong class="text-success fs-5"><fmt:formatNumber value="${order.totalAmount}" pattern="#,##0" /></strong></td>
                                 </tr>
                                 <c:if test="${order.discountAmount > 0}">
                                     <tr>
                                         <td colspan="3" class="text-end pe-3 text-muted">Discount:</td>
-                                        <td class="text-end pe-4 text-danger">-$<fmt:formatNumber value="${order.discountAmount}" pattern="#,##0.00" /></td>
+                                        <td class="text-end pe-4 text-danger">-<fmt:formatNumber value="${order.discountAmount}" pattern="#,##0" /></td>
                                     </tr>
                                 </c:if>
                                 <tr>
                                     <td colspan="3" class="text-end pe-3 text-muted">Delivery Fee:</td>
-                                    <td class="text-end pe-4">+$<fmt:formatNumber value="${order.deliveryFee}" pattern="#,##0.00" /></td>
+                                    <td class="text-end pe-4">+<fmt:formatNumber value="${order.deliveryFee}" pattern="#,##0" /></td>
                                 </tr>
                                 <tr class="table-primary">
                                     <td colspan="3" class="text-end pe-3"><strong>Final Amount:</strong></td>
-                                    <td class="text-end pe-4"><strong class="text-primary fs-4">$<fmt:formatNumber value="${order.finalAmount}" pattern="#,##0.00" /></strong></td>
+                                    <td class="text-end pe-4"><strong class="text-primary fs-4"><fmt:formatNumber value="${order.finalAmount}" pattern="#,##0" /> VNĐ</strong></td>
                                 </tr>
                             </tfoot>
                         </table>

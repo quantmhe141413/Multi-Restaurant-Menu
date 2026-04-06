@@ -14,7 +14,7 @@ import models.Review;
 public class ReviewDAO extends DBContext {
 
     /**
-     * Insert a new review.
+     * Insert a new review with OrderID.
      */
     public boolean insertReview(int restaurantId, int customerId, int orderId, int rating, String comment) {
         String sql = "INSERT INTO Reviews (RestaurantID, CustomerID, OrderID, Rating, Comment, CreatedAt) VALUES (?, ?, ?, ?, ?, GETDATE())";
@@ -29,19 +29,18 @@ public class ReviewDAO extends DBContext {
             } else {
                 st.setNull(5, java.sql.Types.NVARCHAR);
             }
-            return st.executeUpdate() > 0;
+            int result = st.executeUpdate();
+            System.out.println("Insert review with OrderID - rows affected: " + result);
+            return result > 0;
         } catch (SQLException ex) {
-            Logger.getLogger(ReviewDAO.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ReviewDAO.class.getName()).log(Level.SEVERE, "Error inserting review", ex);
+            ex.printStackTrace();
         }
         return false;
     }
 
     /**
-     * Check if a customer has already reviewed a specific restaurant for a specific
-     * order.
-     * We track this by checking if a review from this customer for this restaurant
-     * exists after the order's creation time.
-     * Simpler approach: check if customer already reviewed this restaurant at all.
+     * Check if a specific order has been reviewed.
      */
     public boolean hasOrderBeenReviewed(int orderId) {
         String sql = "SELECT COUNT(*) AS cnt FROM Reviews WHERE OrderID = ?";
@@ -53,9 +52,38 @@ public class ReviewDAO extends DBContext {
                 return rs.getInt("cnt") > 0;
             }
         } catch (SQLException ex) {
-            Logger.getLogger(ReviewDAO.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ReviewDAO.class.getName()).log(Level.SEVERE, "Error checking if order has been reviewed", ex);
+            ex.printStackTrace();
         }
         return false;
+    }
+
+    /**
+     * Latest review for an order (if any). Used for admin complaint context.
+     */
+    public Review getReviewByOrderId(int orderId) {
+        String sql = "SELECT TOP 1 ReviewID, RestaurantID, CustomerID, OrderID, Rating, Comment, CreatedAt "
+                + "FROM Reviews WHERE OrderID = ? ORDER BY CreatedAt DESC";
+        try {
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setInt(1, orderId);
+            ResultSet rs = st.executeQuery();
+            if (rs.next()) {
+                Review review = new Review();
+                review.setReviewID(rs.getInt("ReviewID"));
+                review.setRestaurantID(rs.getInt("RestaurantID"));
+                review.setCustomerID(rs.getInt("CustomerID"));
+                int oid = rs.getInt("OrderID");
+                review.setOrderID(rs.wasNull() ? null : oid);
+                review.setRating(rs.getInt("Rating"));
+                review.setComment(rs.getString("Comment"));
+                review.setCreatedAt(rs.getTimestamp("CreatedAt"));
+                return review;
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(ReviewDAO.class.getName()).log(Level.SEVERE, "Error getReviewByOrderId", ex);
+        }
+        return null;
     }
 
     /**

@@ -723,9 +723,9 @@ public class OrderDAO extends DBContext {
     }
 
     /**
-     * Get daily revenue and order volume for a restaurant.
+     * Get daily revenue and order volume for a restaurant with pagination.
      */
-    public java.util.List<java.util.Map<String, Object>> getDailyRevenueStats(int restaurantId, String startDate, String endDate) {
+    public java.util.List<java.util.Map<String, Object>> getDailyRevenueStatsPaginated(int restaurantId, String startDate, String endDate, int page, int pageSize) {
         java.util.List<java.util.Map<String, Object>> list = new java.util.ArrayList<>();
         StringBuilder sql = new StringBuilder();
         sql.append("SELECT CAST(CreatedAt AS DATE) AS OrderDate, COUNT(*) AS OrderCount, SUM(FinalAmount) AS TotalRevenue ")
@@ -738,7 +738,8 @@ public class OrderDAO extends DBContext {
             sql.append(" AND CreatedAt <= ?");
         }
         
-        sql.append(" GROUP BY CAST(CreatedAt AS DATE) ORDER BY OrderDate DESC");
+        sql.append(" GROUP BY CAST(CreatedAt AS DATE) ORDER BY OrderDate DESC ")
+           .append(" OFFSET ? ROWS FETCH NEXT ? ROWS ONLY");
 
         try {
             PreparedStatement st = connection.prepareStatement(sql.toString());
@@ -750,6 +751,8 @@ public class OrderDAO extends DBContext {
             if (endDate != null && !endDate.trim().isEmpty()) {
                 st.setString(idx++, endDate + " 23:59:59");
             }
+            st.setInt(idx++, (page - 1) * pageSize);
+            st.setInt(idx++, pageSize);
             
             ResultSet rs = st.executeQuery();
             while (rs.next()) {
@@ -763,5 +766,41 @@ public class OrderDAO extends DBContext {
             Logger.getLogger(OrderDAO.class.getName()).log(Level.SEVERE, null, ex);
         }
         return list;
+    }
+
+    /**
+     * Count the number of days with revenue for pagination.
+     */
+    public int countDailyRevenueDays(int restaurantId, String startDate, String endDate) {
+        StringBuilder sql = new StringBuilder();
+        sql.append("SELECT COUNT(DISTINCT CAST(CreatedAt AS DATE)) ")
+           .append("FROM Orders WHERE RestaurantID = ? AND OrderStatus = 'Completed' ");
+        
+        if (startDate != null && !startDate.trim().isEmpty()) {
+            sql.append(" AND CreatedAt >= ?");
+        }
+        if (endDate != null && !endDate.trim().isEmpty()) {
+            sql.append(" AND CreatedAt <= ?");
+        }
+
+        try {
+            PreparedStatement st = connection.prepareStatement(sql.toString());
+            int idx = 1;
+            st.setInt(idx++, restaurantId);
+            if (startDate != null && !startDate.trim().isEmpty()) {
+                st.setString(idx++, startDate + " 00:00:00");
+            }
+            if (endDate != null && !endDate.trim().isEmpty()) {
+                st.setString(idx++, endDate + " 23:59:59");
+            }
+            
+            ResultSet rs = st.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(OrderDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return 0;
     }
 }

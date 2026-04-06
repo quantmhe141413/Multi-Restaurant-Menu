@@ -69,7 +69,7 @@
                         </div>
                     </div>
                 </div>
-
+             
                 <div class="card mb-4">
                     <div class="card-header">
                         <h4 class="mb-0"><i class="fas fa-pen-to-square"></i> Update Complaint</h4>
@@ -82,15 +82,23 @@
                             <div class="row g-3">
                                 <div class="col-md-4">
                                     <label class="form-label text-muted small mb-1">Status <span class="text-danger">*</span></label>
-                                    <select class="form-select" name="status" required>
-                                        <option value="Open" ${complaint.status == 'Open' ? 'selected' : ''}>Open</option>
-                                        <option value="InProgress" ${complaint.status == 'InProgress' ? 'selected' : ''}>InProgress</option>
+                                    <select class="form-select" id="statusSelect" name="status" required>
+                                        <option value="InProgress" ${complaint.status == 'Open' || complaint.status == 'InProgress' ? 'selected' : ''}>In Progress</option>
                                         <option value="Resolved" ${complaint.status == 'Resolved' ? 'selected' : ''}>Resolved</option>
-                                        <option value="Rejected" ${complaint.status == 'Rejected' ? 'selected' : ''}>Rejected</option>
+                                        <!--<option value="Rejected" ${complaint.status == 'Rejected' ? 'selected' : ''}>Rejected</option>-->
                                     </select>
                                 </div>
 
-                                <div class="col-md-8 d-flex align-items-end gap-2">
+                                <div class="col-md-8">
+                                    <label class="form-label text-muted small mb-1">Admin Note</label>
+                                    <input type="text" class="form-control" id="noteInput" name="note"
+                                           placeholder="Enter note to email restaurant owner">
+                                    <small class="text-muted">
+                                        Note is required. Email will be sent to restaurant owner before status update.
+                                    </small>
+                                </div>
+
+                                <div class="col-12 d-flex gap-2">
                                     <button type="submit" class="btn btn-primary">
                                         <i class="fas fa-save"></i> Save
                                     </button>
@@ -110,5 +118,26 @@
 
 <jsp:include page="/views/includes/footer.jsp" />
 <jsp:include page="/views/includes/std_scripts.jsp" />
+<script>
+    const status = document.getElementById('statusSelect');
+    const note = document.getElementById('noteInput');
+
+    function checkNote() {
+        note.required = true;
+    }
+
+    status.onchange = checkNote;
+
+    document.querySelector('form').onsubmit = function (e) {
+        checkNote();
+        if (note.required && note.value.trim() === '') {
+            e.preventDefault();
+            alert('Please enter admin note.');
+            note.focus();
+        }
+    };
+
+    checkNote();
+</script>
 </body>
 </html>

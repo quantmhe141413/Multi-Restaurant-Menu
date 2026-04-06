@@ -1146,11 +1146,18 @@
                             document.getElementById('ordersContent').innerHTML = '<div class="empty-state">Đang tải...</div>';
 
                             fetch(url)
-                                .then(r => r.ok ? r.text() : Promise.reject())
+                                .then(r => {
+                                    if (r.ok) return r.text();
+                                    return r.text().then(body => {
+                                        console.error('loadOrders failed: HTTP ' + r.status, body);
+                                        return Promise.reject(new Error('HTTP ' + r.status + ': ' + body.substring(0, 300)));
+                                    });
+                                })
                                 .then(html => {
                                     document.getElementById('ordersContent').innerHTML = html;
                                 })
-                                .catch(() => {
+                                .catch(err => {
+                                    console.error('loadOrders error:', err);
                                     document.getElementById('ordersContent').innerHTML = '<div class="empty-state">Lỗi tải dữ liệu</div>';
                                 });
                         }
@@ -1196,7 +1203,53 @@
                                     const order = data.order;
                                     const items = data.items;
 
+                                    const statusLabel = {
+                                        'Pending':    'Chờ xử lý',
+                                        'Preparing':  'Đang chuẩn bị',
+                                        'Delivering': 'Đang giao',
+                                        'Completed':  'Hoàn thành',
+                                        'Cancelled':  'Đã hủy'
+                                    };
+                                    const statusColor = {
+                                        'Pending':    { bg: '#fef3c7', color: '#92400e' },
+                                        'Preparing':  { bg: '#fef3c7', color: '#92400e' },
+                                        'Delivering': { bg: '#ede9fe', color: '#5b21b6' },
+                                        'Completed':  { bg: '#d1fae5', color: '#065f46' },
+                                        'Cancelled':  { bg: '#fee2e2', color: '#991b1b' }
+                                    };
+                                    // next allowed statuses (chỉ dùng values DB cho phép)
+                                    const nextStatuses = {
+                                        'Pending':    ['Preparing', 'Cancelled'],
+                                        'Preparing':  ['Delivering', 'Completed', 'Cancelled'],
+                                        'Delivering': ['Completed', 'Cancelled'],
+                                        'Completed':  [],
+                                        'Cancelled':  []
+                                    };
+
+                                    const sc = statusColor[order.orderStatus] || { bg: '#f1f5f9', color: '#64748b' };
+                                    const nexts = nextStatuses[order.orderStatus] || [];
+
                                     let html = '<div style="padding: 0.5rem;">';
+
+                                    // Status bar
+                                    html += '<div style="display:flex;align-items:center;justify-content:space-between;background:#f8fafc;padding:0.875rem 1rem;border-radius:8px;margin-bottom:1rem;">';
+                                    html += '<div style="display:flex;align-items:center;gap:0.75rem;">';
+                                    html += '<span style="font-size:0.8125rem;color:#64748b;">Trạng thái:</span>';
+                                    html += '<span style="padding:0.3rem 0.8rem;border-radius:999px;font-size:0.8125rem;font-weight:600;background:' + sc.bg + ';color:' + sc.color + ';">' + (statusLabel[order.orderStatus] || order.orderStatus) + '</span>';
+                                    html += '</div>';
+                                    if (nexts.length > 0) {
+                                        html += '<div style="display:flex;gap:0.5rem;" id="statusActionBtns">';
+                                        nexts.forEach(function(s) {
+                                            const isCancell = s === 'Cancelled';
+                                            const btnStyle = isCancell
+                                                ? 'padding:0.4rem 0.9rem;border-radius:6px;border:1px solid #fca5a5;background:#fff;color:#dc2626;font-size:0.8125rem;font-weight:600;cursor:pointer;'
+                                                : 'padding:0.4rem 0.9rem;border-radius:6px;border:none;background:#4a90e2;color:#fff;font-size:0.8125rem;font-weight:600;cursor:pointer;';
+                                            const btnLabel = isCancell ? 'Hủy đơn' : (s === 'Preparing' ? 'Xác nhận chuẩn bị' : s === 'Delivering' ? 'Bắt đầu giao' : 'Hoàn thành');
+                                            html += '<button style="' + btnStyle + '" onclick="updateOrderStatus(' + order.orderID + ',\'' + s + '\')">' + btnLabel + '</button>';
+                                        });
+                                        html += '</div>';
+                                    }
+                                    html += '</div>';
 
                                     // Order info
                                     html += '<div style="background: #f8fafc; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">';
@@ -1274,183 +1327,45 @@
                             setTimeout(() => toast.classList.remove('show'), 3000);
                         }
 
+                        function updateOrderStatus(orderId, newStatus) {
+                            const btns = document.querySelectorAll('#statusActionBtns button');
+                            btns.forEach(b => { b.disabled = true; b.style.opacity = '0.6'; });
+
+                            fetch(ctx + '/update-order-status', {
+                                method: 'POST',
+                                credentials: 'same-origin',
+                                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                                body: 'orderId=' + encodeURIComponent(orderId) + '&status=' + encodeURIComponent(newStatus)
+                            })
+                            .then(r => r.json())
+                            .then(data => {
+                                if (data.success) {
+                                    showToast('Cập nhật trạng thái thành công', 'success');
+                                    // Reload modal with updated data
+                                    viewOrderDetail(orderId);
+                                    // Refresh order list if visible
+                                    if (window.ordersLoaded) {
+                                        const fromDate = document.getElementById('fromDateFilter').value;
+                                        const toDate = document.getElementById('toDateFilter').value;
+                                        const orderType = document.getElementById('orderTypeFilter').value;
+                                        loadOrders(null, fromDate, toDate, orderType);
+                                    }
+                                } else {
+                                    showToast(data.message || 'Cập nhật thất bại', 'error');
+                                    btns.forEach(b => { b.disabled = false; b.style.opacity = '1'; });
+                                }
+                            })
+                            .catch(() => {
+                                showToast('Lỗi kết nối', 'error');
+                                btns.forEach(b => { b.disabled = false; b.style.opacity = '1'; });
+                            });
+                        }
+
                         window.onclick = function (event) {
                             const modal = document.getElementById('orderModal');
                             if (event.target === modal) closeModal();
                         }
                     </script>
-<<<<<<< Updated upstream
-=======
-
-                    <script>
-                        (function () {
-                            const POLL_INTERVAL_MS = 5000;
-                            const TOAST_DURATION_MS = 15000;
-                            let lastOrderId = 0;
-                            let initialized = false;
-
-                            function playNewOrderSound() {
-                                try {
-                                    const AudioContext = window.AudioContext || window.webkitAudioContext;
-                                    if (!AudioContext) return;
-                                    const audioCtx = new AudioContext();
-                                    const oscillator = audioCtx.createOscillator();
-                                    const gainNode = audioCtx.createGain();
-                                    oscillator.type = 'triangle';
-                                    oscillator.frequency.setValueAtTime(880, audioCtx.currentTime);
-                                    gainNode.gain.setValueAtTime(0.001, audioCtx.currentTime);
-                                    gainNode.gain.exponentialRampToValueAtTime(0.1, audioCtx.currentTime + 0.01);
-                                    gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.6);
-                                    oscillator.connect(gainNode);
-                                    gainNode.connect(audioCtx.destination);
-                                    oscillator.start();
-                                    oscillator.stop(audioCtx.currentTime + 0.6);
-                                } catch (e) {
-                                    console.warn('Unable to play notification sound', e);
-                                }
-                            }
-
-                            function showBrowserNotification(count) {
-                                if (!("Notification" in window)) return;
-                                if (Notification.permission === "granted") {
-                                    const body = count === 1
-                                        ? "You have 1 new order to prepare."
-                                        : "You have " + count + " new orders to prepare.";
-                                    new Notification("New order received", { body: body });
-                                }
-                            }
-
-                            function goToOrdersTab() {
-                                const ordersTabLink = document.querySelector('[data-tab="orders"]');
-                                if (ordersTabLink) {
-                                    ordersTabLink.click();
-                                    // Force reload để lấy đơn mới nhất
-                                    loadOrders();
-                                }
-                            }
-
-                            function showOrderToast(count) {
-                                const msg = count === 1
-                                    ? 'There is 1 new order waiting for preparation.'
-                                    : 'There are ' + count + ' new orders waiting for preparation.';
-
-                                const existing = document.getElementById('__order-notif__');
-                                if (existing) existing.remove();
-
-                                const wrap = document.createElement('div');
-                                wrap.id = '__order-notif__';
-                                wrap.style.cssText =
-                                    'position:fixed;top:80px;right:20px;z-index:2147483647;width:320px;' +
-                                    'font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;' +
-                                    'opacity:0;transform:translateX(30px);transition:opacity 0.25s ease,transform 0.25s ease;';
-
-                                wrap.innerHTML =
-                                    '<div style="background:#fff;border-radius:14px;box-shadow:0 10px 30px rgba(15,23,42,.15);overflow:hidden;cursor:pointer;">' +
-                                    '  <div style="background:linear-gradient(135deg,#6366f1,#8b5cf6);padding:12px 14px;display:flex;align-items:center;justify-content:space-between;">' +
-                                    '    <div style="display:flex;align-items:center;gap:10px;">' +
-                                    '      <div style="background:rgba(255,255,255,.18);border-radius:12px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;">' +
-                                    '        <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6" stroke="white" stroke-width="2"/><path d="M16 10a4 4 0 0 1-8 0" stroke="white" stroke-width="2" fill="none"/></svg>' +
-                                    '      </div>' +
-                                    '      <div>' +
-                                    '        <div style="color:#fff;font-weight:700;font-size:.92rem;line-height:1.2;">New Order!</div>' +
-                                    '        <div style="color:rgba(255,255,255,.85);font-size:.75rem;">Tap to view orders</div>' +
-                                    '      </div>' +
-                                    '    </div>' +
-                                    '    <button id="__order-notif-close__" type="button" aria-label="Close" style="background:rgba(255,255,255,.18);border:none;color:#fff;width:28px;height:28px;border-radius:10px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;padding:0;">&times;</button>' +
-                                    '  </div>' +
-                                    '  <div style="padding:12px 14px 10px;">' +
-                                    '    <div style="color:#334155;font-size:.85rem;line-height:1.45;">' + msg + '</div>' +
-                                    '    <div style="margin-top:8px;display:flex;align-items:center;gap:6px;color:#6366f1;font-size:.78rem;font-weight:600;">' +
-                                    '      <span>View order list</span><span style="font-size:.95rem;">&#8594;</span>' +
-                                    '    </div>' +
-                                    '  </div>' +
-                                    '  <div style="padding:0 14px 12px;">' +
-                                    '    <div style="background:#e2e8f0;border-radius:999px;height:4px;overflow:hidden;">' +
-                                    '      <div id="__order-notif-bar__" style="height:100%;background:linear-gradient(90deg,#6366f1,#8b5cf6);width:100%;transition:width linear ' + TOAST_DURATION_MS + 'ms;"></div>' +
-                                    '    </div>' +
-                                    '  </div>' +
-                                    '</div>';
-
-                                document.body.appendChild(wrap);
-
-                                requestAnimationFrame(function () {
-                                    wrap.style.opacity = '1';
-                                    wrap.style.transform = 'translateX(0)';
-                                });
-
-                                let closed = false;
-                                function closeToast() {
-                                    if (closed) return;
-                                    closed = true;
-                                    wrap.style.opacity = '0';
-                                    wrap.style.transform = 'translateX(30px)';
-                                    setTimeout(function () {
-                                        if (wrap && wrap.parentNode) wrap.parentNode.removeChild(wrap);
-                                    }, 280);
-                                }
-
-                                const closeBtn = wrap.querySelector('#__order-notif-close__');
-                                if (closeBtn) {
-                                    closeBtn.addEventListener('click', function (e) {
-                                        e.stopPropagation();
-                                        closeToast();
-                                    });
-                                }
-
-                                wrap.addEventListener('click', function () {
-                                    goToOrdersTab();
-                                    closeToast();
-                                });
-
-                                const bar = wrap.querySelector('#__order-notif-bar__');
-                                if (bar) {
-                                    requestAnimationFrame(function () { bar.style.width = '0%'; });
-                                }
-
-                                setTimeout(closeToast, TOAST_DURATION_MS);
-                            }
-
-                            async function checkNewOrders() {
-                                try {
-                                    const ctxPath = '${pageContext.request.contextPath}';
-                                    const url = ctxPath + '/restaurant/order-notifications?lastOrderId=' + encodeURIComponent(lastOrderId);
-                                    const res = await fetch(url, { method: 'GET', credentials: 'same-origin', headers: { 'Accept': 'application/json' } });
-                                    if (!res.ok) return;
-                                    const data = await res.json();
-                                    if (!data || !data.success) return;
-
-                                    if (!initialized) {
-                                        if (typeof data.latestOrderId === 'number' && data.latestOrderId > 0) {
-                                            lastOrderId = data.latestOrderId;
-                                        }
-                                        initialized = true;
-                                        return;
-                                    }
-
-                                    if (typeof data.latestOrderId === 'number' && data.latestOrderId > lastOrderId) {
-                                        lastOrderId = data.latestOrderId;
-                                    }
-
-                                    if (data.hasNew && data.newOrdersCount > 0) {
-                                        playNewOrderSound();
-                                        showBrowserNotification(data.newOrdersCount);
-                                        showOrderToast(data.newOrdersCount);
-                                    }
-                                } catch (e) {
-                                    console.warn('Error while checking new orders', e);
-                                }
-                            }
-
-                            document.addEventListener('DOMContentLoaded', function () {
-                                if ("Notification" in window && Notification.permission === "default") {
-                                    Notification.requestPermission();
-                                }
-                                setTimeout(checkNewOrders, 3000);
-                                setInterval(checkNewOrders, POLL_INTERVAL_MS);
-                            });
-                        })();
-                    </script>
->>>>>>> Stashed changes
                 </body>
 
                 </html>

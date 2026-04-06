@@ -1,6 +1,7 @@
 package controllers;
 
 import dal.ComplaintDAO;
+import dal.ReviewDAO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -15,8 +16,11 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.List;
+import java.util.Set;
 import models.ComplaintView;
+import models.Review;
 import models.User;
+import utils.EmailService;
 
 /**
  * AdminComplaintController
@@ -31,6 +35,7 @@ import models.User;
  */
 @WebServlet(name = "AdminComplaintController", urlPatterns = {"/admin/complaints"})
 public class AdminComplaintController extends HttpServlet {
+    private static final Set<String> ALLOWED_STATUSES = Set.of("InProgress", "Resolved", "Rejected");
 
     /**
      * Handle GET requests
@@ -231,6 +236,13 @@ public class AdminComplaintController extends HttpServlet {
             // Pass data to view
             request.setAttribute("complaint", complaint);
 
+            Review orderReview = null;
+            Integer oid = complaint.getOrderID();
+            if (oid != null && oid > 0) {
+                orderReview = new ReviewDAO().getReviewByOrderId(oid);
+            }
+            request.setAttribute("orderReview", orderReview);
+
             // Forward to detail page
             request.getRequestDispatcher("/views/admin/complaint-detail.jsp")
                    .forward(request, response);
@@ -257,6 +269,8 @@ public class AdminComplaintController extends HttpServlet {
 
         String idStr = request.getParameter("id");
         String status = request.getParameter("status");
+        String note = request.getParameter("note");
+        String noteTrimmed = note == null ? "" : note.trim();
 
         // Validate ID
         if (idStr == null || idStr.trim().isEmpty()) {
@@ -268,6 +282,22 @@ public class AdminComplaintController extends HttpServlet {
         // Validate status
         if (status == null || status.trim().isEmpty()) {
             session.setAttribute("toastMessage", "Status is required");
+            session.setAttribute("toastType", "error");
+            response.sendRedirect(request.getContextPath() + "/admin/complaints?action=detail&id=" +
+                    URLEncoder.encode(idStr.trim(), StandardCharsets.UTF_8));
+            return;
+        }
+        status = status.trim();
+        if (!ALLOWED_STATUSES.contains(status)) {
+            session.setAttribute("toastMessage", "Invalid complaint status");
+            session.setAttribute("toastType", "error");
+            response.sendRedirect(request.getContextPath() + "/admin/complaints?action=detail&id=" +
+                    URLEncoder.encode(idStr.trim(), StandardCharsets.UTF_8));
+            return;
+        }
+        if (noteTrimmed.isEmpty()) {
+            session.setAttribute("toastMessage", "Admin note is required");
+            session.setAttribute("toastType", "error");
             response.sendRedirect(request.getContextPath() + "/admin/complaints?action=detail&id=" +
                     URLEncoder.encode(idStr.trim(), StandardCharsets.UTF_8));
             return;
@@ -277,6 +307,41 @@ public class AdminComplaintController extends HttpServlet {
             int id = Integer.parseInt(idStr.trim());
 
             ComplaintDAO dao = new ComplaintDAO();
+            ComplaintView complaint = dao.findById(id);
+            if (complaint == null) {
+                session.setAttribute("toastMessage", "Complaint not found");
+                session.setAttribute("toastType", "error");
+                response.sendRedirect(request.getContextPath() + "/admin/complaints?action=list");
+                return;
+            }
+
+            String ownerEmail = complaint.getRestaurantOwnerEmail();
+            String ownerName = complaint.getRestaurantOwnerName();
+            String restaurantName = complaint.getRestaurantName();
+
+            if (ownerEmail == null || ownerEmail.trim().isEmpty()) {
+                session.setAttribute("toastMessage", "Cannot send email because restaurant owner email is missing");
+                session.setAttribute("toastType", "error");
+                response.sendRedirect(request.getContextPath() + "/admin/complaints?action=detail&id=" +
+                        URLEncoder.encode(idStr.trim(), StandardCharsets.UTF_8));
+                return;
+            }
+
+            boolean emailSent = EmailService.sendComplaintStatusEmail(
+                    ownerEmail.trim(),
+                    ownerName,
+                    restaurantName,
+                    complaint.getComplaintID(),
+                    status,
+                    noteTrimmed
+            );
+            if (!emailSent) {
+                session.setAttribute("toastMessage", "Failed to send email to restaurant owner. Complaint status was not updated.");
+                session.setAttribute("toastType", "error");
+                response.sendRedirect(request.getContextPath() + "/admin/complaints?action=detail&id=" +
+                        URLEncoder.encode(idStr.trim(), StandardCharsets.UTF_8));
+                return;
+            }
 
             // Update complaint status
             boolean ok = dao.updateComplaintStatus(id, status);

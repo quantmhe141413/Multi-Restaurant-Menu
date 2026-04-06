@@ -40,12 +40,9 @@ public class OwnerOrderHistoryController extends HttpServlet {
             return;
         }
 
-        // Restaurant filter:
-        // - Owner (roleID 2): can view all restaurants or filter by owned restaurant
-        // - Staff (roleID 3): only sees their assigned restaurant
         RestaurantDAO restaurantDAO = new RestaurantDAO();
         Integer restaurantId = null;
-        boolean isAllRestaurants = false;
+        List<Integer> ownerRestaurantIds = null;
 
         if (user.getRoleID() == 3) {
             // Staff: must be assigned to a restaurant
@@ -57,46 +54,14 @@ public class OwnerOrderHistoryController extends HttpServlet {
                 return;
             }
             restaurantId = staffRestaurantId;
-            isAllRestaurants = false;
-
-            // Provide a single restaurant in dropdown list (UI may hide it for staff)
-            Restaurant r = restaurantDAO.getRestaurantById(restaurantId);
-            request.setAttribute("restaurants", r == null ? List.of() : List.of(r));
         } else {
-            // Owner: load owned restaurants for dropdown
+            // Owner: always filter by owned restaurants only
             List<Restaurant> ownerRestaurants = restaurantDAO.getRestaurantsByOwnerId(user.getUserID());
-            request.setAttribute("restaurants", ownerRestaurants);
-
-            String restaurantIdStr = request.getParameter("restaurantId");
-            if (restaurantIdStr == null || restaurantIdStr.trim().isEmpty() || "All".equalsIgnoreCase(restaurantIdStr.trim())) {
-                restaurantId = null;
-                isAllRestaurants = true;
-            } else {
-                try {
-                    int parsed = Integer.parseInt(restaurantIdStr.trim());
-                    boolean owned = false;
-                    for (Restaurant r : ownerRestaurants) {
-                        if (r.getRestaurantId() != null && r.getRestaurantId() == parsed) {
-                            owned = true;
-                            break;
-                        }
-                    }
-                    if (owned) {
-                        restaurantId = parsed;
-                        isAllRestaurants = false;
-                    } else {
-                        restaurantId = null;
-                        isAllRestaurants = true;
-                    }
-                } catch (NumberFormatException ignore) {
-                    restaurantId = null;
-                    isAllRestaurants = true;
-                }
-            }
+            ownerRestaurantIds = ownerRestaurants.stream()
+                    .map(Restaurant::getRestaurantId)
+                    .filter(id -> id != null)
+                    .collect(java.util.stream.Collectors.toList());
         }
-
-        request.setAttribute("selectedRestaurantId", restaurantId);
-        request.setAttribute("isAllRestaurants", isAllRestaurants);
 
         // Get filter parameters
         String fromDate = request.getParameter("fromDate");
@@ -121,11 +86,11 @@ public class OwnerOrderHistoryController extends HttpServlet {
         OrderDAO orderDAO = new OrderDAO();
 
         // Get revenue statistics
-        Map<String, Object> stats = orderDAO.getRevenueStatistics(restaurantId, fromDate, toDate);
+        Map<String, Object> stats = orderDAO.getRevenueStatistics(restaurantId, ownerRestaurantIds, fromDate, toDate);
 
         // Get orders with filters
-        List<Order> orders = orderDAO.getOrdersWithFilters(restaurantId, fromDate, toDate, status, page, PAGE_SIZE);
-        int totalOrders = orderDAO.countOrdersWithFilters(restaurantId, fromDate, toDate, status);
+        List<Order> orders = orderDAO.getOrdersWithFilters(restaurantId, ownerRestaurantIds, fromDate, toDate, status, page, PAGE_SIZE);
+        int totalOrders = orderDAO.countOrdersWithFilters(restaurantId, ownerRestaurantIds, fromDate, toDate, status);
         int totalPages = (int) Math.ceil((double) totalOrders / PAGE_SIZE);
 
         // Set attributes

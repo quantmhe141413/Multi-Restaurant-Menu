@@ -80,6 +80,10 @@ public class AdminRestaurantApplicationsController extends HttpServlet {
 
         if (statusFilter == null || statusFilter.trim().isEmpty()) {
             statusFilter = "Pending";
+        } else if ("all".equalsIgnoreCase(statusFilter.trim())) {
+            statusFilter = "";
+        } else {
+            statusFilter = statusFilter.trim();
         }
 
         int page = 1;
@@ -105,6 +109,7 @@ public class AdminRestaurantApplicationsController extends HttpServlet {
         request.setAttribute("currentPage", page);
         request.setAttribute("totalPages", totalPages);
         request.setAttribute("totalRestaurants", totalRestaurants);
+        request.setAttribute("currentStatus", statusFilter);
 
         request.getRequestDispatcher("/views/admin/restaurant-application-list.jsp").forward(request, response);
     }
@@ -141,7 +146,29 @@ public class AdminRestaurantApplicationsController extends HttpServlet {
                 return;
             }
             
-            boolean ok = restaurantDAO.updateRestaurantStatus(restaurantId, newStatus, reason);
+            boolean ok = false;
+
+            // For approval, require business license and essential info
+            if ("Approved".equalsIgnoreCase(newStatus)) {
+                // Check for business license upload
+                if (restaurant.getLicenseFileUrl() == null || restaurant.getLicenseFileUrl().trim().isEmpty()) {
+                    session.setAttribute("toastMessage", "Cannot approve: Business license document has not been uploaded by the owner.");
+                    session.setAttribute("toastType", "error");
+                    response.sendRedirect(request.getContextPath() + "/admin/restaurant-applications?action=detail&id=" + URLEncoder.encode(idStr.trim(), StandardCharsets.UTF_8));
+                    return;
+                }
+                // Check for essential information
+                if (restaurant.getName() == null || restaurant.getName().trim().isEmpty()
+                        || restaurant.getAddress() == null || restaurant.getAddress().trim().isEmpty()
+                        || restaurant.getLicenseNumber() == null || restaurant.getLicenseNumber().trim().isEmpty()) {
+                    session.setAttribute("toastMessage", "Cannot approve: Restaurant is missing essential information (Name, Address, or License Number).");
+                    session.setAttribute("toastType", "error");
+                    response.sendRedirect(request.getContextPath() + "/admin/restaurant-applications?action=detail&id=" + URLEncoder.encode(idStr.trim(), StandardCharsets.UTF_8));
+                    return;
+                }
+            }
+
+            ok = restaurantDAO.updateRestaurantStatus(restaurantId, newStatus, reason);
 
             if (ok) {
                 boolean emailSent = false;

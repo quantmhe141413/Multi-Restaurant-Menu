@@ -70,6 +70,13 @@
                                                             name="description" rows="5"
                                                             placeholder="Describe the ingredients, taste, and size...">${item.description}</textarea>
                                                     </div>
+
+                                                    <div class="mb-4">
+                                                        <label for="imageUrl" class="form-label">Image URL</label>
+                                                        <input type="text" class="form-control" id="imageUrl" name="imageUrl"
+                                                            value="${item.imageUrl}" placeholder="e.g. https://example.com/image.png">
+                                                        <small class="text-muted">Enter a direct link to the dish image.</small>
+                                                    </div>
                                                 </div>
 
                                                 <div class="col-md-5">
@@ -172,6 +179,39 @@
 
             <jsp:include page="/views/includes/footer.jsp" />
             <jsp:include page="/views/includes/std_scripts.jsp" />
+
+            <script>
+                document.addEventListener('DOMContentLoaded', function () {
+                    const form = document.getElementById('itemForm');
+                    const itemNameInput = document.getElementById('itemName');
+                    const priceInput = document.getElementById('price');
+                    const categoryInput = document.getElementById('categoryId');
+
+                    form.addEventListener('submit', function (event) {
+                        const itemName = itemNameInput.value.trim();
+                        const price = parseFloat(priceInput.value);
+                        const categoryId = categoryInput.value;
+
+                        if (itemName === '') {
+                            event.preventDefault();
+                            Swal.fire('Validation Error', 'Item name is required.', 'warning');
+                            return;
+                        }
+
+                        if (isNaN(price) || price < 0) {
+                            event.preventDefault();
+                            Swal.fire('Validation Error', 'Price must be a positive number.', 'warning');
+                            return;
+                        }
+
+                        if (categoryId === '') {
+                            event.preventDefault();
+                            Swal.fire('Validation Error', 'Please select a category.', 'warning');
+                            return;
+                        }
+                    });
+                });
+            </script>
         </body>
 
         </html>

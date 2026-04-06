@@ -117,7 +117,7 @@ public class PaymentReturnServlet extends HttpServlet {
                     int orderId = extractOrderIdFromTxnRef(vnp_TxnRef);
                     if (orderId > 0) {
                         // Update order payment status to paid
-                        dao.updateOrderPaymentStatus(orderId, "Paid", new Timestamp(System.currentTimeMillis()));
+                        dao.updateOrderPaymentStatus(orderId, "Success", new Timestamp(System.currentTimeMillis()));
                         
                         // Clear cart from session
                         request.getSession().setAttribute("cart", new HashMap<Integer, Integer>());
