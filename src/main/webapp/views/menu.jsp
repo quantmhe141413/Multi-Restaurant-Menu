@@ -496,25 +496,6 @@
                 <div class="row align-items-center">
                     <div class="col-auto">
                         <c:choose>
-                            <c:when test="${not empty restaurant.logoUrl}">
-                                <img src="${restaurant.logoUrl}" alt="${restaurant.name}"
-                                     class="restaurant-logo">
-                            </c:when>
-                            <c:otherwise>
-                                <img src="https://via.placeholder.com/100?text=Logo" alt="${restaurant.name}"
-                                     class="restaurant-logo">
-                            </c:otherwise>
-                        </c:choose>
-                    </div>
-                    <div class="col">
-                        <div class="restaurant-info">
-                            <h1>${restaurant.name}</h1>
-                            <p class="mb-2">
-                                <i class="fas fa-map-marker-alt"></i> ${restaurant.address}
-                            </p>
-                            <div>
-                                <c:choose>
-<<<<<<< Updated upstream
                                     <c:when test="${not empty restaurant.logoUrl}">
                                         <img src="${restaurant.logoUrl}" alt="${restaurant.name}"
                                             class="restaurant-logo">
@@ -527,7 +508,7 @@
                             </div>
                             <div class="col">
                                 <div class="restaurant-info">
-                                    <h1>${restaurant.name}</h1>
+                                    <h1>${restaurant.name}</h1> 
                                     <p class="mb-2">
                                         <i class="fas fa-map-marker-alt"></i> ${restaurant.address}
                                     </p>
