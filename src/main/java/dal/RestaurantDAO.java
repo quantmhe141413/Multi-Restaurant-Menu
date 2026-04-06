@@ -455,8 +455,9 @@ public class RestaurantDAO extends DBContext {
     public List<Restaurant> getApprovedRestaurants(String search, String zone, String cuisine, int page, int pageSize) {
         List<Restaurant> list = new ArrayList<>();
         StringBuilder sql = new StringBuilder();
-        sql.append("SELECT DISTINCT r.* FROM Restaurants r ");
+        sql.append("SELECT DISTINCT r.*, rv.AvgR FROM Restaurants r ");
         sql.append("LEFT JOIN RestaurantDeliveryZones dz ON r.RestaurantID = dz.RestaurantID ");
+        sql.append("left join (select RestaurantID, count(*) as AvgR from Reviews group by RestaurantID) rv on r.RestaurantID = rv.RestaurantID ");
         sql.append("WHERE r.Status = 'Approved'");
         List<String> params = new ArrayList<>();
 
@@ -470,7 +471,7 @@ public class RestaurantDAO extends DBContext {
             params.add(zone.trim());
         }
 
-        sql.append(" ORDER BY r.Name ");
+        sql.append(" ORDER BY rv.AvgR DESC, r.Name ");
         sql.append("OFFSET ? ROWS FETCH NEXT ? ROWS ONLY");
         
         try {
