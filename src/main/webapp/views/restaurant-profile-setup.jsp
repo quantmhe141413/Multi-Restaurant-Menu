@@ -15,7 +15,47 @@
             <main class="auth-layout">
                 <div class="auth-card" style="max-width: 600px;">
                     <h1>Restaurant Profile Setup</h1>
-                    <p class="text-center text-muted mb-4">Hãy cho chúng tôi biết về nhà hàng của bạn để bắt đầu.</p>
+                    
+                    <c:if test="${not empty restaurant}">
+                        <div class="d-flex justify-content-center mb-4">
+                            <c:choose>
+                                <c:when test="${restaurant.status == 'Approved'}">
+                                    <div class="badge-status approved">
+                                        <i class="fas fa-check-circle"></i> Đã phê duyệt
+                                    </div>
+                                </c:when>
+                                <c:when test="${restaurant.status == 'Rejected'}">
+                                    <div class="badge-status rejected">
+                                        <i class="fas fa-times-circle"></i> Bị từ chối
+                                    </div>
+                                </c:when>
+                                <c:otherwise>
+                                    <div class="badge-status pending">
+                                        <i class="fas fa-clock"></i> Đang chờ phê duyệt
+                                    </div>
+                                </c:otherwise>
+                            </c:choose>
+                        </div>
+                    </c:if>
+
+                    <c:choose>
+                        <c:when test="${restaurant.status == 'Approved'}">
+                             <div class="alert alert-success mt-2 mb-4 text-center">
+                                <i class="fas fa-check me-2"></i> Hồ sơ của bạn đã được duyệt. Bạn có thể quản lý nhà hàng ngay bây giờ!
+                                <div class="mt-2">
+                                    <a href="${pageContext.request.contextPath}/restaurant-analytics-dashboard" class="btn btn-sm btn-success text-white">Đi đến trang quản lý</a>
+                                </div>
+                            </div>
+                        </c:when>
+                        <c:when test="${not empty restaurant.licenseFileUrl}">
+                            <div class="alert alert-warning mt-2 mb-4 text-center">
+                                <i class="fas fa-info-circle me-2"></i> Bạn đã gửi hồ sơ! Chức năng quản lý món ăn sẽ mở sau khi Admin phê duyệt.
+                            </div>
+                        </c:when>
+                        <c:otherwise>
+                            <p class="text-center text-muted mb-4">Hãy cho chúng tôi biết về nhà hàng của bạn để bắt đầu.</p>
+                        </c:otherwise>
+                    </c:choose>
 
                     <form method="post" action="restaurant-profile-setup" enctype="multipart/form-data">
                         <div class="form-group">
@@ -43,8 +83,20 @@
 
                         <div class="form-group mb-4">
                             <label><i class="fas fa-file-upload me-2"></i> Giấy phép kinh doanh (Bắt buộc)</label>
-                            <input type="file" name="licenseFile" class="form-control mt-2" accept=".jpg,.jpeg,.png,.pdf" required>
-                            <small class="text-muted d-block mt-1">Vui lòng tải lên ảnh hoặc PDF giấy phép kinh doanh của bạn.</small>
+                            
+                            <c:if test="${not empty restaurant.licenseFileUrl}">
+                                <div class="mb-2">
+                                    <a href="${pageContext.request.contextPath}${restaurant.licenseFileUrl}" target="_blank" class="license-view-btn">
+                                        <i class="fas fa-file-alt"></i> Xem giấy phép hiện tại
+                                    </a>
+                                </div>
+                            </c:if>
+
+                            <input type="file" name="licenseFile" class="form-control mt-2" accept=".jpg,.jpeg,.png,.pdf" 
+                                   ${not empty restaurant.licenseFileUrl ? '' : 'required'}>
+                            <small class="text-muted d-block mt-1">
+                                ${not empty restaurant.licenseFileUrl ? 'Tải lên tệp mới nếu bạn muốn thay đổi.' : 'Vui lòng tải lên ảnh hoặc PDF giấy phép kinh doanh của bạn.'}
+                            </small>
                         </div>
 
                         <div class="mt-4">
@@ -100,7 +152,9 @@
                             Swal.fire('Thiếu thông tin', 'Vui lòng nhập mã số giấy phép kinh doanh.', 'warning');
                             return;
                         }
-                        if (fileInput.files.length === 0) {
+
+                        const hasExistingFile = "${not empty restaurant.licenseFileUrl}";
+                        if (fileInput.files.length === 0 && hasExistingFile !== "true") {
                             event.preventDefault();
                             Swal.fire('Thiếu hồ sơ', 'Vui lòng tải lên giấy phép kinh doanh.', 'warning');
                             return;

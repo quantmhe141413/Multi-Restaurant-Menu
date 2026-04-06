@@ -29,11 +29,15 @@ public class RestaurantProfileSetupController extends HttpServlet {
             if (user != null) {
                 RestaurantDAO dao = new RestaurantDAO();
                 models.Restaurant r = dao.getRestaurantByOwnerId(user.getUserID());
-                // If restaurant exists AND has a license file, redirect to dashboard
-                if (r != null && r.getLicenseFileUrl() != null && !r.getLicenseFileUrl().isEmpty()) {
+                // Only redirect to dashboard if status is Approved
+                if (r != null && "Approved".equalsIgnoreCase(r.getStatus())) {
                     session.setAttribute("restaurantId", r.getRestaurantId());
                     response.sendRedirect("restaurant-analytics-dashboard");
                     return;
+                }
+                
+                if ("1".equals(request.getParameter("success"))) {
+                    request.setAttribute("success", "Hồ sơ đã được gửi! Vui lòng chờ Admin phê duyệt.");
                 }
                 // Pre-fill restaurant data if it exists
                 if (r != null) {
@@ -58,8 +62,8 @@ public class RestaurantProfileSetupController extends HttpServlet {
         RestaurantDAO restaurantDAO = new RestaurantDAO();
         models.Restaurant existing = restaurantDAO.getRestaurantByOwnerId(ownerId);
         
-        // If already has license, redirect
-        if (existing != null && existing.getLicenseFileUrl() != null && !existing.getLicenseFileUrl().isEmpty()) {
+        // If already Approved, redirect to dashboard
+        if (existing != null && "Approved".equalsIgnoreCase(existing.getStatus())) {
             session.setAttribute("restaurantId", existing.getRestaurantId());
             response.sendRedirect("restaurant-analytics-dashboard");
             return;
@@ -135,7 +139,7 @@ public class RestaurantProfileSetupController extends HttpServlet {
             e.printStackTrace();
         }
 
-        // Redirect to dashboard after successful setup
-        response.sendRedirect(request.getContextPath() + "/restaurant-analytics-dashboard");
+        // Redirect back to profile setup with success message
+        response.sendRedirect(request.getContextPath() + "/restaurant-profile-setup?success=1");
     }
 }
